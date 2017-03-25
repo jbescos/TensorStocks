@@ -24,7 +24,6 @@ public class DemoApplication {
 		for(File file : files){
 			log.debug("Included: "+file.getAbsolutePath());
 		}
-		log.debug("Loading library folder: "+System.getProperty("java.library.path"));
 		log.debug("I'm using TensorFlow version: " +  TensorFlow.version());
 	}
 }

@@ -35,7 +35,7 @@ public class LabelImage {
 		s.println("<image file> is the path to a JPEG image file");
 	}
 
-	public static void test(String[] args) {
+	public static String test(String[] args) {
 		if (args.length != 2) {
 			printUsage(System.err);
 			System.exit(1);
@@ -50,8 +50,7 @@ public class LabelImage {
 		try (Tensor image = constructAndExecuteGraphToNormalizeImage(imageBytes)) {
 			float[] labelProbabilities = executeInceptionGraph(graphDef, image);
 			int bestLabelIdx = maxIndex(labelProbabilities);
-			System.out.println(String.format("BEST MATCH: %s (%.2f%% likely)", labels.get(bestLabelIdx),
-					labelProbabilities[bestLabelIdx] * 100f));
+			return labels.get(bestLabelIdx) + " Probability: "+ (labelProbabilities[bestLabelIdx] * 100f);
 		}
 	}
 
