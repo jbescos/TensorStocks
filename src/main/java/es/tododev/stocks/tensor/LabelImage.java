@@ -1,4 +1,4 @@
-package es.tododev.stocks;
+package es.tododev.stocks.tensor;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -35,7 +35,7 @@ public class LabelImage {
 		s.println("<image file> is the path to a JPEG image file");
 	}
 
-	public static void main(String[] args) {
+	public static void test(String[] args) {
 		if (args.length != 2) {
 			printUsage(System.err);
 			System.exit(1);

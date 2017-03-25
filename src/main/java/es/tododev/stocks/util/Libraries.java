@@ -1,4 +1,4 @@
-package es.tododev.stocks;
+package es.tododev.stocks.util;
 
 import java.io.File;
 import java.io.FileOutputStream;
