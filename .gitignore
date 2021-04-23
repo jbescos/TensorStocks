@@ -1,4 +1,5 @@
 *.class
+.pydevproject
 .project
 .classpath
 .settings/*
