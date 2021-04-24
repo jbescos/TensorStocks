@@ -14,16 +14,17 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
-public class Chart {
+public class LineChart implements IChart {
 
 	private final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 	private final DateFormat dateFormat;
 	private int width;
 	
-	public Chart(String dateFormat) {
+	public LineChart(String dateFormat) {
 		this.dateFormat = new SimpleDateFormat(dateFormat);
 	}
 
+	@Override
 	public void add(String lineLabel, List<CsvRow> data) {
 		Set<String> horizontal = new HashSet<>();
 		for (CsvRow row : data) {
@@ -36,6 +37,7 @@ public class Chart {
 		}
 	}
 
+	@Override
 	public void save(String filePath, String title, String horizontalLabel, String verticalLabel) throws IOException {
 		JFreeChart histogram = ChartFactory.createLineChart(title, horizontalLabel, verticalLabel, dataset,
 				PlotOrientation.VERTICAL, true, true, true);
