@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-data = pd.read_csv('C:/Users/jorge/Downloads/bitstampUSD_1-min_data_2012-01-01_to_2021-03-31.csv')
+data = pd.read_csv('C:/workspace/TensorStocks/data/Bitcoin/2021-04.csv')
 
 data['date'] = pd.to_datetime(data['Timestamp'], unit='s').dt.date
 

@@ -35,11 +35,11 @@ public class CsvParser {
 		return rows;
 	}
 	
-	public static List<CsvRow> getRows(File csv, Date from, Date to) throws IOException {
+	public static List<CsvRow> getRows(File csv, Date from, Date to, int colValueIndex) throws IOException {
 		List<CsvRow> data = getRows(csv, true, Integer.MAX_VALUE, line -> {
 			String[] columns = line.split(",");
 			String timestamp = columns[0];
-			String value = columns[1];
+			String value = columns[colValueIndex];
 			Date date = new Date(Long.parseLong(timestamp) * 1000);
 			if (date.getTime() >= from.getTime() && date.getTime() <= to.getTime()) {
 				CsvRow row = new CsvRow(date, Double.parseDouble(value));

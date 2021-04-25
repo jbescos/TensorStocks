@@ -34,8 +34,12 @@ public class CsvGenerator {
 						Collectors.groupingBy(item -> MONTH_FORMAT.format(Utils.fromTimestamp(item.getDate()))));
 				for (Entry<String, List<PriceItem>> perMonth : grouped.entrySet()) {
 					StringBuilder builder = new StringBuilder();
+					builder.append("date,adjclose,open,high,low,close,volume\n");
 					for (PriceItem item : perMonth.getValue()) {
-						builder.append(item.getDate()).append(",").append(item.getAdjclose()).append("\n");
+						builder.append(item.getDate()).append(",").append(item.getAdjclose()).append(",")
+								.append(item.getOpen()).append(",").append(item.getHigh()).append(",")
+								.append(item.getLow()).append(",").append(item.getClose()).append(",")
+								.append(item.getVolume()).append("\n");
 					}
 					File resultsFile = new File(folder, perMonth.getKey() + ".csv");
 					Utils.writeInFile(resultsFile, builder.toString());

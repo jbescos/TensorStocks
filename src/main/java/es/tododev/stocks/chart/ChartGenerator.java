@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -19,25 +18,43 @@ public class ChartGenerator {
 	
 	public void generateChart(Date from, Date to, String dateFormat) throws IOException {
 		DateFormat format = new SimpleDateFormat(dateFormat);
-//		IChart chart = new LineChart(dateFormat);
-		IChart chart = new XYChart();
+
 		if (!csvRootFolder.isDirectory()) {
 			throw new IllegalArgumentException(csvRootFolder.getAbsolutePath() + " is not a directory");
 		}
 		File[] symbols = csvRootFolder.listFiles();
 		for (File symbol : symbols) {
 			if (symbol.isDirectory()) {
-				List<CsvRow> total = new LinkedList<>();
-				for (File child : symbol.listFiles()) {
-					if (child.getName().endsWith(".csv")) {
-						total.addAll(CsvParser.getRows(child, from, to));
-					}
-				}
-				Collections.sort(total, (row1, row2) -> row1.getDate().compareTo(row2.getDate()));
-				chart.add(symbol.getName(), total);
+//				IChart chart = new LineChart(dateFormat);
+				IChart chart = new XYChart();
+				addInChart(chart, symbol, from, to, CsvColumns.adjclose);
+				addInChart(chart, symbol, from, to, CsvColumns.open);
+				addInChart(chart, symbol, from, to, CsvColumns.high);
+				addInChart(chart, symbol, from, to, CsvColumns.low);
+				addInChart(chart, symbol, from, to, CsvColumns.close);
+				chart.save(csvRootFolder.getAbsolutePath() + "/" + symbol.getName() + ".png", symbol.getName(), "From " + format.format(from), "USD");
 			}
 		}
-		chart.save(csvRootFolder.getAbsolutePath() + "/chart.png", "Summary", "From " + format.format(from) + " to " + format.format(to), "USD");
+	}
+	
+	private void addInChart(IChart chart, File symbol, Date from, Date to, CsvColumns column) throws IOException {
+		List<CsvRow> total = new LinkedList<>();
+		for (File child : symbol.listFiles()) {
+			if (child.getName().endsWith(".csv")) {
+				total.addAll(CsvParser.getRows(child, from, to, column.columnIdx));
+			}
+		}
+		chart.add(symbol.getName() + "-" + column.name(), total);
+	}
+	
+	private static enum CsvColumns {
+		date(0), adjclose(1), open(2), high(3), low(4), close(5), volume(6);
+		
+		private final int columnIdx;
+		
+		private CsvColumns(int columnIdx) {
+			this.columnIdx = columnIdx;
+		}
 	}
 	
 }

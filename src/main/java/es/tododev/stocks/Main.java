@@ -1,7 +1,6 @@
 package es.tododev.stocks;
 
 import java.io.File;
-import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,6 +20,7 @@ public class Main {
 	private static final String ARG_CSV_FOLDER = "-csvFolder";
 	private static final String ARG_GENERATE_CHART = "-generateChart";
 	private static final String ARG_FROM = "-from";
+	private static final String ARG_CREATEMODEL = "-createModel";
 	
 	public static void main(String[] args) throws Exception {
 		parseArguments(args);
@@ -46,7 +46,9 @@ public class Main {
 			File csvRootFolder = new File(requireArg(args, 1, ARG_CSV_FOLDER, true));
 			String from = requireArg(args, 3, ARG_FROM, true);
 			ChartGenerator chartGenerator = new ChartGenerator(csvRootFolder);
-			chartGenerator.generateChart(DATE_FORMAT.parse(from), new Date(), "yyyy-MM-dd");
+			chartGenerator.generateChart(DATE_FORMAT.parse(from), new Date(Long.MAX_VALUE), "yyyy-MM-dd");
+		} else if (ARG_CREATEMODEL.equals(first)) {
+
 		} else {
 			throw new IllegalArgumentException("Unkown argument: " + first + ". Run -help to see the options.");
 		}
@@ -72,5 +74,6 @@ public class Main {
 			}
 		}
 	}
+
 
 }
