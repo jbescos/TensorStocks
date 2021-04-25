@@ -7,13 +7,14 @@ import java.util.Date;
 import java.util.Properties;
 
 import es.tododev.stocks.chart.ChartGenerator;
+import es.tododev.stocks.model.IModel;
+import es.tododev.stocks.model.SimpleModel;
 import es.tododev.stocks.utils.Utils;
 import es.tododev.stocks.yahoo.CsvGenerator;
 
 public class Main {
 
 	private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-	private static final String SYMBOLS_PROPERTIES = "/symbols.properties";
 	private static final String ARG_GENERATE_CSV = "-generateCsv";
 	private static final String ARG_HELP = "-help";
 	private static final String ARG_YAHOO_API_KEY = "-yahooApiKey";
@@ -37,9 +38,8 @@ public class Main {
 			// -generateCsv -yahooApiKey XXXXXX -csvFolder data
 			String yahooApiKey = requireArg(args, 1, ARG_YAHOO_API_KEY, true);
 			File output = new File(requireArg(args, 3, ARG_CSV_FOLDER, true));
-			Properties symbols = Utils.fromClasspath(SYMBOLS_PROPERTIES);
 			CsvGenerator csvGenerator = new CsvGenerator(yahooApiKey);
-			csvGenerator.generateCsv(symbols, output);
+			csvGenerator.generateCsv(Utils.getSymbols(), output);
 			System.out.println("CSVs generated under " + output.getAbsolutePath());
 		} else if (ARG_GENERATE_CHART.equals(first)) {
 			// -generateChart -csvFolder data -from 2021-01-01
@@ -48,7 +48,10 @@ public class Main {
 			ChartGenerator chartGenerator = new ChartGenerator(csvRootFolder);
 			chartGenerator.generateChart(DATE_FORMAT.parse(from), new Date(Long.MAX_VALUE), "yyyy-MM-dd");
 		} else if (ARG_CREATEMODEL.equals(first)) {
-
+			// -createModel -csvFolder data
+			File csvRootFolder = new File(requireArg(args, 1, ARG_CSV_FOLDER, true));
+			IModel model = new SimpleModel(csvRootFolder);
+			model.generateModel();
 		} else {
 			throw new IllegalArgumentException("Unkown argument: " + first + ". Run -help to see the options.");
 		}

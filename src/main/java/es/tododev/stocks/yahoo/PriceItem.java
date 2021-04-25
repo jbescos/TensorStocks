@@ -1,5 +1,7 @@
 package es.tododev.stocks.yahoo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 public class PriceItem {
 
 	private long date; // Timestamp
@@ -9,6 +11,9 @@ public class PriceItem {
 	private double close;
 	private long volume;
 	private double adjclose;
+	@JsonIgnore
+	// Does not come from REST rquest, but it is populated by us
+	private int symbol;
 
 	public long getDate() {
 		return date;
@@ -52,9 +57,11 @@ public class PriceItem {
 	public void setAdjclose(double adjclose) {
 		this.adjclose = adjclose;
 	}
-	@Override
-	public String toString() {
-		return "PriceItem [date=" + date + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close
-				+ ", volume=" + volume + ", adjclose=" + adjclose + "]";
+	public int getSymbol() {
+		return symbol;
 	}
+	public void setSymbol(int symbol) {
+		this.symbol = symbol;
+	}
+
 }

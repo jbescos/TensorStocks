@@ -41,20 +41,10 @@ public class ChartGenerator {
 		List<CsvRow> total = new LinkedList<>();
 		for (File child : symbol.listFiles()) {
 			if (child.getName().endsWith(".csv")) {
-				total.addAll(CsvParser.getRows(child, from, to, column.columnIdx));
+				total.addAll(CsvParser.getRows(child, from, to, column.getColumnIdx()));
 			}
 		}
 		chart.add(symbol.getName() + "-" + column.name(), total);
-	}
-	
-	private static enum CsvColumns {
-		date(0), adjclose(1), open(2), high(3), low(4), close(5), volume(6);
-		
-		private final int columnIdx;
-		
-		private CsvColumns(int columnIdx) {
-			this.columnIdx = columnIdx;
-		}
 	}
 	
 }

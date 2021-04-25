@@ -8,7 +8,6 @@ import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import es.tododev.stocks.utils.Utils;
@@ -22,10 +21,11 @@ public class CsvGenerator {
 		yahooAPI = new YahooAPI(yahooApiKey);
 	}
 
-	public void generateCsv(Properties symbols, File resultFolder) throws IOException {
-		for (Entry<Object, Object> entry : symbols.entrySet()) {
-			String key = (String) entry.getKey();
-			String value = (String) entry.getValue();
+	public void generateCsv(Map<String, String> symbols, File resultFolder) throws IOException {
+		for (Entry<String, String> entry : symbols.entrySet()) {
+			String key = entry.getKey();
+			String value = entry.getValue();
+			int symbolId = Utils.getSymbol(value);
 			File folder = new File(resultFolder, key);
 			try {
 				folder.mkdirs();
@@ -34,12 +34,12 @@ public class CsvGenerator {
 						Collectors.groupingBy(item -> MONTH_FORMAT.format(Utils.fromTimestamp(item.getDate()))));
 				for (Entry<String, List<PriceItem>> perMonth : grouped.entrySet()) {
 					StringBuilder builder = new StringBuilder();
-					builder.append("date,adjclose,open,high,low,close,volume\n");
+					builder.append("date,adjclose,open,high,low,close,volume,symbol\n");
 					for (PriceItem item : perMonth.getValue()) {
 						builder.append(item.getDate()).append(",").append(item.getAdjclose()).append(",")
 								.append(item.getOpen()).append(",").append(item.getHigh()).append(",")
 								.append(item.getLow()).append(",").append(item.getClose()).append(",")
-								.append(item.getVolume()).append("\n");
+								.append(item.getVolume()).append(",").append(symbolId).append("\n");
 					}
 					File resultsFile = new File(folder, perMonth.getKey() + ".csv");
 					Utils.writeInFile(resultsFile, builder.toString());
@@ -52,5 +52,4 @@ public class CsvGenerator {
 			}
 		}
 	}
-
 }

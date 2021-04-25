@@ -11,8 +11,8 @@ import java.util.function.Function;
 
 public class CsvParser {
 
-	public static List<CsvRow> getRows(File csv, boolean skipFirstLine, int limit, Function<String, CsvRow> parser) throws IOException {
-		List<CsvRow> rows = new ArrayList<>();
+	public static <T> List<T> getRows(File csv, boolean skipFirstLine, int limit, Function<String, T> parser) throws IOException {
+		List<T> rows = new ArrayList<>();
 		int i = 0;
 		try (FileReader fr = new FileReader(csv); BufferedReader br = new BufferedReader(fr)) {
 			String line;  
@@ -21,7 +21,7 @@ public class CsvParser {
 					if (skipFirstLine) {
 						skipFirstLine = false;
 					} else {
-						CsvRow row = parser.apply(line);
+						T row = parser.apply(line);
 						if (row != null) {
 							i++;
 							rows.add(row);
