@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,6 +23,7 @@ public class CsvGenerator {
 	}
 
 	public void generateCsv(Map<String, String> symbols, File resultFolder) throws IOException {
+		String currentMonth = MONTH_FORMAT.format(new Date());
 		for (Entry<String, String> entry : symbols.entrySet()) {
 			String key = entry.getKey();
 			String value = entry.getValue();
@@ -42,7 +44,10 @@ public class CsvGenerator {
 								.append(item.getVolume()).append(",").append(symbolId).append("\n");
 					}
 					File resultsFile = new File(folder, perMonth.getKey() + ".csv");
-					Utils.writeInFile(resultsFile, builder.toString());
+					// Write file if does not exist or it is the current month
+					if (!resultsFile.exists() || currentMonth.equals(perMonth.getKey())) {
+						Utils.writeInFile(resultsFile, builder.toString());
+					}
 				}
 			} catch (Exception e) {
 				File error = new File(folder, "error.log");
