@@ -2,6 +2,7 @@ package es.tododev.stocks.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +51,18 @@ public class Utils {
 		Properties prop = new Properties();
 		try (InputStream in = Utils.class.getResourceAsStream(properties)) {
 			prop.load(in);
+		}
+		return prop;
+	}
+
+	public static Properties fromPath(String path) throws IOException {
+		File file = new File(path);
+		if (!file.exists()) {
+			throw new IllegalArgumentException(path + " was not found");
+		}
+		Properties prop = new Properties();
+		try (FileInputStream stream = new FileInputStream(path)) { 
+			prop.load(new FileInputStream(path));
 		}
 		return prop;
 	}

@@ -6,6 +6,9 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+import es.tododev.stocks.binance.BinanceAPI;
+import es.tododev.stocks.binance.BinanceBot;
+import es.tododev.stocks.binance.OperatorAPI;
 import es.tododev.stocks.chart.ChartGenerator;
 import es.tododev.stocks.model.IModel;
 import es.tododev.stocks.model.SimpleModel;
@@ -22,6 +25,8 @@ public class Main {
 	private static final String ARG_GENERATE_CHART = "-generateChart";
 	private static final String ARG_FROM = "-from";
 	private static final String ARG_CREATEMODEL = "-createModel";
+	private static final String ARG_BINANCE_BOT = "-binanceBot";
+	private static final String ARG_CREDENTIALS = "-credentials";
 	
 	public static void main(String[] args) throws Exception {
 		parseArguments(args);
@@ -52,6 +57,14 @@ public class Main {
 			File csvRootFolder = new File(requireArg(args, 1, ARG_CSV_FOLDER, true));
 			IModel model = new SimpleModel(csvRootFolder);
 			model.generateModel();
+		} else if (ARG_BINANCE_BOT.equals(first)) {
+			String credentials = requireArg(args, 1, ARG_CREDENTIALS, true);
+			Properties properties = Utils.fromPath(credentials);
+			OperatorAPI api = BinanceAPI.create(properties.getProperty("api.key"), properties.getProperty("private.key"));
+			properties.clear();
+			credentials = "";
+			BinanceBot bot = new BinanceBot(api);
+			bot.run();
 		} else {
 			throw new IllegalArgumentException("Unkown argument: " + first + ". Run -help to see the options.");
 		}
