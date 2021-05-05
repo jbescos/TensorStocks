@@ -10,4 +10,5 @@ bin/*
 *.war
 *.ear
 *.log
-/target/
+*.zip
+*target/
