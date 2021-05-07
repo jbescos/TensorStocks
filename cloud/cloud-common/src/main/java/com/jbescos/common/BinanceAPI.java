@@ -8,14 +8,12 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.glassfish.jersey.client.ClientConfig;
-
 public final class BinanceAPI {
 
 	private static final String URL = "https://api.binance.com";
 
 	public static <T> T get(String path, String query, GenericType<T> type) {
-		Client client = ClientBuilder.newClient(new ClientConfig());
+		Client client = ClientBuilder.newClient();
 		if (query != null) {
 			path = path + "?" + query;
 		}

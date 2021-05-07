@@ -1,4 +1,4 @@
-package com.jbescos.common;
+package com.jbescos.test;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Test;
+
+import com.jbescos.common.CsvUtil;
 
 public class CsvUtilTest {
 

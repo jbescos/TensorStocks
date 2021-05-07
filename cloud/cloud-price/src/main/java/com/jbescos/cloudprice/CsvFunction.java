@@ -1,8 +1,6 @@
 package com.jbescos.cloudprice;
 
-import java.text.DateFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -12,10 +10,11 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.DataBase;
+import com.jbescos.common.Utils;
 
+//Entry: com.jbescos.cloudprice.CsvFunction
 public class CsvFunction implements HttpFunction {
 
-	private static final DateFormat FORMAT = new SimpleDateFormat("dd-MM-yyyy");
 	private static final String FROM_PARAM = "from";
 	private static final String TO_PARAM = "to";
 
@@ -51,7 +50,7 @@ public class CsvFunction implements HttpFunction {
 		if (values == null || values.isEmpty()) {
 			return defaultDate;
 		} else {
-			return FORMAT.parse(values.get(0));
+			return Utils.FORMAT.parse(values.get(0));
 		}
 	}
 }

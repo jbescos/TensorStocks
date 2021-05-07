@@ -1,7 +1,6 @@
 package com.jbescos.common;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -14,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+// CREATE TABLE PRICE_HISTORY (SYMBOL varchar(255), PRICE varchar(255), DATE datetime(3));
+// CREATE INDEX IDX_DATE ON PRICE_HISTORY (DATE); 
 public class DataBase {
 
 	private static final String USER;
@@ -23,7 +24,7 @@ public class DataBase {
 
 	static {
 		try {
-			Properties properties = fromClasspath("/database.properties");
+			Properties properties = Utils.fromClasspath("/database.properties");
 			USER = properties.getProperty("database.user");
 			PASSWORD = properties.getProperty("database.password");
 			URL = properties.getProperty("database.url");
@@ -71,11 +72,4 @@ public class DataBase {
 		}
 	}
 
-	private static Properties fromClasspath(String properties) throws IOException {
-		Properties prop = new Properties();
-		try (InputStream in = DataBase.class.getResourceAsStream(properties)) {
-			prop.load(in);
-		}
-		return prop;
-	}
 }
