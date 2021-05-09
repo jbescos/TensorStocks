@@ -2,11 +2,12 @@ package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,13 +36,13 @@ public class CsvUtilTest {
 			CsvUtil.writeCsv(Arrays.asList(entry, entry), ',', output);
 		}
 		List<Map<String, String>> read = null;
-		try (InputStream input = new FileInputStream(file)) {
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
 			read = CsvUtil.readCsv(true, ",", columns -> {
 				Map<String, String> row = new HashMap<>();
 				row.put("k1", columns[0]);
 				row.put("k2", columns[1]);
 				return row;
-			}, input);
+			}, reader);
 		}
 		assertEquals(1, read.size());
 		assertEquals("v1", read.get(0).get("k1"));

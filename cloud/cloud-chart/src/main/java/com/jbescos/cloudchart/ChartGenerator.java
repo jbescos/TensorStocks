@@ -1,7 +1,7 @@
 package com.jbescos.cloudchart;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.util.List;
@@ -33,19 +33,25 @@ public class ChartGenerator {
 		}
 	}
 
-	public static void writeChart(OutputStream output) throws IOException {
-		List<CsvRow> csv = null;
+	public static void writeChart(OutputStream output, List<String> selection) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		// FIXME does not work
-		try (ReadChannel reader = storage.reader(BUCKET, TOTAL_FILE)) {
-			InputStream input = Channels.newInputStream(reader);
-			csv = CsvUtil.readCsv(true, ",", columns -> new CsvRow(Utils.fromString(Utils.FORMAT_SECOND, columns[0]), columns[1].replaceFirst("USDT", ""), Double.parseDouble(columns[2])), input);
-		}
-		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-		csv = null;
 		IChart chart = new XYChart();
-		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
-			chart.add(entry.getKey(), entry.getValue());
+		try (ReadChannel readChannel = storage.reader(BUCKET, TOTAL_FILE);
+				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+			List<CsvRow> csv = CsvUtil.readCsv(true, ",", columns -> {
+				String symbol = columns[1].replaceFirst("USDT", "");
+				CsvRow row = null;
+				if (selection.isEmpty() || selection.contains(symbol)) {
+					row = new CsvRow(Utils.fromString(Utils.FORMAT_SECOND, columns[0]), symbol,
+							Double.parseDouble(columns[2]));
+				}
+				return row;
+			}, reader);
+			Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
+			csv = null;
+			for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
+				chart.add(entry.getKey(), entry.getValue());
+			}
 		}
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}

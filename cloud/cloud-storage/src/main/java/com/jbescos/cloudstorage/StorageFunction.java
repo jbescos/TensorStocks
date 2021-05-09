@@ -16,7 +16,7 @@ import com.jbescos.common.Utils;
 // Entry: com.jbescos.cloudstorage.StorageFunction
 public class StorageFunction implements HttpFunction {
 
-	private static final byte[] CSV_HEADER = "DATE,SYMBOL,PRICE\r\n".getBytes(Utils.UTF);
+	private static final byte[] CSV_HEADER = "DATE,SYMBOL,PRICE\r\n".getBytes(Utils.UTF8);
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
@@ -30,7 +30,7 @@ public class StorageFunction implements HttpFunction {
 			builder.append(dateStr).append(",").append(price.getSymbol()).append(",").append(price.getPrice()).append("\r\n");
 		}
 		prices = null;
-		String downloadLink = BucketStorage.updateFile(fileName, builder.toString().getBytes(Utils.UTF), CSV_HEADER);
+		String downloadLink = BucketStorage.updateFile(fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER);
 		response.setStatusCode(200);
 		response.getWriter().write(downloadLink);
 		

@@ -66,7 +66,7 @@ public class BucketStorage {
 		if (acl) {
 			builder.setAcl(new ArrayList<>(Arrays.asList(Acl.of(User.ofAllUsers(), Role.READER))));
 		}
-		builder.setContentType("text/csv").setContentEncoding(Utils.UTF.name()).setStorageClass(StorageClass.STANDARD);
+		builder.setContentType("text/csv").setContentEncoding(Utils.UTF8.name()).setStorageClass(StorageClass.STANDARD);
 		return builder.build();
 	}
 

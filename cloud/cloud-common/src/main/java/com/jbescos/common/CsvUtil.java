@@ -3,8 +3,6 @@ package com.jbescos.common;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
@@ -40,17 +38,18 @@ public class CsvUtil {
 		}
 	}
 
-	public static <T> List<T> readCsv(boolean skipFirst, String separator, Function<String[], T> mapper, InputStream input) throws IOException {
+	public static <T> List<T> readCsv(boolean skipFirst, String separator, Function<String[], T> mapper, BufferedReader reader) throws IOException {
 		List<T> content = new ArrayList<>();
-		try (BufferedReader reader = new BufferedReader(new InputStreamReader(input))) {
-			while(reader.ready()) {
-			     String line = reader.readLine();
-			     if (skipFirst) {
-			    	 skipFirst = false;
-			     } else {
-			    	 String[] columns = line.split(",");
-			    	 content.add(mapper.apply(columns));
-			     }
+		String line = null;
+		while ((line = reader.readLine()) != null) {
+			if (skipFirst) {
+				skipFirst = false;
+			} else {
+				String[] columns = line.split(",");
+				T row = mapper.apply(columns);
+				if (row != null) {
+					content.add(row);
+				}
 			}
 		}
 		LOGGER.info("Rows read:  " + content.size());
