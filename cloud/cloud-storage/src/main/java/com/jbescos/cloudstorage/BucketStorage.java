@@ -38,14 +38,14 @@ public class BucketStorage {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
 		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
-			retrieve = storage.create(createBlobInfo(fileName, true), content);
+			retrieve = storage.create(createBlobInfo(fileName, false), content);
 			updateTotalCsv(storage, header, fileName);
 			return retrieve.getMediaLink();
 		} else {
-			storage.create(createBlobInfo(TEMP_FILE, true), content);
+			storage.create(createBlobInfo(TEMP_FILE, false), content);
 			BlobInfo blobInfo = createBlobInfo(fileName, false);
-			ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo).addSource(TEMP_FILE)
-					.addSource(fileName).build();
+			ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
+					.addSource(fileName).addSource(TEMP_FILE).build();
 			blobInfo = storage.compose(request);
 			updateTotalCsv(storage, header, TEMP_FILE);
 			return blobInfo.getMediaLink();
