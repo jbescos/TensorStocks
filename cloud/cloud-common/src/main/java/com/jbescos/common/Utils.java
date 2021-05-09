@@ -4,7 +4,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Properties;
 
 public class Utils {
@@ -21,4 +23,11 @@ public class Utils {
 		return prop;
 	}
 	
+	public static Date fromString(DateFormat format, String date) {
+		try {
+			return format.parse(date);
+		} catch (ParseException e) {
+			throw new IllegalArgumentException("Cannot parse " + date, e);
+		}
+	}
 }
