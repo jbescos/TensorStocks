@@ -25,5 +25,10 @@ public class CsvRow {
 	public double getPrice() {
 		return price;
 	}
+
+	@Override
+	public String toString() {
+		return "[" + Utils.fromDate(Utils.FORMAT_SECOND, date)+ ", " + price + "]";
+	}
 	
 }

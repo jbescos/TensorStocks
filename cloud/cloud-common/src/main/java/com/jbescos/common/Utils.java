@@ -30,4 +30,8 @@ public class Utils {
 			throw new IllegalArgumentException("Cannot parse " + date, e);
 		}
 	}
+	
+	public static String fromDate(DateFormat format, Date date) {
+		return format.format(date);
+	}
 }

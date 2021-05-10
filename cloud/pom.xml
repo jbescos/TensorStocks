@@ -15,6 +15,7 @@
 		<module>cloud-storage</module>
 		<module>cloud-test</module>
 		<module>cloud-chart</module>
+		<module>cloud-bot</module>
 	</modules>
 
 	<properties>
@@ -38,6 +39,11 @@
 			<dependency>
 				<groupId>com.jbescos</groupId>
 				<artifactId>cloud-common</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>com.jbescos</groupId>
+				<artifactId>cloud-bot</artifactId>
 				<version>${project.version}</version>
 			</dependency>
 			<dependency>
@@ -145,8 +151,11 @@
 						</goals>
 						<configuration>
 							<target>
-								<zip destfile="${project.build.directory}/${project.artifactId}-${project.version}.zip" basedir="${project.build.directory}" includes="*.jar">
-									<zipfileset dir="${project.build.directory}" erroronmissingdir="false" includes="lib/*.jar"/>
+								<zip
+									destfile="${project.build.directory}/${project.artifactId}-${project.version}.zip"
+									basedir="${project.build.directory}" includes="*.jar">
+									<zipfileset dir="${project.build.directory}"
+										erroronmissingdir="false" includes="lib/*.jar" />
 								</zip>
 							</target>
 						</configuration>
