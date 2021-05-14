@@ -38,21 +38,43 @@ public class CsvUtil {
 		}
 	}
 
-	public static <T> List<T> readCsv(boolean skipFirst, String separator, Function<String[], T> mapper, BufferedReader reader) throws IOException {
+	public static <T> List<T> readCsv(boolean skipFirst, Function<String, T> mapper, BufferedReader reader) throws IOException {
 		List<T> content = new ArrayList<>();
 		String line = null;
 		while ((line = reader.readLine()) != null) {
 			if (skipFirst) {
 				skipFirst = false;
 			} else {
-				String[] columns = line.split(",");
-				T row = mapper.apply(columns);
+				T row = mapper.apply(line);
 				if (row != null) {
 					content.add(row);
 				}
 			}
 		}
 		LOGGER.info("Rows read:  " + content.size());
+		return content;
+	}
+	
+	public static List<String> readLines(boolean skipFirst, BufferedReader reader) throws IOException {
+		return readCsv(skipFirst, line -> line, reader);
+		
+	}
+	
+	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
+		return readCsv(skipFirst,  line -> {
+			String[] columns = line.split(separator);
+			String symbol = columns[1].replaceFirst("USDT", "");
+			CsvRow row = new CsvRow(Utils.fromString(Utils.FORMAT_SECOND, columns[0]), symbol,
+						Double.parseDouble(columns[2]));
+			return row;
+		}, reader);
+		
+	}
+	
+	public static CsvContent readCsvContent(boolean skipFirst, BufferedReader reader) throws IOException {
+		CsvContent content = new CsvContent();
+		List<String> lines = readLines(skipFirst, reader);
+		lines.stream().forEach(line -> content.add(line));
 		return content;
 	}
 }

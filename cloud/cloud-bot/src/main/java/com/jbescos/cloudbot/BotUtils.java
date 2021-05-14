@@ -44,16 +44,7 @@ public class BotUtils {
 	}
 
 	public static List<SymbolMinMax> loadPredictions(Date now, BufferedReader reader) throws IOException {
-		List<CsvRow> csv = CsvUtil.readCsv(true, ",", columns -> {
-			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
-			String symbol = columns[1];
-			double price = Double.parseDouble(columns[2]);
-			CsvRow row = null;
-			if (date.getTime() > now.getTime()) {
-				row = new CsvRow(date, symbol, price);
-			}
-			return row;
-		}, reader);
+		List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
 		Map<String, SymbolMinMax> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {

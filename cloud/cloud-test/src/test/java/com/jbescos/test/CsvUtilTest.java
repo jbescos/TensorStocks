@@ -37,7 +37,8 @@ public class CsvUtilTest {
 		}
 		List<Map<String, String>> read = null;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
-			read = CsvUtil.readCsv(true, ",", columns -> {
+			read = CsvUtil.readCsv(true, line -> {
+				String columns[] = line.split(",");
 				Map<String, String> row = new HashMap<>();
 				row.put("k1", columns[0]);
 				row.put("k2", columns[1]);

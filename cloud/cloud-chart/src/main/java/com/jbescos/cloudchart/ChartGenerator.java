@@ -38,15 +38,7 @@ public class ChartGenerator {
 		IChart chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-			List<CsvRow> csv = CsvUtil.readCsv(true, ",", columns -> {
-				String symbol = columns[1].replaceFirst("USDT", "");
-				CsvRow row = null;
-				if (selection.isEmpty() || selection.contains(symbol)) {
-					row = new CsvRow(Utils.fromString(Utils.FORMAT_SECOND, columns[0]), symbol,
-							Double.parseDouble(columns[2]));
-				}
-				return row;
-			}, reader);
+			List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
 			Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 			csv = null;
 			for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {

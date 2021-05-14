@@ -32,6 +32,7 @@
 		<google-cloud.version>1.98.0</google-cloud.version>
 		<mysql.version>8.0.24</mysql.version>
 		<jfreechart.version>1.5.0</jfreechart.version>
+		<deeplearning4j.version>1.0.0-beta7</deeplearning4j.version>
 	</properties>
 
 	<dependencyManagement>
@@ -91,6 +92,16 @@
 				<artifactId>junit</artifactId>
 				<version>${junit.version}</version>
 				<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.deeplearning4j</groupId>
+				<artifactId>deeplearning4j-core</artifactId>
+				<version>${deeplearning4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.nd4j</groupId>
+				<artifactId>nd4j-native-platform</artifactId>
+				<version>${deeplearning4j.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
