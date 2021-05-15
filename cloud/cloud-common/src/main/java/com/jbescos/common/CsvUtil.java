@@ -61,12 +61,21 @@ public class CsvUtil {
 	}
 	
 	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
+		return readCsvRows(skipFirst, separator, reader, new Date(0), new Date(Long.MAX_VALUE));
+		
+	}
+	
+	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader, Date from, Date to) throws IOException {
 		return readCsv(skipFirst,  line -> {
 			String[] columns = line.split(separator);
-			String symbol = columns[1].replaceFirst("USDT", "");
-			CsvRow row = new CsvRow(Utils.fromString(Utils.FORMAT_SECOND, columns[0]), symbol,
-						Double.parseDouble(columns[2]));
-			return row;
+			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			if (date.getTime() >= from.getTime() && date.getTime() < to.getTime()) {
+				String symbol = columns[1].replaceFirst("USDT", "");
+				CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]));
+				return row;
+			} else {
+				return null;
+			}
 		}, reader);
 		
 	}

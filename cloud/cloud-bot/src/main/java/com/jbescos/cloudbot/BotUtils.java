@@ -35,20 +35,20 @@ public class BotUtils {
 		}
 	}
 	
-	public static List<SymbolMinMax> loadPredictions(Date now) throws IOException {
+	public static List<SymbolStats> loadPredictions(Date now) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
 		try (ReadChannel readChannel = storage.reader(BUCKET, PREDICTIONS);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-			return loadPredictions(now, reader);
+			return loadPredictions(now, new Date(Long.MAX_VALUE), reader);
 		}
 	}
 
-	public static List<SymbolMinMax> loadPredictions(Date now, BufferedReader reader) throws IOException {
-		List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
-		Map<String, SymbolMinMax> minMax = new LinkedHashMap<>();
+	public static List<SymbolStats> loadPredictions(Date from, Date to, BufferedReader reader) throws IOException {
+		List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, from, to);
+		Map<String, SymbolStats> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
-			minMax.put(entry.getKey(), new SymbolMinMax(entry.getKey(), entry.getValue()));
+			minMax.put(entry.getKey(), new SymbolStats(entry.getKey(), entry.getValue()));
 		}
 		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor())).collect(Collectors.toList());
 	}
