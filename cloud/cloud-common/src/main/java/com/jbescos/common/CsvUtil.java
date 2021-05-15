@@ -70,7 +70,7 @@ public class CsvUtil {
 			String[] columns = line.split(separator);
 			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
 			if (date.getTime() >= from.getTime() && date.getTime() < to.getTime()) {
-				String symbol = columns[1].replaceFirst("USDT", "");
+				String symbol = columns[1];
 				CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]));
 				return row;
 			} else {

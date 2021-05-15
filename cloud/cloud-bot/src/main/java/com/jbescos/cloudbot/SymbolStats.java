@@ -56,16 +56,18 @@ public class SymbolStats {
 	}
 
 	private Action evaluate(double price) {
-		double buyCommision = (price * Utils.BUY_COMISSION) + price;
-		if (buyCommision < avg) {
-			double percentileMin = min.getPrice() + (min.getPrice() * PERCENTILE_FACTOR);
-			if (buyCommision < percentileMin) {
-				return Action.BUY;
-			}
-		} else if (price > avg) {
-			double percentileMax = max.getPrice() - (max.getPrice() * PERCENTILE_FACTOR);
-			if (price > percentileMax) {
-				return Action.SELL;
+		if (factor > Utils.MIN_MAX_FACTOR) {
+			double buyCommision = (price * Utils.BUY_COMISSION) + price;
+			if (buyCommision < avg) {
+				double percentileMin = min.getPrice() + (min.getPrice() * PERCENTILE_FACTOR);
+				if (buyCommision < percentileMin) {
+					return Action.BUY;
+				}
+			} else if (price > avg) {
+				double percentileMax = max.getPrice() - (max.getPrice() * PERCENTILE_FACTOR);
+				if (price > percentileMax) {
+					return Action.SELL;
+				}
 			}
 		}
 		return  Action.NOTHING;

@@ -62,7 +62,7 @@ public class Bot {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double usdt = wallet.get(Utils.USDT);
-		double buy = usdt * FACTOR;
+		double buy = usdt * FACTOR * stat.getFactor();
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			double unitsOfSymbol = buy / (currentPrice + (currentPrice * Utils.BUY_COMISSION));
 //			double unitsOfSymbol = buy / currentPrice;
@@ -76,7 +76,7 @@ public class Bot {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double unitsOfSymbol = wallet.get(symbol);
-		double sell = unitsOfSymbol * FACTOR;
+		double sell = unitsOfSymbol * FACTOR * stat.getFactor();
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
 			updateWallet(Utils.USDT, usdt);
