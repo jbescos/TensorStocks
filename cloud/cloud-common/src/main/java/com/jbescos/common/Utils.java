@@ -13,6 +13,7 @@ import java.util.Properties;
 
 public class Utils {
 	
+	public static final double BUY_COMISSION = 0.02;
 	public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");

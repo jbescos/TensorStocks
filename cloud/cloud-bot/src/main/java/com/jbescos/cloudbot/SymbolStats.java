@@ -3,6 +3,7 @@ package com.jbescos.cloudbot;
 import java.util.List;
 
 import com.jbescos.common.CsvRow;
+import com.jbescos.common.Utils;
 
 public class SymbolStats {
 
@@ -55,9 +56,10 @@ public class SymbolStats {
 	}
 
 	private Action evaluate(double price) {
-		if (price < avg) {
+		double buyCommision = (price * Utils.BUY_COMISSION) + price;
+		if (buyCommision < avg) {
 			double percentileMin = min.getPrice() + (min.getPrice() * PERCENTILE_FACTOR);
-			if (price < percentileMin) {
+			if (buyCommision < percentileMin) {
 				return Action.BUY;
 			}
 		} else if (price > avg) {

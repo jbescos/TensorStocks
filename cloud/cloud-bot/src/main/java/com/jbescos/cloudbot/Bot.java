@@ -64,7 +64,8 @@ public class Bot {
 		double usdt = wallet.get(Utils.USDT);
 		double buy = usdt * FACTOR;
 		if (updateWallet(Utils.USDT, buy * -1)) {
-			double unitsOfSymbol = buy / currentPrice;
+			double unitsOfSymbol = buy / (currentPrice + (currentPrice * Utils.BUY_COMISSION));
+//			double unitsOfSymbol = buy / currentPrice;
 			updateWallet(symbol, unitsOfSymbol);
 			didAction = true;
 //			System.out.println("Buying " + unitsOfSymbol + " " + symbol + " and spent " + buy + " USDT. 1 " + symbol + " = " + currentPrice + " USDT. Avg = " + stat.getAvg());
