@@ -6,10 +6,14 @@ import java.nio.charset.Charset;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+
+import com.jbescos.common.Account.Balances;
 
 public class Utils {
 	
@@ -47,5 +51,40 @@ public class Utils {
 		} else {
 			return values.get(0);
 		}
+	}
+	
+	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Account account) {
+		List<Map<String, String>> rows = new ArrayList<>();
+		double totalUsdt = 0.0;
+		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);
+		for (Balances balance : account.getBalances()) {
+			double value = Double.parseDouble(balance.getFree()) + Double.parseDouble(balance.getLocked());
+			Map<String, String> row = new LinkedHashMap<>();
+			row.put("DATE", dateStr);
+			row.put("SYMBOL", balance.getAsset());
+			row.put("SYMBOL_VALUE", Double.toString(value));
+			String symbol = balance.getAsset() + "USDT";
+			if (Utils.USDT.equals(balance.getAsset())) {
+				row.put(Utils.USDT, Double.toString(value));
+				totalUsdt = totalUsdt + value;
+			} else {
+				for (Price price : prices) {
+					if(symbol.equals(price.getSymbol())) {
+						double usdt = (value * price.getPrice());
+						row.put(Utils.USDT, Double.toString(usdt));
+						totalUsdt = totalUsdt + usdt;
+						break;
+					}
+				}
+			}
+			rows.add(row);
+		}
+		Map<String, String> row = new LinkedHashMap<>();
+		row.put("DATE", dateStr);
+		row.put("SYMBOL", "TOTAL_USDT");
+		row.put("SYMBOL_VALUE", Double.toString(totalUsdt));
+		row.put(Utils.USDT, Double.toString(totalUsdt));
+		rows.add(row);
+		return rows;
 	}
 }

@@ -17,6 +17,24 @@ public class CsvUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(CsvUtil.class.getName());
 
+	public static StringBuilder toString(List<Map<String, String>> rows) {
+		StringBuilder builder = new StringBuilder();
+		boolean firstInRow = true;
+		for (Map<String, String> row : rows) {
+			for (String value : row.values()) {
+				if (!firstInRow) {
+					builder.append(",");
+				} else {
+					firstInRow = false;
+				}
+				builder.append(value);
+			}
+			builder.append("\r\n");
+			firstInRow = true;
+		}
+		return builder;
+	}
+
 	public static void writeCsv(List<Map<String, Object>> csv, char separator, OutputStream output) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
 		for (Map<String, Object> row : csv) {

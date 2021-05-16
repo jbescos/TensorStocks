@@ -22,6 +22,7 @@ public class BucketStorage {
 	private static final String PROJECT_ID;
 	private static final String TEMP_FILE = "tmp.csv";
 	private static final String TOTAL_FILE = "total.csv";
+	private static final String ACCOUNT_TOTAL_FILE = "account_total.csv";
 
 	static {
 		try {
@@ -32,14 +33,24 @@ public class BucketStorage {
 			throw new IllegalStateException(e);
 		}
 	}
+	
+	public static String updateFilePrices(String fileName, byte[] content, byte[] header)
+			throws FileNotFoundException, IOException {
+		return updateFile(fileName, TOTAL_FILE, content, header);
+	}
+	
+	public static String updateFileAccount(String fileName, byte[] content, byte[] header)
+			throws FileNotFoundException, IOException {
+		return updateFile(fileName, ACCOUNT_TOTAL_FILE, content, header);
+	}
 
-	public static String updateFile(String fileName, byte[] content, byte[] header)
+	public static String updateFile(String fileName, String totalCsv, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
 		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
 			retrieve = storage.create(createBlobInfo(fileName, false), content);
-			updateTotalCsv(storage, header, fileName);
+			updateTotalCsv(storage, header, fileName, totalCsv);
 			return retrieve.getMediaLink();
 		} else {
 			storage.create(createBlobInfo(TEMP_FILE, false), content);
@@ -47,17 +58,17 @@ public class BucketStorage {
 			ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
 					.addSource(fileName).addSource(TEMP_FILE).build();
 			blobInfo = storage.compose(request);
-			updateTotalCsv(storage, header, TEMP_FILE);
+			updateTotalCsv(storage, header, TEMP_FILE, totalCsv);
 			return blobInfo.getMediaLink();
 		}
 	}
 
-	private static void updateTotalCsv(Storage storage, byte[] header, String newDataFile) {
-		BlobInfo total = storage.get(BlobInfo.newBuilder(BUCKET, TOTAL_FILE).build().getBlobId());
+	private static void updateTotalCsv(Storage storage, byte[] header, String newDataFile, String totalCsv) {
+		BlobInfo total = storage.get(BlobInfo.newBuilder(BUCKET, totalCsv).build().getBlobId());
 		if (total == null) {
-			total = storage.create(createBlobInfo(TOTAL_FILE, false), header);
+			total = storage.create(createBlobInfo(totalCsv, false), header);
 		}
-		ComposeRequest request = ComposeRequest.newBuilder().setTarget(total).addSource(TOTAL_FILE).addSource(newDataFile).build();
+		ComposeRequest request = ComposeRequest.newBuilder().setTarget(total).addSource(totalCsv).addSource(newDataFile).build();
 		storage.compose(request);
 	}
 
