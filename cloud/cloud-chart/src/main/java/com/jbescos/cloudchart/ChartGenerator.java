@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.jbescos.common.CsvAccountRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Utils;
@@ -22,6 +23,7 @@ public class ChartGenerator {
 	private static final String BUCKET;
 	private static final String PROJECT_ID;
 	private static final String TOTAL_FILE = "total.csv";
+	private static final String ACCOUNT_TOTAL_FILE = "account_total.csv";
 
 	static {
 		try {
@@ -33,7 +35,7 @@ public class ChartGenerator {
 		}
 	}
 
-	public static void writeChart(OutputStream output, List<String> selection) throws IOException {
+	public static void writePricesChart(OutputStream output, List<String> selection) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
 		IChart chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, TOTAL_FILE);
@@ -42,6 +44,20 @@ public class ChartGenerator {
 			Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 			csv = null;
 			for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
+				chart.add(entry.getKey(), entry.getValue());
+			}
+		}
+		chart.save(output, "Crypto currencies", "", "USDT");
+	}
+	
+	public static void writeAccountChart(OutputStream output) throws IOException {
+		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+		IChart chart = new XYChart();
+		try (ReadChannel readChannel = storage.reader(BUCKET, ACCOUNT_TOTAL_FILE);
+				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+			List<CsvAccountRow> accountRows = CsvUtil.readCsvAccountRows(true, ",", reader);
+			Map<String, List<CsvAccountRow>> grouped = accountRows.stream().collect(Collectors.groupingBy(CsvAccountRow::getSymbol));
+			for (Entry<String, List<CsvAccountRow>> entry : grouped.entrySet()) {
 				chart.add(entry.getKey(), entry.getValue());
 			}
 		}

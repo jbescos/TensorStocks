@@ -53,6 +53,14 @@ public class Utils {
 		}
 	}
 	
+	public static String todayWithSeconds() {
+		return fromDate(FORMAT_SECOND, new Date());
+	}
+	
+	public static String today() {
+		return fromDate(FORMAT, new Date());
+	}
+	
 	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Account account) {
 		List<Map<String, String>> rows = new ArrayList<>();
 		double totalUsdt = 0.0;
@@ -64,20 +72,25 @@ public class Utils {
 			row.put("SYMBOL", balance.getAsset());
 			row.put("SYMBOL_VALUE", Double.toString(value));
 			String symbol = balance.getAsset() + "USDT";
+			boolean isUsdtConvertible = false;
 			if (Utils.USDT.equals(balance.getAsset())) {
 				row.put(Utils.USDT, Double.toString(value));
 				totalUsdt = totalUsdt + value;
+				isUsdtConvertible = true;
 			} else {
 				for (Price price : prices) {
 					if(symbol.equals(price.getSymbol())) {
 						double usdt = (value * price.getPrice());
 						row.put(Utils.USDT, Double.toString(usdt));
 						totalUsdt = totalUsdt + usdt;
+						isUsdtConvertible = true;
 						break;
 					}
 				}
 			}
-			rows.add(row);
+			if (isUsdtConvertible) {
+				rows.add(row);
+			}
 		}
 		Map<String, String> row = new LinkedHashMap<>();
 		row.put("DATE", dateStr);

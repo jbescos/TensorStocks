@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
@@ -12,18 +13,16 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.jbescos.common.CsvRow;
-
-public class XYChart implements IChart {
+public class XYChart implements IChart<Double> {
 
 	private final XYSeriesCollection dataset = new XYSeriesCollection();
 
 	@Override
-	public void add(String lineLabel, List<CsvRow> data) {
+	public void add(String lineLabel, List<Supplier<Double>> data) {
 		XYSeries series = new XYSeries(lineLabel);
 		int i = 0;
-		for (CsvRow row : data) {
-			series.add(i, row.getPrice());
+		for (Supplier<Double> row : data) {
+			series.add(i, row.get());
 			i++;
 		}
 		dataset.addSeries(series);
