@@ -1,12 +1,11 @@
-package com.jbescos.cloudbot;
+package com.jbescos.common;
 
 import java.util.List;
-
-import com.jbescos.common.CsvRow;
-import com.jbescos.common.Utils;
+import java.util.logging.Logger;
 
 public class SymbolStats {
 
+	private static final Logger LOGGER = Logger.getLogger(SymbolStats.class.getName());
 	private static final double PERCENTILE_FACTOR = 0.05;
 	private final String symbol;
 	// The higher the better
@@ -24,7 +23,15 @@ public class SymbolStats {
 		this.factor = calculateFactor(min, max);
 		this.avg = avg(values);
 		this.newest = values.get(values.size() - 1);
-		this.action = evaluate(newest.getPrice());
+		double m = 0;
+		if (values.size() > 1) {
+			CsvRow secondNewest = values.get(values.size() - 2);
+			m = secondNewest.getPrice() - newest.getPrice();
+		}
+		this.action = evaluate(newest.getPrice(), m);
+		if (action != Action.NOTHING) {
+			LOGGER.info("Stats: " + this);
+		}
 	}
 
 	public CsvRow getMin() {
@@ -55,22 +62,23 @@ public class SymbolStats {
 		return newest;
 	}
 
-	private Action evaluate(double price) {
+	private Action evaluate(double price, double m) {
+		Action action = Action.NOTHING;
 		if (factor > Utils.MIN_MAX_FACTOR) {
 			double buyCommision = (price * Utils.BUY_COMISSION) + price;
-			if (buyCommision < avg) {
+			if (buyCommision < avg && m < 0) { // It is going up
 				double percentileMin = min.getPrice() + (min.getPrice() * PERCENTILE_FACTOR);
 				if (buyCommision < percentileMin) {
-					return Action.BUY;
+					action = Action.BUY;
 				}
-			} else if (price > avg) {
+			} else if (price > avg && m > 0) { // It is going down
 				double percentileMax = max.getPrice() - (max.getPrice() * PERCENTILE_FACTOR);
 				if (price > percentileMax) {
-					return Action.SELL;
+					action = Action.SELL;
 				}
 			}
 		}
-		return  Action.NOTHING;
+		return action;
 	}
 	
 	private double avg(List<CsvRow> values) {

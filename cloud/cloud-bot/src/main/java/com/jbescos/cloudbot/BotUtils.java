@@ -17,6 +17,7 @@ import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
+import com.jbescos.common.SymbolStats;
 import com.jbescos.common.Utils;
 
 public class BotUtils {
@@ -50,6 +51,10 @@ public class BotUtils {
 			List<CsvRow> latestCsv = BinanceAPI.price().stream().map(price -> new CsvRow(new Date(), price.getSymbol(), price.getPrice())).collect(Collectors.toList());
 			csv.addAll(latestCsv);
 		}
+		return fromCsvRows(csv);
+	}
+	
+	public static List<SymbolStats> fromCsvRows(List<CsvRow> csv){
 		Map<String, SymbolStats> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {

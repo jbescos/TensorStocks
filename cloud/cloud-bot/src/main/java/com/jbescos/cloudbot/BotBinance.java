@@ -6,13 +6,16 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.jbescos.cloudbot.SymbolStats.Action;
 import com.jbescos.common.SecureBinanceAPI;
+import com.jbescos.common.SymbolStats;
 import com.jbescos.common.Utils;
+import com.jbescos.common.SymbolStats.Action;
 
 public class BotBinance {
 
@@ -53,8 +56,13 @@ public class BotBinance {
 		wallet.putIfAbsent(Utils.USDT, 0.0);
 		double usdt = wallet.get(Utils.USDT);
 		double buy = usdt * FACTOR * stat.getFactor();
+		LOGGER.info("Spent " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
-			api.testOrder(symbol, Action.BUY.name(), String.format("%.6f", buy));
+			try {
+				api.order(symbol, Action.BUY.name(), String.format(Locale.US, "%.6f", buy));
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
+			}
 		}
 	}
 	
@@ -63,9 +71,14 @@ public class BotBinance {
 		wallet.putIfAbsent(walletSymbol, 0.0);
 		double unitsOfSymbol = wallet.get(walletSymbol);
 		double sell = unitsOfSymbol * FACTOR * stat.getFactor();
+		LOGGER.info("Spent " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
 		if (updateWallet(walletSymbol, sell * -1)) {
 			double usdtSell = sell * stat.getNewest().getPrice();
-			api.testOrder(symbol, Action.SELL.name(), String.format("%.6f", usdtSell));
+			try {
+				api.order(symbol, Action.SELL.name(), String.format(Locale.US, "%.6f", usdtSell));
+			} catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
+			}
 		}
 	}
 

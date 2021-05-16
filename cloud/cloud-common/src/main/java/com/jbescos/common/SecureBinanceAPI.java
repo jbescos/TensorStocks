@@ -133,17 +133,27 @@ public class SecureBinanceAPI {
 	}
 	
 	// quoteOrderQty is always in USDT !!!
-	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
+	public Map<String, String> order(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
 		Date now =  new Date();
 		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT\r\n".getBytes(Utils.UTF8);
+		String orderId = UUID.randomUUID().toString();
+		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
+		LOGGER.info("Prepared order: " + Arrays.asList(args).toString());
+		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
+		LOGGER.info("Completed order: " + response);
+		StringBuilder data = new StringBuilder();
+		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(orderId).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append("\r\n");
+		BucketStorage.updateFileTransactions("transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
+		return response;
+	}
+	
+	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
+		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info("TEST. Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order/test", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info("TEST. Completed order: " + response);
-		StringBuilder data = new StringBuilder();
-		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(orderId).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append("\r\n");
-		BucketStorage.updateFileTransactions("transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 		return response;
 	}
 

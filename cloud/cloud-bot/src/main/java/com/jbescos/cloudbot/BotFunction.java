@@ -8,9 +8,10 @@ import java.util.stream.Collectors;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
-import com.jbescos.cloudbot.SymbolStats.Action;
 import com.jbescos.common.SecureBinanceAPI;
+import com.jbescos.common.SymbolStats;
 import com.jbescos.common.Utils;
+import com.jbescos.common.SymbolStats.Action;
 
 //Entry: com.jbescos.cloudbot.BotFunction
 public class BotFunction implements HttpFunction {
