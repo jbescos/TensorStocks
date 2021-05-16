@@ -1,4 +1,4 @@
-package com.jbescos.cloudstorage;
+package com.jbescos.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -20,9 +20,9 @@ public class BucketStorage {
 
 	private static final String BUCKET;
 	private static final String PROJECT_ID;
-	private static final String TEMP_FILE = "tmp.csv";
 	private static final String TOTAL_FILE = "total.csv";
 	private static final String ACCOUNT_TOTAL_FILE = "account_total.csv";
+	private static final String TRANSACTIONS_TOTAL_FILE = "transactions_total.csv";
 
 	static {
 		try {
@@ -43,6 +43,11 @@ public class BucketStorage {
 			throws FileNotFoundException, IOException {
 		return updateFile(fileName, ACCOUNT_TOTAL_FILE, content, header);
 	}
+	
+	public static String updateFileTransactions(String fileName, byte[] content, byte[] header)
+			throws FileNotFoundException, IOException {
+		return updateFile(fileName, TRANSACTIONS_TOTAL_FILE, content, header);
+	}
 
 	public static String updateFile(String fileName, String totalCsv, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
@@ -53,6 +58,7 @@ public class BucketStorage {
 			updateTotalCsv(storage, header, fileName, totalCsv);
 			return retrieve.getMediaLink();
 		} else {
+			final String TEMP_FILE = "tmp_" + totalCsv;
 			storage.create(createBlobInfo(TEMP_FILE, false), content);
 			BlobInfo blobInfo = createBlobInfo(fileName, false);
 			ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)

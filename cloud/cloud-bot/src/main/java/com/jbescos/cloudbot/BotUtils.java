@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Utils;
@@ -35,16 +36,20 @@ public class BotUtils {
 		}
 	}
 	
-	public static List<SymbolStats> loadPredictions(Date now) throws IOException {
+	public static List<SymbolStats> loadPredictions(Date now, boolean queryApi) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
 		try (ReadChannel readChannel = storage.reader(BUCKET, PREDICTIONS);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-			return loadPredictions(now, new Date(Long.MAX_VALUE), reader);
+			return loadPredictions(now, new Date(Long.MAX_VALUE), reader, queryApi);
 		}
 	}
 
-	public static List<SymbolStats> loadPredictions(Date from, Date to, BufferedReader reader) throws IOException {
+	public static List<SymbolStats> loadPredictions(Date from, Date to, BufferedReader reader, boolean queryApi) throws IOException {
 		List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, from, to);
+		if (queryApi) {
+			List<CsvRow> latestCsv = BinanceAPI.price().stream().map(price -> new CsvRow(new Date(), price.getSymbol(), price.getPrice())).collect(Collectors.toList());
+			csv.addAll(latestCsv);
+		}
 		Map<String, SymbolStats> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {

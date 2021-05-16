@@ -9,6 +9,7 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.jbescos.common.Account;
 import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.ExchangeInfo;
 import com.jbescos.common.Price;

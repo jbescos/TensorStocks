@@ -1,5 +1,6 @@
 package com.jbescos.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
@@ -36,7 +37,7 @@ public class BotTest {
 			// Days back
 			Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(CsvUtilTest.class.getResourceAsStream("/simple.csv")))) {
-				List<SymbolStats> stats = BotUtils.loadPredictions(from, to, reader);
+				List<SymbolStats> stats = BotUtils.loadPredictions(from, to, reader, false);
 				trader.execute(stats);
 				holder.execute(stats);
 			}
@@ -52,7 +53,7 @@ public class BotTest {
 	
 	@Test
 	public void complex() throws FileNotFoundException, IOException {
-		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "SHIBUSDT");
+		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "SHIBUSDT", "ADAUSDT");
 		Map<String, Double> wallet = new HashMap<>();
 		wallet.put("USDT", 141.0);
 		wallet.put("DOGEUSDT", 348.25);
@@ -66,7 +67,7 @@ public class BotTest {
 			// Days back
 			Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(CsvUtilTest.class.getResourceAsStream("/total.csv")))) {
-				List<SymbolStats> stats = BotUtils.loadPredictions(from, to, reader);
+				List<SymbolStats> stats = BotUtils.loadPredictions(from, to, reader, false);
 				trader.execute(stats);
 				holder.execute(stats);
 			}
@@ -78,6 +79,11 @@ public class BotTest {
 		System.out.println("Trader: " + trader);
 		System.out.println("Holder: " + holder);
 		assertTrue("Trader: " + trader + " \n " + "Holder: " + holder + "\n", trader.getUsdtSnapshot() > holder.getUsdtSnapshot());
+	}
+	
+	@Test
+	public void round() {
+		assertEquals("21330,888888", String.format("%.6f", 21330.888887878787));
 	}
 	
 	private Map<String, Double> createWallet(double amount, List<String> cryptos){

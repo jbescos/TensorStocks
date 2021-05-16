@@ -1,10 +1,12 @@
 package com.jbescos.common;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -57,8 +59,8 @@ public class SecureBinanceAPI {
 	public <T> T get(String path, GenericType<T> type, String... query) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
+		StringBuilder queryStr = new StringBuilder();
 		if (query.length != 0) {
-			StringBuilder queryStr = new StringBuilder();
 			for (int i = 0; i < query.length; i = i + 2) {
 				String key = query[i];
 				String value = query[i + 1];
@@ -77,7 +79,7 @@ public class SecureBinanceAPI {
 				return response.readEntity(type);
 			} else {
 				response.bufferEntity();
-				throw new RuntimeException("HTTP response code " + response.getStatus() + " from "
+				throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
 						+ webTarget.getUri().toString() + " : " + response.readEntity(String.class));
 			}
 		}
@@ -105,7 +107,7 @@ public class SecureBinanceAPI {
 				return response.readEntity(type);
 			} else {
 				response.bufferEntity();
-				throw new RuntimeException("HTTP response code " + response.getStatus() + " from "
+				throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
 						+ webTarget.getUri().toString() + " : " + response.readEntity(String.class));
 			}
 		}
@@ -121,13 +123,27 @@ public class SecureBinanceAPI {
 		return account;
 	}
 	
+	public Map<String, Double> wallet(){
+		Map<String, Double> wallet = new HashMap<>();
+		Account account = account();
+		for (Balances balance : account.getBalances()) {
+			wallet.put(balance.getAsset(), Double.parseDouble(balance.getFree()));
+		}
+		return wallet;
+	}
+	
 	// quoteOrderQty is always in USDT !!!
-	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) {
+	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
+		Date now =  new Date();
+		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT\r\n".getBytes(Utils.UTF8);
 		String orderId = UUID.randomUUID().toString();
-		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(new Date().getTime())};
-		LOGGER.info("Prepared order: " + Arrays.asList(args).toString());
+		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
+		LOGGER.info("TEST. Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order/test", new GenericType<Map<String, String>>() {}, args);
-		LOGGER.info("Completed order: " + response);
+		LOGGER.info("TEST. Completed order: " + response);
+		StringBuilder data = new StringBuilder();
+		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(orderId).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append("\r\n");
+		BucketStorage.updateFileTransactions("transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 		return response;
 	}
 
