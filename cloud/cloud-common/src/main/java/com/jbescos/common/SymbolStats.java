@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 public class SymbolStats {
 
 	private static final Logger LOGGER = Logger.getLogger(SymbolStats.class.getName());
-	private static final double PERCENTILE_FACTOR = 0.05;
+	private static final double PERCENTILE_FACTOR = 0.3;
 	private final String symbol;
 	// The higher the better
 	private final double factor;
@@ -67,12 +67,12 @@ public class SymbolStats {
 		if (factor > Utils.MIN_MAX_FACTOR) {
 			double buyCommision = (price * Utils.BUY_COMISSION) + price;
 			if (buyCommision < avg && m < 0) { // It is going up
-				double percentileMin = min.getPrice() + (min.getPrice() * PERCENTILE_FACTOR);
+				double percentileMin = ((avg - min.getPrice()) * PERCENTILE_FACTOR) + min.getPrice();
 				if (buyCommision < percentileMin) {
 					action = Action.BUY;
 				}
 			} else if (price > avg && m > 0) { // It is going down
-				double percentileMax = max.getPrice() - (max.getPrice() * PERCENTILE_FACTOR);
+				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * PERCENTILE_FACTOR);
 				if (price > percentileMax) {
 					action = Action.SELL;
 				}
