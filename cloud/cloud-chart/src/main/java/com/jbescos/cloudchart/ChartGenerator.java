@@ -13,9 +13,8 @@ import java.util.stream.Collectors;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.CsvAccountRow;
-import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
+import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
 
 public class ChartGenerator {
@@ -37,13 +36,13 @@ public class ChartGenerator {
 
 	public static void writePricesChart(OutputStream output, List<String> selection) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		IChart<CsvRow> chart = new XYChart();
+		IChart<IRow> chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-			List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
-			Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
+			List<? extends IRow> csv = CsvUtil.readCsvRows(true, ",", reader);
+			Map<String, List<IRow>> grouped = csv.stream().collect(Collectors.groupingBy(IRow::getSymbol));
 			csv = null;
-			for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
+			for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
 				chart.add(entry.getKey(), entry.getValue());
 			}
 		}
@@ -52,12 +51,12 @@ public class ChartGenerator {
 	
 	public static void writeAccountChart(OutputStream output) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		IChart<CsvAccountRow> chart = new DateChart();
+		IChart<IRow> chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, ACCOUNT_TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-			List<CsvAccountRow> accountRows = CsvUtil.readCsvAccountRows(true, ",", reader);
-			Map<String, List<CsvAccountRow>> grouped = accountRows.stream().collect(Collectors.groupingBy(CsvAccountRow::getSymbol));
-			for (Entry<String, List<CsvAccountRow>> entry : grouped.entrySet()) {
+			List<? extends IRow> accountRows = CsvUtil.readCsvAccountRows(true, ",", reader);
+			Map<String, List<IRow>> grouped = accountRows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
+			for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
 				chart.add(entry.getKey(), entry.getValue());
 			}
 		}

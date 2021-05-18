@@ -2,7 +2,7 @@ package com.jbescos.common;
 
 import java.util.Date;
 
-public class CsvRow {
+public class CsvRow implements IRow {
 
 	private final Date date;
 	private final String symbol;
@@ -14,14 +14,17 @@ public class CsvRow {
 		this.price = price;
 	}
 
+	@Override
 	public Date getDate() {
 		return date;
 	}
 
+	@Override
 	public String getSymbol() {
 		return symbol;
 	}
 
+	@Override
 	public double getPrice() {
 		return price;
 	}

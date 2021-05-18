@@ -3,9 +3,6 @@ package com.jbescos.cloudchart;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -17,21 +14,20 @@ import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
-import com.jbescos.common.CsvAccountRow;
+import com.jbescos.common.IRow;
+import com.jbescos.common.Utils;
 
-public class DateChart implements IChart<CsvAccountRow> {
+public class DateChart implements IChart<IRow> {
 
 	private final TimeSeriesCollection dataset = new TimeSeriesCollection();
 
 	@Override
-	public void add(String lineLabel, List<CsvAccountRow> data) {
+	public void add(String lineLabel, List<? extends IRow> data) {
 		TimeSeries series = new TimeSeries(lineLabel);
-		Map<Date, List<CsvAccountRow>> grouped = data.stream().collect(Collectors.groupingBy(CsvAccountRow::getDate));
-		List<Date> dates = new ArrayList<>(grouped.keySet());
-		Collections.sort(dates);
-		for (Date date : dates) {
-			CsvAccountRow row = grouped.get(date).get(0);
-			series.add(new Day(date), row.getUsdt());
+		Map<String, List<IRow>> grouped = data.stream().collect(Collectors.groupingBy(row -> Utils.fromDate(Utils.FORMAT, row.getDate())));
+		for (String date : grouped.keySet()) {
+			IRow row = grouped.get(date).get(0);
+			series.add(new Day(Utils.fromString(Utils.FORMAT, date)), row.getPrice());
 		}
 		dataset.addSeries(series);
 	}

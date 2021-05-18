@@ -1,9 +1,8 @@
 package com.jbescos.common;
 
 import java.util.Date;
-import java.util.function.Supplier;
 
-public class CsvAccountRow implements Supplier<Double> {
+public class CsvAccountRow implements IRow {
 
 	private final Date date;
 	private final String symbol;
@@ -17,10 +16,12 @@ public class CsvAccountRow implements Supplier<Double> {
 		this.usdt = usdt;
 	}
 
+	@Override
 	public Date getDate() {
 		return date;
 	}
 
+	@Override
 	public String getSymbol() {
 		return symbol;
 	}
@@ -34,7 +35,7 @@ public class CsvAccountRow implements Supplier<Double> {
 	}
 
 	@Override
-	public Double get() {
+	public double getPrice() {
 		return getUsdt();
 	}
 
