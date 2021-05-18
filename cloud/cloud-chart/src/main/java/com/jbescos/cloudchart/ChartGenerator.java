@@ -37,7 +37,7 @@ public class ChartGenerator {
 
 	public static void writePricesChart(OutputStream output, List<String> selection) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		IChart chart = new XYChart();
+		IChart<CsvRow> chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
@@ -52,7 +52,7 @@ public class ChartGenerator {
 	
 	public static void writeAccountChart(OutputStream output) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		IChart chart = new XYChart();
+		IChart<CsvAccountRow> chart = new DateChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, ACCOUNT_TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			List<CsvAccountRow> accountRows = CsvUtil.readCsvAccountRows(true, ",", reader);

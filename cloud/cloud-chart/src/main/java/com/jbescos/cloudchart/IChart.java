@@ -7,6 +7,6 @@ import java.util.function.Supplier;
 
 public interface IChart<T> {
 
-	void add(String lineLabel, List<Supplier<T>> data);
+	void add(String lineLabel, List<T> data);
 	void save(OutputStream output, String title, String horizontalLabel, String verticalLabel) throws IOException;
 }

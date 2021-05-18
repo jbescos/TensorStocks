@@ -13,16 +13,18 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-public class XYChart implements IChart<Double> {
+import com.jbescos.common.CsvRow;
+
+public class XYChart implements IChart<CsvRow> {
 
 	private final XYSeriesCollection dataset = new XYSeriesCollection();
 
 	@Override
-	public void add(String lineLabel, List<Supplier<Double>> data) {
+	public void add(String lineLabel, List<CsvRow> data) {
 		XYSeries series = new XYSeries(lineLabel);
 		int i = 0;
-		for (Supplier<Double> row : data) {
-			series.add(i, row.get());
+		for (CsvRow row : data) {
+			series.add(i, row.getPrice());
 			i++;
 		}
 		dataset.addSeries(series);
