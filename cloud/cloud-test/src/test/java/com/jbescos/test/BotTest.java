@@ -60,7 +60,7 @@ public class BotTest {
 	
 	@Test
 	public void complex() throws FileNotFoundException, IOException {
-		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT", "SHIB");
+		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT");
 		Map<String, Double> wallet = new HashMap<>();
 		wallet.put("USDT", 141.0);
 		wallet.put("DOGEUSDT", 348.25);

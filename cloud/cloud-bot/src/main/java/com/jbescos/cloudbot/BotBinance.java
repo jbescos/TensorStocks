@@ -56,7 +56,7 @@ public class BotBinance {
 		wallet.putIfAbsent(Utils.USDT, 0.0);
 		double usdt = wallet.get(Utils.USDT);
 		double buy = usdt * FACTOR * stat.getFactor();
-		LOGGER.info("Spent " + buy + " of " + usdt + " USDT. Stats = " + stat);
+		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
 				api.order(symbol, Action.BUY.name(), String.format(Locale.US, "%.6f", buy));
@@ -71,7 +71,7 @@ public class BotBinance {
 		wallet.putIfAbsent(walletSymbol, 0.0);
 		double unitsOfSymbol = wallet.get(walletSymbol);
 		double sell = unitsOfSymbol * FACTOR * stat.getFactor();
-		LOGGER.info("Spent " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
+		LOGGER.info("Trying to sell " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
 		if (updateWallet(walletSymbol, sell * -1)) {
 			double usdtSell = sell * stat.getNewest().getPrice();
 			try {

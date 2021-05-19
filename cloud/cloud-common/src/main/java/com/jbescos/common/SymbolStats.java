@@ -29,9 +29,6 @@ public class SymbolStats {
 			m = secondNewest.getPrice() - newest.getPrice();
 		}
 		this.action = evaluate(newest.getPrice(), m);
-		if (action != Action.NOTHING) {
-			LOGGER.info("Stats: " + this);
-		}
 	}
 
 	public CsvRow getMin() {

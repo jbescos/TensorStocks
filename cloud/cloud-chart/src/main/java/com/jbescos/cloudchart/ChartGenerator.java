@@ -34,19 +34,14 @@ public class ChartGenerator {
 		}
 	}
 
-	public static void writePricesChart(OutputStream output, List<String> selection) throws IOException {
+	public static void writePricesChart(OutputStream output) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
 		IChart<IRow> chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			List<? extends IRow> csv = CsvUtil.readCsvRows(true, ",", reader);
-			Map<String, List<IRow>> grouped = csv.stream().collect(Collectors.groupingBy(IRow::getSymbol));
-			csv = null;
-			for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
-				chart.add(entry.getKey(), entry.getValue());
-			}
+			writeChart(csv, output, chart);
 		}
-		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 	
 	public static void writeAccountChart(OutputStream output) throws IOException {
@@ -54,11 +49,15 @@ public class ChartGenerator {
 		IChart<IRow> chart = new XYChart();
 		try (ReadChannel readChannel = storage.reader(BUCKET, ACCOUNT_TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-			List<? extends IRow> accountRows = CsvUtil.readCsvAccountRows(true, ",", reader);
-			Map<String, List<IRow>> grouped = accountRows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
-			for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
-				chart.add(entry.getKey(), entry.getValue());
-			}
+			List<? extends IRow> csv = CsvUtil.readCsvAccountRows(true, ",", reader);
+			writeChart(csv, output, chart);
+		}
+	}
+	
+	public static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart) throws IOException {
+		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
+		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
+			chart.add(entry.getKey(), entry.getValue());
 		}
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
