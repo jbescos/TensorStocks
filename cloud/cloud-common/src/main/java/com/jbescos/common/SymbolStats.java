@@ -6,7 +6,7 @@ import java.util.logging.Logger;
 public class SymbolStats {
 
 	private static final Logger LOGGER = Logger.getLogger(SymbolStats.class.getName());
-	private static final double PERCENTILE_FACTOR = 0.3;
+	private static final double PERCENTILE_FACTOR = 0.2;
 	private final String symbol;
 	// The higher the better
 	private final double factor;

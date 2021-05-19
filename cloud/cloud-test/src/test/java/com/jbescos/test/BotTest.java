@@ -97,6 +97,15 @@ public class BotTest {
 		assertEquals("21330.888888", String.format(Locale.US, "%.6f", 21330.888887878787));
 	}
 	
+	@Test
+	public void usdtPerUnit() {
+		double quoteOrderQtyBD = Double.parseDouble("11.801812");
+		double executedQtyBD = Double.parseDouble("0.47700000");
+		double result = quoteOrderQtyBD/executedQtyBD;
+		String resultStr = String.format(Locale.US, "%.6f", result);
+		assertEquals("24.741744", resultStr);
+	}
+	
 	private Map<String, Double> createWallet(double amount, List<String> cryptos){
 		Map<String, Double> wallet = new HashMap<>();
 		wallet.put(Utils.USDT, amount);

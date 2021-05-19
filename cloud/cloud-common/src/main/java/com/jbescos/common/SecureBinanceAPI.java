@@ -2,12 +2,14 @@ package com.jbescos.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
@@ -135,14 +137,19 @@ public class SecureBinanceAPI {
 	// quoteOrderQty is always in USDT !!!
 	public Map<String, String> order(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
 		Date now =  new Date();
-		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT\r\n".getBytes(Utils.UTF8);
+		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info("Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info("Completed order: " + response);
+		String executedQty = response.get("executedQty");
+		// quoteOrderQty / executedQty
+		double quoteOrderQtyBD = Double.parseDouble(quoteOrderQty);
+		double executedQtyBD = Double.parseDouble(executedQty);
+		double result = quoteOrderQtyBD/executedQtyBD;
 		StringBuilder data = new StringBuilder();
-		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(orderId).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append("\r\n");
+		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(orderId).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append(",").append(executedQty).append(",").append(String.format(Locale.US, "%.6f", result)).append("\r\n");
 		BucketStorage.updateFileTransactions("transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 		return response;
 	}
