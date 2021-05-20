@@ -1,11 +1,15 @@
 package com.jbescos.common;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 
+import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
 import com.google.cloud.storage.Acl.Role;
 import com.google.cloud.storage.Acl.User;
@@ -14,7 +18,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.Utils;
 
 public class BucketStorage {
 
@@ -67,6 +70,18 @@ public class BucketStorage {
 			updateTotalCsv(storage, header, TEMP_FILE, totalCsv);
 			return blobInfo.getMediaLink();
 		}
+	}
+	
+	public static String fileToString(String fileName) throws IOException {
+		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+		StringBuilder builder = new StringBuilder();
+		try (ReadChannel readChannel = storage.reader(BUCKET, fileName); BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));){
+			List<String> lines = CsvUtil.readLines(false, reader);
+			for (String line : lines) {
+				builder.append(line);
+			}
+		}
+		return builder.toString();
 	}
 
 	private static void updateTotalCsv(Storage storage, byte[] header, String newDataFile, String totalCsv) {

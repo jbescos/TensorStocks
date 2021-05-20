@@ -5,8 +5,8 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.jbescos</groupId>
-		<artifactId>cloud</artifactId>
+		<groupId>com.jbescos.cloud.packages</groupId>
+		<artifactId>project</artifactId>
 		<version>1.0</version>
 	</parent>
 
@@ -20,8 +20,9 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>com.jbescos</groupId>
+			<groupId>com.jbescos.cloud.packages</groupId>
 			<artifactId>cloud-common</artifactId>
+			<version>1.0</version>
 		</dependency>
 		      <dependency>
             <groupId>org.glassfish.jersey.core</groupId>

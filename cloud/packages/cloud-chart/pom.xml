@@ -5,12 +5,12 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.jbescos</groupId>
-		<artifactId>cloud</artifactId>
+		<groupId>com.jbescos.cloud.packages</groupId>
+		<artifactId>project</artifactId>
 		<version>1.0</version>
 	</parent>
 
-	<artifactId>cloud-bot</artifactId>
+	<artifactId>cloud-chart</artifactId>
 	<packaging>jar</packaging>
 
 	<dependencies>
@@ -20,20 +20,17 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>com.jbescos</groupId>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-storage</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.jbescos.cloud.packages</groupId>
 			<artifactId>cloud-common</artifactId>
+			<version>1.0</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glassfish.jersey.core</groupId>
-			<artifactId>jersey-client</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.inject</groupId>
-			<artifactId>jersey-hk2</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.glassfish.jersey.media</groupId>
-			<artifactId>jersey-media-json-jackson</artifactId>
+			<groupId>org.jfree</groupId>
+			<artifactId>jfreechart</artifactId>
 		</dependency>
 	</dependencies>
 

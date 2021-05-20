@@ -4,18 +4,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.jbescos</groupId>
-	<artifactId>cloud</artifactId>
+	<groupId>com.jbescos.cloud</groupId>
+	<artifactId>project</artifactId>
 	<version>1.0</version>
 	<packaging>pom</packaging>
 
 	<modules>
-		<module>cloud-common</module>
-		<module>cloud-price</module>
-		<module>cloud-storage</module>
+		<module>packages</module>
 		<module>cloud-test</module>
-		<module>cloud-chart</module>
-		<module>cloud-bot</module>
 	</modules>
 
 	<properties>
@@ -120,18 +116,6 @@
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<configuration>
-					<archive>
-						<manifest>
-							<addClasspath>true</addClasspath>
-							<classpathPrefix>lib</classpathPrefix>
-						</manifest>
-					</archive>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<executions>
 					<execution>
@@ -145,30 +129,6 @@
 							<overWriteReleases>false</overWriteReleases>
 							<overWriteSnapshots>false</overWriteSnapshots>
 							<overWriteIfNewer>true</overWriteIfNewer>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>3.0.0</version>
-				<executions>
-					<execution>
-						<id>zip-artifacts</id>
-						<phase>package</phase>
-						<goals>
-							<goal>run</goal>
-						</goals>
-						<configuration>
-							<target>
-								<zip
-									destfile="${project.build.directory}/${project.artifactId}-${project.version}.zip"
-									basedir="${project.build.directory}" includes="*.jar">
-									<zipfileset dir="${project.build.directory}"
-										erroronmissingdir="false" includes="lib/*.jar" />
-								</zip>
-							</target>
 						</configuration>
 					</execution>
 				</executions>

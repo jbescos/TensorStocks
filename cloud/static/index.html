@@ -1,0 +1,51 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+window.onload = function () {
+
+    $.ajax({
+        type: "GET",
+        headers: { 'Access-Control-Allow-Origin': '*' },
+        url: "https://us-central1-botlogic-140309.cloudfunctions.net/function-crypto-csv?file=account_total.csv",
+        dataType: "text",
+        success: function (data) { processData(data); }
+    });
+
+    function processData(allText) {
+        var allLinesArray = allText.split('\n');
+        if (allLinesArray.length > 0) {
+            var dataPoints = [];
+            for (var i = 0; i <= allLinesArray.length - 1; i++) {
+	        var rowData = allLinesArray[i].split(',');
+	        if(rowData && rowData.length > 1)
+	            dataPoints.push({ label: rowData[0], y: parseInt(rowData[1]) });
+            }
+            chart.options.data[0].dataPoints = dataPoints;
+            chart.render();
+        }
+    }
+
+            
+    var chart = new CanvasJS.Chart("chartContainer", {
+        theme: "theme2",
+        title: {
+            text: "Basic Column Chart – CanvasJS"
+        },
+        data: [
+        {
+            type: "column",
+            dataPoints: []
+        }
+        ]
+    });
+
+}
+</script>
+</head>
+<body>
+<div id="chartContainer" style="height: 370px; width: 100%;"></div>
+<script src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+<script src="https://canvasjs.com/assets/script/jquery.canvasjs.min.js"></script>
+</body>
+</html>

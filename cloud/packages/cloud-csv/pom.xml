@@ -3,22 +3,26 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
+
 	<parent>
-		<groupId>com.jbescos</groupId>
-		<artifactId>cloud</artifactId>
+		<groupId>com.jbescos.cloud.packages</groupId>
+		<artifactId>project</artifactId>
 		<version>1.0</version>
 	</parent>
-	<artifactId>cloud-common</artifactId>
+
+	<artifactId>cloud-csv</artifactId>
 	<packaging>jar</packaging>
 
 	<dependencies>
 		<dependency>
-			<groupId>javax.ws.rs</groupId>
-			<artifactId>javax.ws.rs-api</artifactId>
+			<groupId>com.google.cloud.functions</groupId>
+			<artifactId>functions-framework-api</artifactId>
+			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>com.google.cloud</groupId>
-			<artifactId>google-cloud-storage</artifactId>
+			<groupId>com.jbescos.cloud.packages</groupId>
+			<artifactId>cloud-common</artifactId>
+			<version>1.0</version>
 		</dependency>
 	</dependencies>
 
