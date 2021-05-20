@@ -22,7 +22,9 @@ public final class BinanceAPI {
 	
 	public static List<Price> price() {
 		List<Price> prices = BinanceAPI.get("/api/v3/ticker/price", null, new GenericType<List<Price>>() {});
-		prices = prices.stream().filter(price -> price.getSymbol().endsWith("USDT")).collect(Collectors.toList());
+		prices = prices.stream().filter(price -> price.getSymbol().endsWith("USDT"))
+				.filter(price -> !price.getSymbol().endsWith("UPUSDT"))
+				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT")).collect(Collectors.toList());
 		return prices;
 	}
 
