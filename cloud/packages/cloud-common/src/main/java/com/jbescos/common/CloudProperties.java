@@ -28,6 +28,7 @@ public class CloudProperties {
 	public static final String DRIVER;
 	public static final String BINANCE_PUBLIC_KEY;
 	public static final String BINANCE_PRIVATE_KEY;
+	public static final String CHART_TYPE;
 	public static final List<String> BOT_WHITE_LIST_SYMBOLS;
 	public static final double BOT_AMOUNT_REDUCER;
 	public static final double BOT_PERCENTILE_FACTOR;
@@ -66,6 +67,7 @@ public class CloudProperties {
 		DRIVER = properties.getProperty("database.driver");
 		BINANCE_PUBLIC_KEY = properties.getProperty("binance.public.key");
 		BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
+		CHART_TYPE = properties.getProperty("chart.type");
 		BOT_WHITE_LIST_SYMBOLS = Arrays.asList(properties.getProperty("bot.white.list").split(","));
 		BOT_AMOUNT_REDUCER = Double.parseDouble(properties.getProperty("bot.amount.reducer"));
 		BOT_PERCENTILE_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.factor"));

@@ -26,13 +26,8 @@ public class DateChart implements IChart<IRow> {
 		TimeSeries series = new TimeSeries(lineLabel);
 		Map<String, List<IRow>> grouped = data.stream().collect(Collectors.groupingBy(row -> Utils.fromDate(Utils.FORMAT, row.getDate())));
 		for (String date : grouped.keySet()) {
-			double total = 0;
-			int i = 0;
-			for (IRow row : grouped.get(date)) {
-				total = total + row.getPrice();
-				i++;
-			}
-			series.add(new Day(Utils.fromString(Utils.FORMAT, date)), (total / i));
+			List<IRow> last = grouped.get(date);
+			series.add(new Day(Utils.fromString(Utils.FORMAT, date)), last.get(last.size() - 1).getPrice());
 		}
 		dataset.addSeries(series);
 	}

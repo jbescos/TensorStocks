@@ -24,7 +24,7 @@ public class ChartGenerator {
 
 	public static void writePricesChart(OutputStream output) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-		IChart<IRow> chart = new XYChart();
+		IChart<IRow> chart = create();
 		try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			List<? extends IRow> csv = CsvUtil.readCsvRows(true, ",", reader);
@@ -34,7 +34,7 @@ public class ChartGenerator {
 	
 	public static void writeAccountChart(OutputStream output) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-		IChart<IRow> chart = new XYChart();
+		IChart<IRow> chart = create();
 		try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, ACCOUNT_TOTAL_FILE);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			List<? extends IRow> csv = CsvUtil.readCsvAccountRows(true, ",", reader);
@@ -48,6 +48,14 @@ public class ChartGenerator {
 			chart.add(entry.getKey(), entry.getValue());
 		}
 		chart.save(output, "Crypto currencies", "", "USDT");
+	}
+	
+	private static IChart<IRow> create(){
+		if ("date".equals(CloudProperties.CHART_TYPE)) {
+			return new DateChart();
+		} else {
+			return new XYChart();
+		}
 	}
 
 }
