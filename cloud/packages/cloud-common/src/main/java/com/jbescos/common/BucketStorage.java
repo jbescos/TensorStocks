@@ -19,42 +19,21 @@ import com.google.cloud.storage.StorageClass;
 import com.google.cloud.storage.StorageOptions;
 
 public class BucketStorage {
-
-	private static final String TOTAL_FILE = "total.csv";
-	private static final String ACCOUNT_TOTAL_FILE = "account_total.csv";
-	private static final String TRANSACTIONS_TOTAL_FILE = "transactions_total.csv";
 	
-	public static String updateFilePrices(String fileName, byte[] content, byte[] header)
-			throws FileNotFoundException, IOException {
-		return updateFile(fileName, TOTAL_FILE, content, header);
-	}
-	
-	public static String updateFileAccount(String fileName, byte[] content, byte[] header)
-			throws FileNotFoundException, IOException {
-		return updateFile(fileName, ACCOUNT_TOTAL_FILE, content, header);
-	}
-	
-	public static String updateFileTransactions(String fileName, byte[] content, byte[] header)
-			throws FileNotFoundException, IOException {
-		return updateFile(fileName, TRANSACTIONS_TOTAL_FILE, content, header);
-	}
-
-	public static String updateFile(String fileName, String totalCsv, byte[] content, byte[] header)
+	public static String updateFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
 			retrieve = storage.create(createBlobInfo(fileName, false), content);
-			updateTotalCsv(storage, header, fileName, totalCsv);
 			return retrieve.getMediaLink();
 		} else {
-			final String TEMP_FILE = "tmp_" + totalCsv;
+			final String TEMP_FILE = "tmp.csv";
 			storage.create(createBlobInfo(TEMP_FILE, false), content);
 			BlobInfo blobInfo = createBlobInfo(fileName, false);
 			ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
 					.addSource(fileName).addSource(TEMP_FILE).build();
 			blobInfo = storage.compose(request);
-			updateTotalCsv(storage, header, TEMP_FILE, totalCsv);
 			return blobInfo.getMediaLink();
 		}
 	}

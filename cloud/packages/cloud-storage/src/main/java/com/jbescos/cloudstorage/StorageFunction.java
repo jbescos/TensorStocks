@@ -33,11 +33,11 @@ public class StorageFunction implements HttpFunction {
 		for (Price price : prices) {
 			builder.append(dateStr).append(",").append(price.getSymbol()).append(",").append(price.getPrice()).append("\r\n");
 		}
-		String downloadLink = BucketStorage.updateFilePrices(fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+		String downloadLink = BucketStorage.updateFile(fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
 		SecureBinanceAPI api = SecureBinanceAPI.create();
 		Account account = api.account();
 		List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
-		BucketStorage.updateFileAccount("account_" + fileName, CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+		BucketStorage.updateFile("account_" + fileName, CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
 		response.setStatusCode(200);
 		response.getWriter().write(downloadLink);
 		

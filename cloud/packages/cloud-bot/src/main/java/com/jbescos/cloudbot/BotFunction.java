@@ -26,7 +26,7 @@ public class BotFunction implements HttpFunction {
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
 		c.add(Calendar.DAY_OF_YEAR, Integer.parseInt(daysBack) * -1);
-		List<SymbolStats> stats = BotUtils.loadPredictions(c.getTime(), true).stream()
+		List<SymbolStats> stats = BotUtils.loadStatistics(Integer.parseInt(daysBack)).stream()
 				.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
 		BotBinance bot = new BotBinance(SecureBinanceAPI.create());
 		bot.execute(stats);

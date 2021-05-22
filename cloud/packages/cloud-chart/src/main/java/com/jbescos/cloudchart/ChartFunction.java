@@ -10,10 +10,11 @@ public class ChartFunction implements HttpFunction {
 	
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
+		String daysBack = Utils.getParam("days", "365", request.getQueryParameters());
 		String fileName = "account_" + Utils.today() + ".png";
 		response.setContentType("image/png");
 		response.appendHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-		ChartGenerator.writeAccountChart(response.getOutputStream());
+		ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), Integer.parseInt(daysBack));
 		response.getOutputStream().flush();
 	}
 

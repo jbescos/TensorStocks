@@ -43,7 +43,8 @@ public class BotTest {
 			// Days back
 			Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(CsvUtilTest.class.getResourceAsStream("/simple.csv")))) {
-				List<SymbolStats> stats = BotUtils.loadPredictions(from, to, reader, false);
+				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, from, to);
+				List<SymbolStats> stats = BotUtils.fromCsvRows(csv);
 				trader.execute(stats);
 				holder.execute(stats);
 			}

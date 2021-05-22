@@ -7,6 +7,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -31,6 +32,18 @@ public class Utils {
 			}
 		}
 		return null;
+	}
+	
+	public static List<String> daysBack(Date currentTime, int daysBack, String prefix, String subfix) {
+		List<String> days = new ArrayList<>(daysBack);
+		Calendar c = Calendar.getInstance();
+		c.setTime(currentTime);
+		c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
+		for (int i = 0; i < daysBack; i++) {
+			c.add(Calendar.DAY_OF_YEAR, 1);
+			days.add(prefix + fromDate(FORMAT, c.getTime()) + subfix);
+		}
+		return days;
 	}
 	
 	public static Date fromString(DateFormat format, String date) {
