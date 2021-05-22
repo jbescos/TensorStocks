@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.SymbolStats;
 import com.jbescos.common.SymbolStats.Action;
@@ -21,7 +22,7 @@ public class BotFunction implements HttpFunction {
 	
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
-		String daysBack = Utils.getParam("days", "5", request.getQueryParameters());
+		String daysBack = Utils.getParam("days", CloudProperties.BOT_DAYS_BACK_STATISTICS, request.getQueryParameters());
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
 		c.add(Calendar.DAY_OF_YEAR, Integer.parseInt(daysBack) * -1);

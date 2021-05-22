@@ -2,7 +2,6 @@ package com.jbescos.common;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -11,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Properties;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -171,7 +169,6 @@ public class SecureBinanceAPI {
 	
 	public static SecureBinanceAPI create()
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		Properties properties = Utils.fromClasspath("/binance.properties");
-		return new SecureBinanceAPI(properties.getProperty("public.key"), properties.getProperty("private.key"));
+		return new SecureBinanceAPI(CloudProperties.BINANCE_PUBLIC_KEY, CloudProperties.BINANCE_PRIVATE_KEY);
 	}
 }

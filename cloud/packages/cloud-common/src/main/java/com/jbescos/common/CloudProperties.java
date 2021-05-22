@@ -1,0 +1,77 @@
+package com.jbescos.common;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.channels.Channels;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Properties;
+import java.util.logging.Logger;
+
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+
+public class CloudProperties {
+
+	private static final Logger LOGGER = Logger.getLogger(CloudProperties.class.getName());
+	private static final String PROPERTIES_BUCKET = "crypto-properties";
+	private static final String PROPERTIES_FILE = "cloud.properties";
+	public static final String PROJECT_ID = System.getenv("GCP_PROJECT");
+	public static final String BUCKET;
+	public static final String USER;
+	public static final String PASSWORD;
+	public static final String URL;
+	public static final String DRIVER;
+	public static final String BINANCE_PUBLIC_KEY;
+	public static final String BINANCE_PRIVATE_KEY;
+	public static final List<String> BOT_WHITE_LIST_SYMBOLS;
+	public static final double BOT_AMOUNT_REDUCER;
+	public static final double BOT_PERCENTILE_FACTOR;
+	public static final double BOT_BUY_COMISSION;
+	public static final double BOT_MIN_MAX_RELATION;
+	public static final String BOT_DAYS_BACK_STATISTICS;
+
+	static {
+		Properties properties = null;
+		try {
+			properties = Utils.fromClasspath("/" + PROPERTIES_FILE);
+			if (properties == null) {
+				properties = new Properties();
+				Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+				try (ReadChannel readChannel = storage.reader(PROPERTIES_BUCKET, PROPERTIES_FILE);
+						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+					StringBuilder builder = new StringBuilder();
+					String line = null;
+					while ((line = reader.readLine()) != null) {
+						builder.append(line).append("\r\n");
+					}
+					InputStream inputStream = new ByteArrayInputStream(builder.toString().getBytes(StandardCharsets.UTF_8));
+					properties.load(inputStream);
+				} catch (IOException e1) {
+					throw new IllegalStateException("Cannot load " + PROPERTIES_FILE, e1);
+				}
+			}
+		} catch (IOException e) {
+			throw new IllegalStateException("Cannot load " + PROPERTIES_FILE, e);
+		}
+		LOGGER.info("Properties loaded: " + properties.size());
+		BUCKET = properties.getProperty("storage.bucket");
+		USER = properties.getProperty("database.user");
+		PASSWORD = properties.getProperty("database.password");
+		URL = properties.getProperty("database.url");
+		DRIVER = properties.getProperty("database.driver");
+		BINANCE_PUBLIC_KEY = properties.getProperty("binance.public.key");
+		BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
+		BOT_WHITE_LIST_SYMBOLS = Arrays.asList(properties.getProperty("bot.white.list").split(","));
+		BOT_AMOUNT_REDUCER = Double.parseDouble(properties.getProperty("bot.amount.reducer"));
+		BOT_PERCENTILE_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.factor"));
+		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
+		BOT_MIN_MAX_RELATION = Double.parseDouble(properties.getProperty("bot.min.max.relation"));
+		BOT_DAYS_BACK_STATISTICS = properties.getProperty("bot.days.back.statistics");
+	}
+
+}

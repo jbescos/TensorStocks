@@ -8,13 +8,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.SymbolStats;
@@ -22,24 +22,12 @@ import com.jbescos.common.Utils;
 
 public class BotUtils {
 	
-	private static final String BUCKET;
-	private static final String PROJECT_ID;
 	// FIXME change it by the predictions file
 	private static final String PREDICTIONS = "total.csv";
 
-	static {
-		try {
-			Properties properties = Utils.fromClasspath("/storage.properties");
-			BUCKET = properties.getProperty("storage.bucket");
-			PROJECT_ID = properties.getProperty("project.id");
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
-	
 	public static List<SymbolStats> loadPredictions(Date now, boolean queryApi) throws IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		try (ReadChannel readChannel = storage.reader(BUCKET, PREDICTIONS);
+		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+		try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, PREDICTIONS);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			return loadPredictions(now, new Date(Long.MAX_VALUE), reader, queryApi);
 		}

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SymbolStats;
 import com.jbescos.common.SymbolStats.Action;
 import com.jbescos.common.Utils;
@@ -11,8 +12,6 @@ import com.jbescos.common.Utils;
 public class Bot {
 
 	private static final Logger LOGGER = Logger.getLogger(Bot.class.getName());
-	// Sell or buy only 20% of what is available
-	private static final double FACTOR = 0.2;
 	private final Map<String, Double> wallet;
 	private final List<String> whiteListSymbols;
 	private final boolean skip;
@@ -65,9 +64,9 @@ public class Bot {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double usdt = wallet.get(Utils.USDT);
-		double buy = usdt * FACTOR * stat.getFactor();
+		double buy = usdt * CloudProperties.BOT_AMOUNT_REDUCER * stat.getFactor();
 		if (updateWallet(Utils.USDT, buy * -1)) {
-			double unitsOfSymbol = buy / (currentPrice + (currentPrice * Utils.BUY_COMISSION));
+			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
 //			double unitsOfSymbol = buy / currentPrice;
 			updateWallet(symbol, unitsOfSymbol);
 			didAction = true;
@@ -80,7 +79,7 @@ public class Bot {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double unitsOfSymbol = wallet.get(symbol);
-		double sell = unitsOfSymbol * FACTOR * stat.getFactor();
+		double sell = unitsOfSymbol * CloudProperties.BOT_AMOUNT_REDUCER * stat.getFactor();
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
 			updateWallet(Utils.USDT, usdt);

@@ -1,6 +1,5 @@
 package com.jbescos.common;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -11,33 +10,23 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 // CREATE TABLE PRICE_HISTORY (SYMBOL varchar(255), PRICE varchar(255), DATE datetime(3));
 // CREATE INDEX IDX_DATE ON PRICE_HISTORY (DATE); 
 public class DataBase {
 
-	private static final String USER;
-	private static final String PASSWORD;
-	private static final String URL;
-	private static final String DRIVER;
 
 	static {
 		try {
-			Properties properties = Utils.fromClasspath("/database.properties");
-			USER = properties.getProperty("database.user");
-			PASSWORD = properties.getProperty("database.password");
-			URL = properties.getProperty("database.url");
-			DRIVER = properties.getProperty("database.driver");
-			Class.forName(DRIVER);
-		} catch (ClassNotFoundException | IOException e) {
+			Class.forName(CloudProperties.DRIVER);
+		} catch (ClassNotFoundException e) {
 			throw new IllegalStateException(e);
 		}
 	}
 
 	public List<Map<String, Object>> get(String query, Object... args) throws SQLException {
 		List<Map<String, Object>> results = new ArrayList<>();
-		try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+		try (Connection connection = DriverManager.getConnection(CloudProperties.URL, CloudProperties.USER, CloudProperties.PASSWORD);
 				PreparedStatement ps = connection.prepareStatement(query);) {
 			for (int i = 0; i < args.length; i++) {
 				ps.setObject(i + 1, args[i]);
@@ -57,7 +46,7 @@ public class DataBase {
 	}
 
 	public int insert(String sqlQuery, List<Price> rows, Date date) throws SQLException {
-		try (Connection connection = DriverManager.getConnection(URL, USER, PASSWORD);
+		try (Connection connection = DriverManager.getConnection(CloudProperties.URL, CloudProperties.USER, CloudProperties.PASSWORD);
 				PreparedStatement ps = connection.prepareStatement(sqlQuery);) {
 			connection.setAutoCommit(false);
 			for (Price price : rows) {

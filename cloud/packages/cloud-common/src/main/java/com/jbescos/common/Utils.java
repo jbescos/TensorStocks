@@ -16,20 +16,21 @@ import java.util.Properties;
 import com.jbescos.common.Account.Balances;
 
 public class Utils {
-	
-	public static final double BUY_COMISSION = 0.02;
-	public static final double MIN_MAX_FACTOR = 0.5;
+
 	public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 	public static final String USDT = "USDT";
 
 	public static Properties fromClasspath(String properties) throws IOException {
-		Properties prop = new Properties();
-		try (InputStream in = DataBase.class.getResourceAsStream(properties)) {
-			prop.load(in);
+		try (InputStream in = Utils.class.getResourceAsStream(properties)) {
+			if (in != null) {
+				Properties prop = new Properties();
+				prop.load(in);
+				return prop;
+			}
 		}
-		return prop;
+		return null;
 	}
 	
 	public static Date fromString(DateFormat format, String date) {

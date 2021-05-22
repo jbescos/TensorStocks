@@ -7,7 +7,6 @@ import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Properties;
 
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
@@ -21,21 +20,9 @@ import com.google.cloud.storage.StorageOptions;
 
 public class BucketStorage {
 
-	private static final String BUCKET;
-	private static final String PROJECT_ID;
 	private static final String TOTAL_FILE = "total.csv";
 	private static final String ACCOUNT_TOTAL_FILE = "account_total.csv";
 	private static final String TRANSACTIONS_TOTAL_FILE = "transactions_total.csv";
-
-	static {
-		try {
-			Properties properties = Utils.fromClasspath("/storage.properties");
-			BUCKET = properties.getProperty("storage.bucket");
-			PROJECT_ID = properties.getProperty("project.id");
-		} catch (IOException e) {
-			throw new IllegalStateException(e);
-		}
-	}
 	
 	public static String updateFilePrices(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
@@ -54,8 +41,8 @@ public class BucketStorage {
 
 	public static String updateFile(String fileName, String totalCsv, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(BUCKET, fileName).build().getBlobId());
+		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
 			retrieve = storage.create(createBlobInfo(fileName, false), content);
 			updateTotalCsv(storage, header, fileName, totalCsv);
@@ -73,9 +60,9 @@ public class BucketStorage {
 	}
 	
 	public static String fileToString(String fileName) throws IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		StringBuilder builder = new StringBuilder();
-		try (ReadChannel readChannel = storage.reader(BUCKET, fileName); BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));){
+		try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, fileName); BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));){
 			List<String> lines = CsvUtil.readLines(false, reader);
 			for (String line : lines) {
 				builder.append(line);
@@ -85,7 +72,7 @@ public class BucketStorage {
 	}
 
 	private static void updateTotalCsv(Storage storage, byte[] header, String newDataFile, String totalCsv) {
-		BlobInfo total = storage.get(BlobInfo.newBuilder(BUCKET, totalCsv).build().getBlobId());
+		BlobInfo total = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, totalCsv).build().getBlobId());
 		if (total == null) {
 			total = storage.create(createBlobInfo(totalCsv, false), header);
 		}
@@ -94,7 +81,7 @@ public class BucketStorage {
 	}
 
 	private static BlobInfo createBlobInfo(String fileName, boolean acl) {
-		BlobInfo.Builder builder = BlobInfo.newBuilder(BUCKET, fileName);
+		BlobInfo.Builder builder = BlobInfo.newBuilder(CloudProperties.BUCKET, fileName);
 		if (acl) {
 			builder.setAcl(new ArrayList<>(Arrays.asList(Acl.of(User.ofAllUsers(), Role.READER))));
 		}

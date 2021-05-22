@@ -6,8 +6,6 @@ import java.util.logging.Logger;
 public class SymbolStats {
 
 	private static final Logger LOGGER = Logger.getLogger(SymbolStats.class.getName());
-	// The lower, more close to max or min before selling/buying
-	private static final double PERCENTILE_FACTOR = 0.2;
 	private final String symbol;
 	// The higher the better
 	private final double factor;
@@ -62,15 +60,15 @@ public class SymbolStats {
 
 	private Action evaluate(double price, double m) {
 		Action action = Action.NOTHING;
-		if (factor > Utils.MIN_MAX_FACTOR) {
-			double buyCommision = (price * Utils.BUY_COMISSION) + price;
+		if (factor > CloudProperties.BOT_MIN_MAX_RELATION) {
+			double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 			if (buyCommision < avg && m < 0) { // It is going up
-				double percentileMin = ((avg - min.getPrice()) * PERCENTILE_FACTOR) + min.getPrice();
+				double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
 				if (buyCommision < percentileMin) {
 					action = Action.BUY;
 				}
 			} else if (price > avg && m > 0) { // It is going down
-				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * PERCENTILE_FACTOR);
+				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
 				if (price > percentileMax) {
 					action = Action.SELL;
 				}
