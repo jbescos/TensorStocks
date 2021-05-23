@@ -74,11 +74,10 @@ public class Bot {
 			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
 //			double unitsOfSymbol = buy / currentPrice;
 			updateWallet(symbol, unitsOfSymbol);
-			CsvTransactionRow transaction = new CsvTransactionRow(new Date(), UUID.randomUUID().toString(), Action.BUY, symbol, buy, unitsOfSymbol, currentPrice);
+			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.BUY, symbol, buy, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);
 			didAction = true;
-			LOGGER.info("Buying " + unitsOfSymbol + " " + symbol + " and spent " + buy + " USDT. 1 " + symbol + " = "
-					+ currentPrice + " USDT. Avg = " + stat.getAvg());
+			LOGGER.info(stat + "" + transaction);
 		}
 	}
 
@@ -90,11 +89,10 @@ public class Bot {
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
 			updateWallet(Utils.USDT, usdt);
-			CsvTransactionRow transaction = new CsvTransactionRow(new Date(), UUID.randomUUID().toString(), Action.SELL, symbol, sell, unitsOfSymbol, currentPrice);
+			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.SELL, symbol, sell, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);
 			didAction = true;
-			LOGGER.info("Selling " + sell + " " + symbol + " and obtained " + usdt + " USDT. 1 " + symbol + " = "
-					+ currentPrice + " USDT. Avg = " + stat.getAvg());
+			LOGGER.info(stat + "" + transaction);
 		}
 
 	}

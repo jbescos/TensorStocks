@@ -55,8 +55,8 @@ public class CsvTransactionRow {
 
 	@Override
 	public String toString() {
-		return "CsvTransactionRow [side=" + side + ", symbol=" + symbol + ", usdt=" + usdt + ", quantity=" + quantity
-				+ ", usdtUnit=" + usdtUnit + "]";
+		return " TX [date=" + Utils.fromDate(Utils.FORMAT_SECOND, date) + ", side=" + side + ", symbol=" + symbol + ", usdt=" + Utils.format(usdt)
+				+ ", quantity=" + quantity + ", usdtUnit=" + Utils.format(usdtUnit) + "]\n";
 	}
 	
 }

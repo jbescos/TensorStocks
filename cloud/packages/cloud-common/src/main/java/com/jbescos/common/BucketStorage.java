@@ -25,17 +25,15 @@ public class BucketStorage {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
-			retrieve = storage.create(createBlobInfo(fileName, false), content);
-			return retrieve.getMediaLink();
-		} else {
-			final String TEMP_FILE = "tmp.csv";
-			storage.create(createBlobInfo(TEMP_FILE, false), content);
-			BlobInfo blobInfo = createBlobInfo(fileName, false);
-			ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
-					.addSource(fileName).addSource(TEMP_FILE).build();
-			blobInfo = storage.compose(request);
-			return blobInfo.getMediaLink();
+			retrieve = storage.create(createBlobInfo(fileName, false), header);
 		}
+		final String TEMP_FILE = "tmp.csv";
+		storage.create(createBlobInfo(TEMP_FILE, false), content);
+		BlobInfo blobInfo = createBlobInfo(fileName, false);
+		ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
+				.addSource(fileName).addSource(TEMP_FILE).build();
+		blobInfo = storage.compose(request);
+		return blobInfo.getMediaLink();
 	}
 	
 	public static String fileToString(String fileName) throws IOException {

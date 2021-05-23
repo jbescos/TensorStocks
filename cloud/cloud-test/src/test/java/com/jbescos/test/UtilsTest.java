@@ -29,8 +29,6 @@ public class UtilsTest {
 		assertEquals(0.0, value, 0.0);
 		value = CloudProperties.minSell("BTCUSDT");
 		assertEquals(70000.0, value, 0.0);
-		value = CloudProperties.minSell("DOTUSDT");
-		assertEquals(0.477, value, 0.0);
 	}
 	
 	
