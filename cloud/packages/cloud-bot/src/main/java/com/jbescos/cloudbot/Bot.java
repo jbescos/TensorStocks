@@ -1,10 +1,14 @@
 package com.jbescos.cloudbot;
 
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.SymbolStats;
 import com.jbescos.common.SymbolStats.Action;
 import com.jbescos.common.Utils;
@@ -17,6 +21,7 @@ public class Bot {
 	private final boolean skip;
 	private double usdtSnapshot;
 	private boolean didAction;
+	private final List<CsvTransactionRow> transactions = new ArrayList<>();
 
 	public Bot(Map<String, Double> wallet, boolean skip, List<String> whiteListSymbols) {
 		this.wallet = wallet;
@@ -69,6 +74,8 @@ public class Bot {
 			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
 //			double unitsOfSymbol = buy / currentPrice;
 			updateWallet(symbol, unitsOfSymbol);
+			CsvTransactionRow transaction = new CsvTransactionRow(new Date(), UUID.randomUUID().toString(), Action.BUY, symbol, buy, unitsOfSymbol, currentPrice);
+			transactions.add(transaction);
 			didAction = true;
 			LOGGER.info("Buying " + unitsOfSymbol + " " + symbol + " and spent " + buy + " USDT. 1 " + symbol + " = "
 					+ currentPrice + " USDT. Avg = " + stat.getAvg());
@@ -83,6 +90,8 @@ public class Bot {
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
 			updateWallet(Utils.USDT, usdt);
+			CsvTransactionRow transaction = new CsvTransactionRow(new Date(), UUID.randomUUID().toString(), Action.SELL, symbol, sell, unitsOfSymbol, currentPrice);
+			transactions.add(transaction);
 			didAction = true;
 			LOGGER.info("Selling " + sell + " " + symbol + " and obtained " + usdt + " USDT. 1 " + symbol + " = "
 					+ currentPrice + " USDT. Avg = " + stat.getAvg());
@@ -105,6 +114,10 @@ public class Bot {
 
 	public boolean isDidAction() {
 		return didAction;
+	}
+
+	public List<CsvTransactionRow> getTransactions() {
+		return transactions;
 	}
 
 	@Override

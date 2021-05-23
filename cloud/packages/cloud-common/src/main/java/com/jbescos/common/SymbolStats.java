@@ -1,7 +1,7 @@
 package com.jbescos.common;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.logging.Logger;
 
 public class SymbolStats {
@@ -15,8 +15,9 @@ public class SymbolStats {
 	private final CsvRow max;
 	private final CsvRow newest;
 	private final Action action;
+	private final double minProfitableSellPrice;
 
-	public SymbolStats(String symbol, List<CsvRow> values) {
+	public SymbolStats(String symbol, List<CsvRow> values, List<CsvTransactionRow> previousTransactions) {
 		this.symbol = symbol;
 		this.min = getMinMax(values, true);
 		this.max = getMinMax(values, false);
@@ -28,7 +29,12 @@ public class SymbolStats {
 			CsvRow secondNewest = values.get(values.size() - 2);
 			m = secondNewest.getPrice() - newest.getPrice();
 		}
+		this.minProfitableSellPrice = Utils.minSellProfitable(previousTransactions);
 		this.action = evaluate(newest.getPrice(), m);
+	}
+	
+	public SymbolStats(String symbol, List<CsvRow> values) {
+		this(symbol, values, Collections.emptyList());
 	}
 
 	public CsvRow getMin() {
@@ -73,7 +79,9 @@ public class SymbolStats {
 				if (price > percentileMax) {
 					double minSell = CloudProperties.minSell(this.symbol);
 					if (price < minSell) {
-						LOGGER.info("SELL discarded because minimum selling " + this.symbol + " price is set to " + Utils.format(minSell) + " and the current selling price is " + Utils.format(price));
+						LOGGER.info(Utils.format(price) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
+					} else if (price < minProfitableSellPrice) {
+						LOGGER.info(Utils.format(price) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
 					} else {
 						action = Action.SELL;
 					}
@@ -113,7 +121,7 @@ public class SymbolStats {
 		} else {
 			builder.append(", max=").append(max).append(", min=").append(min);
 		}
-		builder.append(", newest=").append(newest).append(", avg=").append(avg).append(", action=").append(action.name()).append("\n");
+		builder.append(", newest=").append(newest).append(", avg=").append(avg).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
 		return builder.toString();
 	}
 	

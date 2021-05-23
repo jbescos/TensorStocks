@@ -13,6 +13,8 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import com.jbescos.common.SymbolStats.Action;
+
 public class CsvUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(CsvUtil.class.getName());
@@ -88,6 +90,21 @@ public class CsvUtil {
 			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
 			String symbol = columns[1];
 			CsvAccountRow row = new CsvAccountRow(date, symbol, Double.parseDouble(columns[2]), Double.parseDouble(columns[3]));
+			return row;
+		}, reader);
+	}
+	
+	public static List<CsvTransactionRow> readCsvTransactionRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
+		return readCsv(skipFirst, line -> {
+			String[] columns = line.split(separator);
+			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			String orderId = columns[1];
+			String side = columns[2];
+			String symbol = columns[3];
+			double usdt = Double.parseDouble(columns[4]);
+			double quantity = Double.parseDouble(columns[5]);
+			double usdtUnit = Double.parseDouble(columns[6]);
+			CsvTransactionRow row = new CsvTransactionRow(date, orderId, Action.valueOf(side), symbol, usdt, quantity, usdtUnit);
 			return row;
 		}, reader);
 	}

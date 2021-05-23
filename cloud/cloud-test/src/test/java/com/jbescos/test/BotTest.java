@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +23,8 @@ import com.jbescos.cloudbot.BotUtils;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.SymbolStats;
-import com.jbescos.common.Utils;
 import com.jbescos.common.SymbolStats.Action;
+import com.jbescos.common.Utils;
 
 public class BotTest {
 	
@@ -44,7 +45,7 @@ public class BotTest {
 			Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
 			try (BufferedReader reader = new BufferedReader(new InputStreamReader(CsvUtilTest.class.getResourceAsStream("/simple.csv")))) {
 				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, from, to);
-				List<SymbolStats> stats = BotUtils.fromCsvRows(csv);
+				List<SymbolStats> stats = BotUtils.fromCsvRows(csv, trader.getTransactions());
 				trader.execute(stats);
 				holder.execute(stats);
 			}
@@ -61,7 +62,7 @@ public class BotTest {
 	
 	@Test
 	public void complex() throws FileNotFoundException, IOException {
-		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT");
+		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT", "BTCUSDT", "ETHUSDT", "BNBUSDT", "CAKEUSDT", "BAKEUSDT", "SOLUSDT");
 		Map<String, Double> wallet = new HashMap<>();
 		wallet.put("USDT", 141.0);
 		wallet.put("DOGEUSDT", 348.25);
@@ -79,7 +80,7 @@ public class BotTest {
 			// Days back
 			Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
 			List<CsvRow> segment = rows.stream().filter(row -> row.getDate().getTime() >= from.getTime() && row.getDate().getTime() < to.getTime()).collect(Collectors.toList());
-			List<SymbolStats> stats = BotUtils.fromCsvRows(segment);
+			List<SymbolStats> stats = BotUtils.fromCsvRows(segment, trader.getTransactions());
 			trader.execute(stats);
 			holder.execute(stats);
 			now = new Date(now.getTime() + 3600000);
@@ -88,6 +89,7 @@ public class BotTest {
 				LOGGER.warning("Holder: " + holder);
 			}
 		}
+		LOGGER.info("Transactions: " + trader.getTransactions());
 		LOGGER.info("Trader: " + trader);
 		LOGGER.info("Holder: " + holder);
 		assertTrue("Trader: " + trader + " \n " + "Holder: " + holder + "\n", trader.getUsdtSnapshot() >= holder.getUsdtSnapshot());
@@ -112,11 +114,11 @@ public class BotTest {
 		// Good moment to sell
 		final String SYMBOL_LIMIMTED = "test";
 		List<CsvRow> rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_LIMIMTED, 1.0), new CsvRow(new Date(50000), SYMBOL_LIMIMTED, 100.0), new CsvRow(new Date(100000), SYMBOL_LIMIMTED, 99.0));
-		SymbolStats stats = BotUtils.fromCsvRows(rows).get(0);
+		SymbolStats stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
 		assertEquals(Action.NOTHING, stats.getAction());
 		final String SYMBOL_NOT_LIMIMTED = "unlimitedSymbol";
 		rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_NOT_LIMIMTED, 1.0), new CsvRow(new Date(50000), SYMBOL_NOT_LIMIMTED, 100.0), new CsvRow(new Date(100000), SYMBOL_NOT_LIMIMTED, 99.0));
-		stats = BotUtils.fromCsvRows(rows).get(0);
+		stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
 		assertEquals(Action.SELL, stats.getAction());
 	}
 	

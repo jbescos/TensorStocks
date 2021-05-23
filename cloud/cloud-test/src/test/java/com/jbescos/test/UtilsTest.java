@@ -1,6 +1,7 @@
 package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Arrays;
 import java.util.Date;
@@ -9,7 +10,9 @@ import java.util.List;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.Utils;
+import com.jbescos.common.SymbolStats.Action;
 
 public class UtilsTest {
 
@@ -28,5 +31,37 @@ public class UtilsTest {
 		assertEquals(70000.0, value, 0.0);
 		value = CloudProperties.minSell("DOTUSDT");
 		assertEquals(0.477, value, 0.0);
+	}
+	
+	
+	@Test
+	public void sellWhenBenefit() {
+		// 1 buy = 10$, 1 buy = 15$ -> 1 sell = 12.5
+		double minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 10, 1), createCsvTransactionRow(Action.BUY, 15, 1)));
+		assertEquals("12.500000", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 10, 1), createCsvTransactionRow(Action.BUY, 15, 1), createCsvTransactionRow(Action.BUY, 2, 1)));
+		assertEquals("9.000000", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 2, 4)));
+		assertEquals("0.500000", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 2, 4), createCsvTransactionRow(Action.BUY, 1, 10)));
+		assertEquals("0.214286", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 1, 4), createCsvTransactionRow(Action.SELL, 1, 4)));
+		assertEquals("0.000000", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.SELL, 1, 10)));
+		assertEquals("-0.100000", Utils.format(minSell));
+		double minSellExample = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5)));
+		assertEquals("0.252632", Utils.format(minSellExample));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5), createCsvTransactionRow(Action.SELL, 14.0, 70.5)));
+		assertEquals("0.060423", Utils.format(minSell));
+		assertTrue(minSellExample > minSell);
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void sellWhenBenefitDifferentSymbols() {
+		Utils.minSellProfitable(Arrays.asList(new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol1", 1.0, 2.0, 3.0), new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol2", 1.0, 2.0, 3.0)));
+	}
+	
+	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
+		return new CsvTransactionRow(new Date(0), "", side, "any", usdt, quantity, usdt / quantity);
 	}
 }
