@@ -7,7 +7,11 @@ import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -35,6 +39,7 @@ public class CloudProperties {
 	public static final double BOT_BUY_COMISSION;
 	public static final double BOT_MIN_MAX_RELATION;
 	public static final String BOT_DAYS_BACK_STATISTICS;
+	private static final Map<String, Double> MIN_SELL;
 
 	static {
 		Properties properties = null;
@@ -50,7 +55,8 @@ public class CloudProperties {
 					while ((line = reader.readLine()) != null) {
 						builder.append(line).append("\r\n");
 					}
-					InputStream inputStream = new ByteArrayInputStream(builder.toString().getBytes(StandardCharsets.UTF_8));
+					InputStream inputStream = new ByteArrayInputStream(
+							builder.toString().getBytes(StandardCharsets.UTF_8));
 					properties.load(inputStream);
 				} catch (IOException e1) {
 					throw new IllegalStateException("Cannot load " + PROPERTIES_FILE, e1);
@@ -74,6 +80,25 @@ public class CloudProperties {
 		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
 		BOT_MIN_MAX_RELATION = Double.parseDouble(properties.getProperty("bot.min.max.relation"));
 		BOT_DAYS_BACK_STATISTICS = properties.getProperty("bot.days.back.statistics");
+		MIN_SELL = createMinSell(properties);
 	}
 
+	private static Map<String, Double> createMinSell(Properties properties) {
+		Map<String, Double> minSell = new HashMap<>();
+		Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+		while (enums.hasMoreElements()) {
+			String key = enums.nextElement();
+			if (key.startsWith("bot.min.sell")) {
+				double value = Double.parseDouble(properties.getProperty(key));
+				String symbol = key.split("\\.")[3];
+				minSell.put(symbol, value);
+			}
+		}
+		return Collections.unmodifiableMap(minSell);
+	}
+
+	public static double minSell(String symbol) {
+		Double value = MIN_SELL.get(symbol);
+		return value == null ? 0.0 : value;
+	}
 }

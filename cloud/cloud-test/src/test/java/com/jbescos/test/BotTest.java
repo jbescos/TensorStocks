@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -24,6 +23,7 @@ import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.SymbolStats;
 import com.jbescos.common.Utils;
+import com.jbescos.common.SymbolStats.Action;
 
 public class BotTest {
 	
@@ -95,7 +95,7 @@ public class BotTest {
 	
 	@Test
 	public void round() {
-		assertEquals("21330.888888", String.format(Locale.US, "%.6f", 21330.888887878787));
+		assertEquals("21330.888888", Utils.format(21330.888887878787));
 	}
 	
 	@Test
@@ -103,8 +103,21 @@ public class BotTest {
 		double quoteOrderQtyBD = Double.parseDouble("11.801812");
 		double executedQtyBD = Double.parseDouble("0.47700000");
 		double result = quoteOrderQtyBD/executedQtyBD;
-		String resultStr = String.format(Locale.US, "%.6f", result);
+		String resultStr = Utils.format(result);
 		assertEquals("24.741744", resultStr);
+	}
+	
+	@Test
+	public void minSell() {
+		// Good moment to sell
+		final String SYMBOL_LIMIMTED = "test";
+		List<CsvRow> rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_LIMIMTED, 1.0), new CsvRow(new Date(50000), SYMBOL_LIMIMTED, 100.0), new CsvRow(new Date(100000), SYMBOL_LIMIMTED, 99.0));
+		SymbolStats stats = BotUtils.fromCsvRows(rows).get(0);
+		assertEquals(Action.NOTHING, stats.getAction());
+		final String SYMBOL_NOT_LIMIMTED = "unlimitedSymbol";
+		rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_NOT_LIMIMTED, 1.0), new CsvRow(new Date(50000), SYMBOL_NOT_LIMIMTED, 100.0), new CsvRow(new Date(100000), SYMBOL_NOT_LIMIMTED, 99.0));
+		stats = BotUtils.fromCsvRows(rows).get(0);
+		assertEquals(Action.SELL, stats.getAction());
 	}
 	
 	private Map<String, Double> createWallet(double amount, List<String> cryptos){

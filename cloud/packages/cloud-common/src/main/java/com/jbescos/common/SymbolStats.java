@@ -1,6 +1,7 @@
 package com.jbescos.common;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.logging.Logger;
 
 public class SymbolStats {
@@ -70,7 +71,12 @@ public class SymbolStats {
 			} else if (price > avg && m > 0) { // It is going down
 				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
 				if (price > percentileMax) {
-					action = Action.SELL;
+					double minSell = CloudProperties.minSell(this.symbol);
+					if (price < minSell) {
+						LOGGER.info("SELL discarded because minimum selling " + this.symbol + " price is set to " + Utils.format(minSell) + " and the current selling price is " + Utils.format(price));
+					} else {
+						action = Action.SELL;
+					}
 				}
 			}
 		}

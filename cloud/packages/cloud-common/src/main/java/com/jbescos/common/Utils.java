@@ -11,6 +11,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
 
@@ -73,6 +74,10 @@ public class Utils {
 	
 	public static String today() {
 		return fromDate(FORMAT, new Date());
+	}
+	
+	public static String format(double amount) {
+		return String.format(Locale.US, "%.6f", amount);
 	}
 	
 	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Account account) {

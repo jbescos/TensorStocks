@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -47,7 +46,7 @@ public class BotBinance {
 		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
-				api.order(symbol, Action.BUY.name(), String.format(Locale.US, "%.6f", buy));
+				api.order(symbol, Action.BUY.name(), Utils.format(buy));
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
 			}
@@ -63,7 +62,7 @@ public class BotBinance {
 		if (updateWallet(walletSymbol, sell * -1)) {
 			double usdtSell = sell * stat.getNewest().getPrice();
 			try {
-				api.order(symbol, Action.SELL.name(), String.format(Locale.US, "%.6f", usdtSell));
+				api.order(symbol, Action.SELL.name(), Utils.format(usdtSell));
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
 			}
