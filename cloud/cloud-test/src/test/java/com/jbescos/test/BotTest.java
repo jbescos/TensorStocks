@@ -87,7 +87,7 @@ public class BotTest {
 		}
 		LOGGER.info("Trader: " + trader);
 		LOGGER.info("Holder: " + holder);
-		// FIXME Enable when mire transactions are added
+		// FIXME Enable when more transactions are added
 //		assertTrue("Trader: " + trader + " \n " + "Holder: " + holder + "\n", trader.getUsdtSnapshot() >= holder.getUsdtSnapshot());
 	}
 	

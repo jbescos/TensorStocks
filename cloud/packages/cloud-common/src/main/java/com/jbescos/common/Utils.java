@@ -94,14 +94,19 @@ public class Utils {
 			} else if (!symbol.equals(transaction.getSymbol())) {
 				throw new IllegalArgumentException("Every CsvAccountRow must contain the same symbol. It was found " + symbol + " and " + transaction.getSymbol());
 			}
-			totalQuantity = totalQuantity + transaction.getQuantity();
 			if (transaction.getSide() == Action.BUY) {
+				totalQuantity = totalQuantity + transaction.getQuantity();
 				accumulated = accumulated + transaction.getUsdt();
 			} else {
 				accumulated = accumulated - transaction.getUsdt();
+				totalQuantity = totalQuantity - transaction.getQuantity();
 			}
 		}
-		return accumulated / totalQuantity;
+		if (totalQuantity > 0) {
+			return accumulated / totalQuantity;
+		} else {
+			return 0.0;
+		}
 	}
 	
 	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Account account) {

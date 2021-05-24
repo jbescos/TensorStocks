@@ -43,14 +43,16 @@ public class UtilsTest {
 		assertEquals("0.500000", Utils.format(minSell));
 		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 2, 4), createCsvTransactionRow(Action.BUY, 1, 10)));
 		assertEquals("0.214286", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 4, 2), createCsvTransactionRow(Action.SELL, 2, 1)));
+		assertEquals("2.000000", Utils.format(minSell));
 		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 1, 4), createCsvTransactionRow(Action.SELL, 1, 4)));
 		assertEquals("0.000000", Utils.format(minSell));
 		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.SELL, 1, 10)));
-		assertEquals("-0.100000", Utils.format(minSell));
+		assertEquals("0.000000", Utils.format(minSell));
 		double minSellExample = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5)));
 		assertEquals("0.252632", Utils.format(minSellExample));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5), createCsvTransactionRow(Action.SELL, 14.0, 70.5)));
-		assertEquals("0.060423", Utils.format(minSell));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5), createCsvTransactionRow(Action.SELL, 14.0, 30.0)));
+		assertEquals("0.153846", Utils.format(minSell));
 		assertTrue(minSellExample > minSell);
 	}
 	
