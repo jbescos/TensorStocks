@@ -15,8 +15,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.Storage.BucketListOption;
 import com.google.cloud.storage.StorageOptions;
 
 public class CloudProperties {
@@ -48,7 +52,16 @@ public class CloudProperties {
 			if (properties == null) {
 				properties = new Properties();
 				Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-				try (ReadChannel readChannel = storage.reader(PROPERTIES_BUCKET, PROPERTIES_FILE);
+				Page<Bucket> page = storage.list(BucketListOption.prefix(PROPERTIES_BUCKET));
+				String propertiesBucket = null;
+				for (Bucket bucket : page.iterateAll()) {
+					propertiesBucket = bucket.getName();
+					break;
+				}
+				if (propertiesBucket == null) {
+					throw new IllegalStateException("Bucket that starts with " + PROPERTIES_BUCKET + " was not found");
+				}
+				try (ReadChannel readChannel = storage.reader(propertiesBucket, PROPERTIES_FILE);
 						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 					StringBuilder builder = new StringBuilder();
 					String line = null;
