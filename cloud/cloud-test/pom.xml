@@ -25,6 +25,11 @@
 			<version>1.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.jbescos.cloud.packages</groupId>
+			<artifactId>cloud-chart</artifactId>
+			<version>1.0</version>
+		</dependency>
+		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<scope>test</scope>

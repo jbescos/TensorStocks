@@ -27,19 +27,19 @@ public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
 	
-	public static void writeLoadAndWriteChart(OutputStream output, int daysBack) throws IOException {
-		String filePrefix = "account_";
-		List<String> days = Utils.daysBack(new Date(), daysBack, filePrefix, ".csv");
+	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv) throws IOException {
+		
+		List<String> days = Utils.daysBack(new Date(), daysBack, chartCsv.prefix(), ".csv");
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		IChart<IRow> chart = create();
 		List<IRow> rows = new ArrayList<>();
-		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(filePrefix));
+		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(chartCsv.prefix()));
 		for (Blob blob : blobs.iterateAll()) {
 			String fileName = blob.getName();
 			if (days.contains(fileName)) {
 				try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, fileName);
 						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-					List<? extends IRow> csv = CsvUtil.readCsvAccountRows(true, ",", reader);
+					List<? extends IRow> csv = chartCsv.read(reader);
 					rows.addAll(csv);
 				}
 			}
@@ -47,7 +47,7 @@ public class ChartGenerator {
 		writeChart(rows, output, chart);
 	}
 
-	private static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart)
+	public static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart)
 			throws IOException {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
 		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
@@ -63,5 +63,47 @@ public class ChartGenerator {
 			return new XYChart();
 		}
 	}
+	
+	static interface IChartCsv {
+		String prefix();
+		List<? extends IRow> read(BufferedReader reader) throws IOException;
+	}
 
+	static class AccountChartCsv implements IChartCsv {
+
+		@Override
+		public String prefix() {
+			return "account_";
+		}
+
+		@Override
+		public List<? extends IRow> read(BufferedReader reader) throws IOException {
+			return CsvUtil.readCsvAccountRows(true, ",", reader);
+		}
+		
+	}
+	
+	static class SymbolChartCsv implements IChartCsv {
+		
+		private final List<String> symbols;
+		
+		public SymbolChartCsv(List<String> symbols) {
+			this.symbols = symbols;
+		}
+
+		@Override
+		public String prefix() {
+			return "";
+		}
+
+		@Override
+		public List<? extends IRow> read(BufferedReader reader) throws IOException {
+			List<? extends IRow> rows = CsvUtil.readCsvRows(true, ",", reader);
+			if (symbols != null && !symbols.isEmpty()) {
+				rows = rows.stream().filter(row -> symbols.contains(row.getSymbol())).collect(Collectors.toList());
+			}
+			return rows;
+		}
+		
+	}
 }
