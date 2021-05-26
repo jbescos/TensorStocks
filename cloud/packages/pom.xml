@@ -22,6 +22,7 @@
 		<module>cloud-chart</module>
 		<module>cloud-bot</module>
 		<module>cloud-csv</module>
+		<module>local-bot</module>
 	</modules>
 
 	<build>

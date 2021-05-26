@@ -29,6 +29,7 @@
 		<mysql.version>8.0.24</mysql.version>
 		<jfreechart.version>1.5.0</jfreechart.version>
 		<deeplearning4j.version>1.0.0-beta7</deeplearning4j.version>
+		<tyrus.version>2.0.0</tyrus.version>
 	</properties>
 
 	<dependencyManagement>
@@ -98,6 +99,16 @@
 				<groupId>org.nd4j</groupId>
 				<artifactId>nd4j-native-platform</artifactId>
 				<version>${deeplearning4j.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.tyrus</groupId>
+				<artifactId>tyrus-client</artifactId>
+				<version>${tyrus.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.tyrus</groupId>
+				<artifactId>tyrus-container-grizzly-client</artifactId>
+				<version>${tyrus.version}</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>

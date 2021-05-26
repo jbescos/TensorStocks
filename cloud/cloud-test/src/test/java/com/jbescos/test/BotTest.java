@@ -70,16 +70,18 @@ public class BotTest {
 		Bot trader = new Bot(wallet, false, cryptos);
 		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);
 		Date now = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-13 08:33:48");
-		Date limit = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-22 22:00:07");
 		List<CsvRow> rows = null;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(CsvUtilTest.class.getResourceAsStream("/total.csv")))) {
 			rows = CsvUtil.readCsvRows(true, ",", reader);
 		}
-		while (now.getTime() < limit.getTime()) {
+		while (true) {
 			Date to = new Date(now.getTime());
 			// Days back
 			Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
 			List<CsvRow> segment = rows.stream().filter(row -> row.getDate().getTime() >= from.getTime() && row.getDate().getTime() < to.getTime()).collect(Collectors.toList());
+			if (segment.isEmpty()) {
+				break;
+			}
 			List<SymbolStats> stats = BotUtils.fromCsvRows(segment, trader.getTransactions());
 			trader.execute(stats);
 			holder.execute(stats);
@@ -87,7 +89,7 @@ public class BotTest {
 		}
 		LOGGER.info("Trader: " + trader);
 		LOGGER.info("Holder: " + holder);
-		// FIXME Enable when more transactions are added
+		// FIXME
 //		assertTrue("Trader: " + trader + " \n " + "Holder: " + holder + "\n", trader.getUsdtSnapshot() >= holder.getUsdtSnapshot());
 	}
 	
