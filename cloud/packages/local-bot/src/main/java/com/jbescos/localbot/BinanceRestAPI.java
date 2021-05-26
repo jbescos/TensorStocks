@@ -2,14 +2,15 @@ package com.jbescos.localbot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class BinanceRestAPI {
 		this.publicKey = publicKey;
 	}
 
-	public String signature(String data) {
+	private String signature(String data) {
 		return bytesToHex(mac.doFinal(data.getBytes()));
 	}
 
@@ -54,7 +55,7 @@ public class BinanceRestAPI {
 		return new String(hexChars);
 	}
 
-	public <T> T get(String path, GenericType<T> type, String... query) {
+	private <T> T get(String path, GenericType<T> type, String... query) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
 		StringBuilder queryStr = new StringBuilder();
@@ -84,7 +85,7 @@ public class BinanceRestAPI {
 		}
 	}
 
-	public <T> T post(String path, GenericType<T> type, String... query) {
+	private <T> T post(String path, GenericType<T> type, String... query) {
 		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
 		StringBuilder queryStr = new StringBuilder();
@@ -114,7 +115,7 @@ public class BinanceRestAPI {
 		}
 	}
 
-	public Account account() {
+	private Account account() {
 		Account account = get("/api/v3/account", new GenericType<Account>() {
 		}, "timestamp", Long.toString(new Date().getTime()));
 		List<Balances> balances = account.getBalances().stream().filter(balance -> {
@@ -125,11 +126,11 @@ public class BinanceRestAPI {
 		return account;
 	}
 
-	public Map<String, Double> wallet() {
-		Map<String, Double> wallet = new HashMap<>();
+	public ConcurrentHashMap<String, BigDecimal> wallet() {
+		ConcurrentHashMap<String, BigDecimal> wallet = new ConcurrentHashMap<>();
 		Account account = account();
 		for (Balances balance : account.getBalances()) {
-			wallet.put(balance.getAsset(), Double.parseDouble(balance.getFree()));
+			wallet.put(balance.getAsset(), new BigDecimal(balance.getFree()));
 		}
 		return wallet;
 	}
@@ -146,11 +147,10 @@ public class BinanceRestAPI {
 		}, args);
 		LOGGER.info("Completed order: " + response);
 		String executedQty = response.get("executedQty");
-		// quoteOrderQty / executedQty
-		double quoteOrderQtyBD = Double.parseDouble(quoteOrderQty);
-		double executedQtyBD = Double.parseDouble(executedQty);
-		double result = quoteOrderQtyBD / executedQtyBD;
-		return new Transaction(Constants.FORMAT_SECOND.format(now), orderId, side, symbol, quoteOrderQty, executedQty, Constants.format(result));
+		BigDecimal quoteOrderQtyBD = new BigDecimal(quoteOrderQty);
+		BigDecimal executedQtyBD = new BigDecimal(executedQty);
+		BigDecimal result = quoteOrderQtyBD.divide(executedQtyBD);
+		return new Transaction(Constants.FORMAT_SECOND.format(now), orderId, side, symbol, quoteOrderQty, executedQty, result.toString());
 	}
 
 	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty)

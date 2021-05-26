@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -15,6 +17,7 @@ import java.util.Properties;
 public class Constants {
 
 	private static final String PROPERTY_PATH = System.getProperty("property");
+	public static final String USDT = "USDT";
 	public static final String WS_URL;
 	public static final List<String> SYMBOLS;
 	public static final long LATENCY;
@@ -22,6 +25,9 @@ public class Constants {
 	public static final String BINANCE_PRIVATE_KEY;
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final int WORKERS;
+	public static final BigDecimal COMMISSION_APPLIED;
+	public static final BigDecimal MIN_BINANCE_USDT;
+	public static final BigDecimal AMOUNT_REDUCER;
 	
 	static {
 		try {
@@ -32,6 +38,9 @@ public class Constants {
 			BINANCE_PUBLIC_KEY = properties.getProperty("binance.public.key");
 			BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
 			WORKERS = Integer.parseInt(properties.getProperty("bot.workers"));
+			COMMISSION_APPLIED = new BigDecimal(1).subtract(new BigDecimal(properties.getProperty("binance.commission")));
+			MIN_BINANCE_USDT = new BigDecimal(properties.getProperty("binance.minimum.usdt"));
+			AMOUNT_REDUCER = new BigDecimal(properties.getProperty("amount.reducer"));
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot load properties " + PROPERTY_PATH, e);
 		}
@@ -57,7 +66,7 @@ public class Constants {
 		}
 		return null;
 	}
-
+	
 	public static String format(double amount) {
 		return String.format(Locale.US, "%.8f", amount);
 	}
