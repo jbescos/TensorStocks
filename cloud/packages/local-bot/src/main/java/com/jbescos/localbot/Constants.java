@@ -38,7 +38,7 @@ public class Constants {
 			BINANCE_PUBLIC_KEY = properties.getProperty("binance.public.key");
 			BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
 			WORKERS = Integer.parseInt(properties.getProperty("bot.workers"));
-			COMMISSION_APPLIED = new BigDecimal(1).subtract(new BigDecimal(properties.getProperty("binance.commission")));
+			COMMISSION_APPLIED = new BigDecimal(1).add(new BigDecimal(properties.getProperty("binance.commission")));
 			MIN_BINANCE_USDT = new BigDecimal(properties.getProperty("binance.minimum.usdt"));
 			AMOUNT_REDUCER = new BigDecimal(properties.getProperty("amount.reducer"));
 		} catch (IOException e) {

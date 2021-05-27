@@ -3,16 +3,10 @@ package com.jbescos.localbot;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.client.ClientManager;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.websocket.ClientEndpointConfig;
 import jakarta.websocket.DeploymentException;
@@ -49,7 +43,7 @@ public class WebSocket {
 					LOGGER.info(jsonFormat);
 					session.getBasicRemote().sendText(jsonFormat);
 				} catch (IOException e) {
-					e.printStackTrace();
+					LOGGER.log(Level.SEVERE, "Unexpected error", e);
 				}
 			}
 		}, cec, new URI(Constants.WS_URL));
