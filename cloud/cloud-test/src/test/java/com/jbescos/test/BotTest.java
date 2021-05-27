@@ -58,6 +58,40 @@ public class BotTest {
 		check("/DOGEUSDT.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "2021-05-27 02:40:40"));
 	}
 	
+	@Test
+	public void example1() throws FileNotFoundException, IOException {
+		List<String> cryptos = Arrays.asList("SYMBOL");
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 100.0);
+		check("/example1.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
+	@Test
+	public void example2() throws FileNotFoundException, IOException {
+		List<String> cryptos = Arrays.asList("SYMBOL");
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 100.0);
+		check("/example2.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
+	@Test
+	public void example3() throws FileNotFoundException, IOException {
+		List<String> cryptos = Arrays.asList("SYMBOL");
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 100.0);
+		check("/example3.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
+	@Test
+	public void example4() throws FileNotFoundException, IOException {
+		List<String> cryptos = Arrays.asList("SYMBOL");
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 100.0);
+		check("/example4.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
 	private void check(String csv, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
 		Bot trader = new Bot(wallet, false, cryptos);
 		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);
