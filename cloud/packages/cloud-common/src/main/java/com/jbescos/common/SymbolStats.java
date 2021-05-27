@@ -10,7 +10,6 @@ public class SymbolStats {
 	private final String symbol;
 	// The higher the better
 	private final double factor;
-	private final double avg;
 	private final CsvRow min;
 	private final CsvRow max;
 	private final CsvRow newest;
@@ -22,7 +21,6 @@ public class SymbolStats {
 		this.min = getMinMax(values, true);
 		this.max = getMinMax(values, false);
 		this.factor = calculateFactor(min, max);
-		this.avg = avg(values);
 		this.newest = values.get(values.size() - 1);
 		double m = 0;
 		if (values.size() > 1) {
@@ -53,10 +51,6 @@ public class SymbolStats {
 		return factor;
 	}
 
-	public double getAvg() {
-		return avg;
-	}
-	
 	public Action getAction() {
 		return action;
 	}
@@ -69,13 +63,13 @@ public class SymbolStats {
 		Action action = Action.NOTHING;
 		if (factor > CloudProperties.BOT_MIN_MAX_RELATION) {
 			double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
-			if (buyCommision < avg && m < 0) { // It is going up
-				double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
+			if (m < 0) { // It is going up
+				double percentileMin = ((max.getPrice() - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
 				if (buyCommision < percentileMin) {
 					action = Action.BUY;
 				}
-			} else if (price > avg && m > 0) { // It is going down
-				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
+			} else if (m > 0) { // It is going down
+				double percentileMax = max.getPrice() - ((max.getPrice() - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR);
 				if (price > percentileMax) {
 					double minSell = CloudProperties.minSell(this.symbol);
 					if (price < minSell) {
@@ -123,7 +117,7 @@ public class SymbolStats {
 		} else {
 			builder.append(", max=").append(max).append(", min=").append(min);
 		}
-		builder.append(", newest=").append(newest).append(", avg=").append(avg).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
+		builder.append(", newest=").append(newest).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
 		return builder.toString();
 	}
 	
