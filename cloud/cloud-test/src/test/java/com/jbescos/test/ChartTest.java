@@ -18,21 +18,25 @@ import com.jbescos.common.IRow;
 
 public class ChartTest {
 
-	private static final List<String> SYMBOLS = Arrays.asList("DOGEUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT", "SHIBUSDT");
+	private static final List<String> SYMBOLS = Arrays.asList("BNBUSDT", "DOGEUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT", "SHIBUSDT");
 	
 	@Test
 	public void generateChart() throws IOException {
+		chart("/total.csv");
+		chart("/BNBUSDT.csv");
+	}
+	
+	private void chart(String csv) throws IOException {
 		List<? extends IRow> rows = null;
-		try (InputStream input = ChartTest.class.getResourceAsStream("/total.csv");
+		try (InputStream input = ChartTest.class.getResourceAsStream(csv);
 				InputStreamReader inputReader = new InputStreamReader(input);
 				BufferedReader reader = new BufferedReader(inputReader);) {
 			rows = CsvUtil.readCsvRows(true, ",", reader);
 		}
 		rows = rows.stream().filter(row -> SYMBOLS.contains(row.getSymbol())).collect(Collectors.toList());
-		try (FileOutputStream output = new FileOutputStream("./target/chart.png")) {
+		try (FileOutputStream output = new FileOutputStream("./target/" + csv + ".png")) {
 			ChartGenerator.writeChart(rows, output, new XYChart());
 		}
-		
 	}
 
 }
