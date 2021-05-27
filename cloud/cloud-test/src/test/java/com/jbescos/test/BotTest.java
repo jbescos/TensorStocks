@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.cloudbot.Bot;
@@ -29,9 +30,10 @@ import com.jbescos.common.Utils;
 public class BotTest {
 	
 	private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
-	private static final long DAYS_BACK_MILLIS = 3600 * 1000 * 24 * 2;
+	private static final long DAYS_BACK_MILLIS = 3600 * 1000 * 24 * 5;
 	
 	@Test
+	@Ignore
 	public void total() throws FileNotFoundException, IOException {
 		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT", "BNBUSDT", "CAKEUSDT", "BAKEUSDT", "SOLUSDT");
 		Map<String, Double> wallet = new HashMap<>();
@@ -92,6 +94,13 @@ public class BotTest {
 		check("/example4.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
+	@Test
+	public void example5() throws FileNotFoundException, IOException {
+		List<String> cryptos = Arrays.asList("SYMBOL");
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 100.0);
+		check("/example5.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
 	private void check(String csv, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
 		Bot trader = new Bot(wallet, false, cryptos);
 		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);

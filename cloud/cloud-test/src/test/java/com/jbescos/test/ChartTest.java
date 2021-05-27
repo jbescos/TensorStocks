@@ -26,6 +26,8 @@ public class ChartTest {
 		chart("/example2.csv");
 		chart("/example3.csv");
 		chart("/example4.csv");
+		chart("/example5.csv");
+		chart("/BNBUSDT.csv");
 	}
 	
 	private void chart(String csv) throws IOException {

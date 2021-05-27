@@ -100,7 +100,9 @@ public class SymbolStats {
 	}
 	
 	private double calculateFactor(CsvRow min, CsvRow max) {
-		return 1 - (min.getPrice() / max.getPrice());
+		double factor =  1 - (min.getPrice() / max.getPrice());
+//		LOGGER.info("MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
+		return factor;
 	}
 
 	private CsvRow getMinMax(List<CsvRow> values, boolean min) {

@@ -19,6 +19,7 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
@@ -26,9 +27,10 @@ import com.jbescos.common.Utils;
 public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
-	
-	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv) throws IOException {
-		
+
+	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
+			throws IOException {
+
 		List<String> days = Utils.daysBack(new Date(), daysBack, chartCsv.prefix(), ".csv");
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		IChart<IRow> chart = create();
@@ -52,8 +54,23 @@ public class ChartGenerator {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
 		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
 			chart.add(entry.getKey(), entry.getValue());
+			chart.add(entry.getKey() + "-AVG", avg(entry.getValue()));
 		}
 		chart.save(output, "Crypto currencies", "", "USDT");
+	}
+
+	private static List<IRow> avg(List<IRow> data) {
+		List<IRow> avg = new ArrayList<>(data.size());
+		for (int i = 0; i < data.size(); i++) {
+			double totalPrice = 0;
+			for (int j = 0; j < i; j++) {
+				totalPrice = totalPrice + data.get(j).getPrice();
+			}
+			IRow current = data.get(i);
+			IRow avgRow = new CsvRow(current.getDate(), current.getSymbol(), totalPrice / (i + 1));
+			avg.add(avgRow);
+		}
+		return avg;
 	}
 
 	private static IChart<IRow> create() {
@@ -63,9 +80,10 @@ public class ChartGenerator {
 			return new XYChart();
 		}
 	}
-	
+
 	static interface IChartCsv {
 		String prefix();
+
 		List<? extends IRow> read(BufferedReader reader) throws IOException;
 	}
 
@@ -80,13 +98,13 @@ public class ChartGenerator {
 		public List<? extends IRow> read(BufferedReader reader) throws IOException {
 			return CsvUtil.readCsvAccountRows(true, ",", reader);
 		}
-		
+
 	}
-	
+
 	static class SymbolChartCsv implements IChartCsv {
-		
+
 		private final List<String> symbols;
-		
+
 		public SymbolChartCsv(List<String> symbols) {
 			this.symbols = symbols;
 		}
@@ -104,6 +122,6 @@ public class ChartGenerator {
 			}
 			return rows;
 		}
-		
+
 	}
 }
