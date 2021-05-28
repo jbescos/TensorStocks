@@ -11,8 +11,8 @@ import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.Utils;
 import com.jbescos.common.SymbolStats.Action;
+import com.jbescos.common.Utils;
 
 public class UtilsTest {
 
@@ -59,6 +59,22 @@ public class UtilsTest {
 	@Test(expected = IllegalArgumentException.class)
 	public void sellWhenBenefitDifferentSymbols() {
 		Utils.minSellProfitable(Arrays.asList(new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol1", 1.0, 2.0, 3.0), new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol2", 1.0, 2.0, 3.0)));
+	}
+	
+	@Test
+	public void ewma() {
+		final double PRECISSION = 0.01;
+		final double CONSTANT = 0.1;
+		double result = Utils.ewma(CONSTANT, 1, null);
+		assertEquals(1, result, PRECISSION);
+		result = Utils.ewma(CONSTANT, 2, result);
+		assertEquals(1.1, result, PRECISSION);
+		result = Utils.ewma(CONSTANT, 5, result);
+		assertEquals(1.49, result, PRECISSION);
+		result = Utils.ewma(CONSTANT, 4, result);
+		assertEquals(1.74, result, PRECISSION);
+		result = Utils.ewma(CONSTANT, 3, result);
+		assertEquals(1.87, result, PRECISSION);
 	}
 	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {

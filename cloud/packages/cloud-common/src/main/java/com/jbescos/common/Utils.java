@@ -148,4 +148,18 @@ public class Utils {
 		rows.add(row);
 		return rows;
 	}
+	
+	/*
+	 *  To smooth functions
+	 *  Constant is between 0 and 1 and defines how smooth is it
+	 *  Y is the new value
+	 *  prevousResult is the previous result
+	 */
+	public static double ewma(double contant, double y, Double prevousResult) {
+		if (prevousResult == null) {
+			return y;
+		} else {
+			return (contant * y) + (1 - contant) * prevousResult;
+		}
+	}
 }
