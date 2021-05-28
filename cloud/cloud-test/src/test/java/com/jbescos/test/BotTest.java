@@ -20,6 +20,7 @@ import org.junit.Test;
 
 import com.jbescos.cloudbot.Bot;
 import com.jbescos.cloudbot.BotUtils;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.SymbolStats;
@@ -29,7 +30,7 @@ import com.jbescos.common.Utils;
 public class BotTest {
 	
 	private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
-	private static final long DAYS_BACK_MILLIS = 3600 * 1000 * 24 * 2;
+	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS);
 	
 	@Test
 	public void total() throws FileNotFoundException, IOException {
@@ -90,6 +91,15 @@ public class BotTest {
 		wallet.put("USDT", 100.0);
 		check("/example5.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
+	
+	@Test
+	public void example6() throws FileNotFoundException, IOException {
+		List<String> cryptos = Arrays.asList("SYMBOL");
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 100.0);
+		check("/example6.csv", wallet, cryptos, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
 	private void check(String csv, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
 		Bot trader = new Bot(wallet, false, cryptos);
 		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);
