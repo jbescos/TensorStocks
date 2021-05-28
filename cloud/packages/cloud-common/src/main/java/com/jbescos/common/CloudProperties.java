@@ -36,6 +36,7 @@ public class CloudProperties {
 	public static final String DRIVER;
 	public static final String BINANCE_PUBLIC_KEY;
 	public static final String BINANCE_PRIVATE_KEY;
+	public static final double BINANCE_MIN_TRANSACTION;
 	public static final String CHART_TYPE;
 	public static final List<String> BOT_WHITE_LIST_SYMBOLS;
 	public static final double BOT_AMOUNT_REDUCER;
@@ -93,6 +94,7 @@ public class CloudProperties {
 		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
 		BOT_MIN_MAX_RELATION = Double.parseDouble(properties.getProperty("bot.min.max.relation"));
 		BOT_DAYS_BACK_STATISTICS = properties.getProperty("bot.days.back.statistics");
+		BINANCE_MIN_TRANSACTION = Double.parseDouble(properties.getProperty("binance.min.transaction"));
 		MIN_SELL = createMinSell(properties);
 	}
 

@@ -58,9 +58,13 @@ public class BotBinance {
 		wallet.putIfAbsent(walletSymbol, 0.0);
 		double unitsOfSymbol = wallet.get(walletSymbol);
 		double sell = unitsOfSymbol * CloudProperties.BOT_AMOUNT_REDUCER * stat.getFactor();
+		double usdtSell = sell * stat.getNewest().getPrice();
+		if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
+			usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
+			sell = usdtSell / stat.getNewest().getPrice();
+		}
 		LOGGER.info("Trying to sell " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
 		if (updateWallet(walletSymbol, sell * -1)) {
-			double usdtSell = sell * stat.getNewest().getPrice();
 			try {
 				api.order(symbol, Action.SELL.name(), Utils.format(usdtSell));
 			} catch (Exception e) {

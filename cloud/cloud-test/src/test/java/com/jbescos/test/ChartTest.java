@@ -28,6 +28,8 @@ public class ChartTest {
 		chart("/example4.csv");
 		chart("/example5.csv");
 		chart("/example6.csv");
+		chart("/example7.csv");
+		chart("/example8.csv");
 		chart("/BNBUSDT.csv");
 	}
 	
