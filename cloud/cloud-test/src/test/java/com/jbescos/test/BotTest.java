@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.cloudbot.Bot;
@@ -30,9 +31,10 @@ import com.jbescos.common.Utils;
 public class BotTest {
 	
 	private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
-	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS);
+	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS) * 3600 * 1000 * 24;
 	
 	@Test
+	@Ignore
 	public void total() throws FileNotFoundException, IOException {
 		List<String> cryptos = Arrays.asList("DOGEUSDT", "DOTUSDT", "BTTUSDT", "ADAUSDT", "XRPUSDT", "MATICUSDT", "CHZUSDT", "GRTUSDT", "ANKRUSDT", "ADAUSDT", "BNBUSDT", "CAKEUSDT", "BAKEUSDT", "SOLUSDT");
 		Map<String, Double> wallet = new HashMap<>();
