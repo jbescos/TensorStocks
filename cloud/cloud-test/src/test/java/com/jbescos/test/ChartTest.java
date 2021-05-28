@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.junit.Test;
 
 import com.jbescos.cloudchart.ChartGenerator;
-import com.jbescos.cloudchart.DateChart;
+import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
 
@@ -42,7 +42,7 @@ public class ChartTest {
 		}
 		rows = rows.stream().filter(row -> SYMBOLS.contains(row.getSymbol())).collect(Collectors.toList());
 		try (FileOutputStream output = new FileOutputStream("./target/" + csv + ".png")) {
-			ChartGenerator.writeChart(rows, output, new DateChart());
+			ChartGenerator.writeChart(rows, output, new XYChart());
 		}
 	}
 

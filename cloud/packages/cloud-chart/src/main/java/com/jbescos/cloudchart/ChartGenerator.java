@@ -27,6 +27,7 @@ import com.jbescos.common.Utils;
 public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
+	private static final double SMOOTH_CONSTANT = 0.1;
 
 	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
 			throws IOException {
@@ -54,21 +55,18 @@ public class ChartGenerator {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
 		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
 			chart.add(entry.getKey(), entry.getValue());
-			chart.add(entry.getKey() + "-AVG", avg(entry.getValue()));
+			chart.add(entry.getKey() + "-AVG", ewma(entry.getValue()));
 		}
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 
-	private static List<IRow> avg(List<IRow> data) {
+	private static List<IRow> ewma(List<IRow> data) {
 		List<IRow> avg = new ArrayList<>(data.size());
-		for (int i = 0; i < data.size(); i++) {
-			double totalPrice = 0;
-			for (int j = 0; j < i; j++) {
-				totalPrice = totalPrice + data.get(j).getPrice();
-			}
-			IRow current = data.get(i);
-			IRow avgRow = new CsvRow(current.getDate(), current.getSymbol(), totalPrice / (i + 1));
-			avg.add(avgRow);
+		Double prevousResult = null;
+		for (IRow row : data) {
+			prevousResult = Utils.ewma(SMOOTH_CONSTANT, row.getPrice(), prevousResult);
+			IRow smoothed = new CsvRow(row.getDate(), row.getSymbol(), prevousResult);
+			avg.add(smoothed);
 		}
 		return avg;
 	}
