@@ -47,17 +47,21 @@ public class ChartGenerator {
 			}
 		}
 		writeChart(rows, output, chart, avg);
+		save(output, chart);
 	}
 
 	public static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart, boolean avg)
 			throws IOException {
-		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getSymbol));
+		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
 		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
 			chart.add(entry.getKey(), entry.getValue());
 			if (avg) {
 				chart.add(entry.getKey() + "-AVG", ewma(entry.getValue()));
 			}
 		}
+	}
+	
+	public static void save(OutputStream output, IChart<IRow> chart) throws IOException {
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 
@@ -66,7 +70,7 @@ public class ChartGenerator {
 		Double prevousResult = null;
 		for (IRow row : data) {
 			prevousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), prevousResult);
-			IRow smoothed = new CsvRow(row.getDate(), row.getSymbol(), prevousResult);
+			IRow smoothed = new CsvRow(row.getDate(), row.getLabel(), prevousResult);
 			avg.add(smoothed);
 		}
 		return avg;
@@ -117,7 +121,7 @@ public class ChartGenerator {
 		public List<? extends IRow> read(BufferedReader reader) throws IOException {
 			List<? extends IRow> rows = CsvUtil.readCsvRows(true, ",", reader);
 			if (symbols != null && !symbols.isEmpty()) {
-				rows = rows.stream().filter(row -> symbols.contains(row.getSymbol())).collect(Collectors.toList());
+				rows = rows.stream().filter(row -> symbols.contains(row.getLabel())).collect(Collectors.toList());
 			}
 			return rows;
 		}

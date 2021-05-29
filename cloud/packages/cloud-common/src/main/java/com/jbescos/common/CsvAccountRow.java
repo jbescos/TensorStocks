@@ -21,7 +21,6 @@ public class CsvAccountRow implements IRow {
 		return date;
 	}
 
-	@Override
 	public String getSymbol() {
 		return symbol;
 	}
@@ -37,6 +36,11 @@ public class CsvAccountRow implements IRow {
 	@Override
 	public double getPrice() {
 		return getUsdt();
+	}
+
+	@Override
+	public String getLabel() {
+		return symbol;
 	}
 
 }

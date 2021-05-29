@@ -19,7 +19,6 @@ public class CsvRow implements IRow {
 		return date;
 	}
 
-	@Override
 	public String getSymbol() {
 		return symbol;
 	}
@@ -32,6 +31,11 @@ public class CsvRow implements IRow {
 	@Override
 	public String toString() {
 		return "[" + Utils.fromDate(Utils.FORMAT_SECOND, date)+ ", " + Utils.format(price) + "]";
+	}
+
+	@Override
+	public String getLabel() {
+		return symbol;
 	}
 	
 }

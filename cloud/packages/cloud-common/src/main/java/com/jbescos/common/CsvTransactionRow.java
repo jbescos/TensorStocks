@@ -4,7 +4,7 @@ import java.util.Date;
 
 import com.jbescos.common.SymbolStats.Action;
 
-public class CsvTransactionRow {
+public class CsvTransactionRow implements IRow {
 
 	private final Date date;
 	private final String orderId;
@@ -25,6 +25,7 @@ public class CsvTransactionRow {
 		this.usdtUnit = usdtUnit;
 	}
 
+	@Override
 	public Date getDate() {
 		return date;
 	}
@@ -57,6 +58,16 @@ public class CsvTransactionRow {
 	public String toString() {
 		return " TX [date=" + Utils.fromDate(Utils.FORMAT_SECOND, date) + ", side=" + side + ", symbol=" + symbol + ", usdt=" + Utils.format(usdt)
 				+ ", quantity=" + quantity + ", usdtUnit=" + Utils.format(usdtUnit) + "]\n";
+	}
+
+	@Override
+	public double getPrice() {
+		return usdt;
+	}
+
+	@Override
+	public String getLabel() {
+		return side.name();
 	}
 	
 }

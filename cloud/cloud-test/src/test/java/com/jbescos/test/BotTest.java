@@ -25,6 +25,7 @@ import org.junit.Test;
 import com.jbescos.cloudbot.Bot;
 import com.jbescos.cloudbot.BotUtils;
 import com.jbescos.cloudchart.ChartGenerator;
+import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
@@ -57,35 +58,40 @@ public class BotTest {
 	@Test
 	public void bnb() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/BNBUSDT.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "2021-06-22 01:11:24"));
 	}
 	
 	@Test
 	public void example1() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example1.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example2() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example2.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example3() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example3.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example4() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example4.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
@@ -93,33 +99,36 @@ public class BotTest {
 	public void example5() throws FileNotFoundException, IOException {
 		List<String> cryptos = Arrays.asList("SYMBOL");
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example5.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example6() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example6.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example7() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example7.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example8() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 100.0);
+		wallet.put("SYMBOL", 10.0);
 		check("/example8.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	private void check(String csv, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
-		chart(csv);
 		Bot trader = new Bot(wallet, false, cryptos);
 		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);
 		List<CsvRow> rows = null;
@@ -140,10 +149,11 @@ public class BotTest {
 			holder.execute(stats);
 			now = new Date(now.getTime() + (1000 * 60 * 30));
 		}
+		chart(csv, trader);
 		results.add(new TestResult(csv, trader.getUsdtSnapshot(), holder.getUsdtSnapshot()));
 	}
 	
-	private void chart(String csv) throws IOException {
+	private void chart(String csv, Bot trader) throws IOException {
 		List<? extends IRow> rows = null;
 		try (InputStream input = BotTest.class.getResourceAsStream(csv);
 				InputStreamReader inputReader = new InputStreamReader(input);
@@ -154,9 +164,13 @@ public class BotTest {
 		if (chartFile.exists()) {
 			chartFile.delete();
 		}
-		rows = rows.stream().filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol())).collect(Collectors.toList());
+		rows = rows.stream().filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getLabel())).collect(Collectors.toList());
 		try (FileOutputStream output = new FileOutputStream(chartFile)) {
-			ChartGenerator.writeChart(rows, output, new XYChart(), true);
+			IChart<IRow> chart = new XYChart();
+			ChartGenerator.writeChart(rows, output, chart, true);
+			ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart, false);
+			ChartGenerator.writeChart(trader.getTransactions(), output, chart, false);
+			ChartGenerator.save(output, chart);
 		}
 	}
 	

@@ -7,6 +7,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.SymbolStats;
 import com.jbescos.common.SymbolStats.Action;
@@ -21,6 +22,7 @@ public class Bot {
 	private double usdtSnapshot;
 	private boolean didAction;
 	private final List<CsvTransactionRow> transactions = new ArrayList<>();
+	private final List<CsvRow> walletHistorical = new ArrayList<>();
 
 	public Bot(Map<String, Double> wallet, boolean skip, List<String> whiteListSymbols) {
 		this.wallet = wallet;
@@ -47,6 +49,8 @@ public class Bot {
 			}
 		}
 		this.usdtSnapshot = usdtSnappshot(stats);
+		CsvRow walletUsdt = new CsvRow(stats.get(0).getNewest().getDate(), "WALLET-TOTAL-" + Utils.USDT, usdtSnapshot);
+		walletHistorical.add(walletUsdt);
 	}
 
 	public Map<String, Double> getWallet() {
@@ -115,6 +119,10 @@ public class Bot {
 
 	public List<CsvTransactionRow> getTransactions() {
 		return transactions;
+	}
+
+	public List<CsvRow> getWalletHistorical() {
+		return walletHistorical;
 	}
 
 	@Override
