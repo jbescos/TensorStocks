@@ -23,10 +23,24 @@ public class XYChart implements IChart<IRow> {
 	@Override
 	public void add(String lineLabel, List<? extends IRow> data) {
 		XYSeries series = new XYSeries(lineLabel);
+		XYSeries seriesAvg = null;
+		boolean avg = false;
+		if (! data.isEmpty()) {
+			avg = data.get(0).getAvg() != null;
+			if (avg) {
+				seriesAvg = new XYSeries(lineLabel + "-AVG");
+			}
+		}
 		for (IRow row : data) {
 			series.add(row.getDate().getTime(), row.getPrice());
+			if (avg) {
+				seriesAvg.add(row.getDate().getTime(), row.getAvg());
+			}
 		}
 		dataset.addSeries(series);
+		if (avg) {
+			dataset.addSeries(seriesAvg);
+		}
 	}
 
 	@Override

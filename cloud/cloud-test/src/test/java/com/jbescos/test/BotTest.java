@@ -58,40 +58,35 @@ public class BotTest {
 	@Test
 	public void bnb() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/BNBUSDT.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "2021-06-22 01:11:24"));
 	}
 	
 	@Test
 	public void example1() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example1.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example2() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example2.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example3() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example3.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example4() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example4.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
@@ -99,32 +94,28 @@ public class BotTest {
 	public void example5() throws FileNotFoundException, IOException {
 		List<String> cryptos = Arrays.asList("SYMBOL");
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example5.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example6() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example6.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example7() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example7.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example8() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put("SYMBOL", 10.0);
+		wallet.put("USDT", 1000.0);
 		check("/example8.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
@@ -167,9 +158,9 @@ public class BotTest {
 		rows = rows.stream().filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getLabel())).collect(Collectors.toList());
 		try (FileOutputStream output = new FileOutputStream(chartFile)) {
 			IChart<IRow> chart = new XYChart();
-			ChartGenerator.writeChart(rows, output, chart, true);
-			ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart, false);
-			ChartGenerator.writeChart(trader.getTransactions(), output, chart, false);
+			ChartGenerator.writeChart(rows, output, chart);
+			ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart);
+			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
 		}
 	}

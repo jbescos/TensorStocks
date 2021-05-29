@@ -10,7 +10,7 @@ public class SymbolStats {
 	private final String symbol;
 	// The higher the better
 	private final double factor;
-	private final double avg;
+	private final Double avg;
 	private final CsvRow min;
 	private final CsvRow max;
 	private final CsvRow newest;
@@ -22,8 +22,13 @@ public class SymbolStats {
 		this.min = getMinMax(values, true);
 		this.max = getMinMax(values, false);
 		this.factor = calculateFactor(min, max);
-		this.avg = avg(values);
 		this.newest = values.get(values.size() - 1);
+		if (newest.getAvg() == null) {
+			LOGGER.warning("The CSV does not contain the AVG!. It is being calculated from the last " + CloudProperties.BOT_DAYS_BACK_STATISTICS + " days.");
+			this.avg = avg(values);
+		} else {
+			this.avg = newest.getAvg();
+		}
 		double m = 0;
 		if (values.size() > 1) {
 			CsvRow secondNewest = values.get(values.size() - 2);

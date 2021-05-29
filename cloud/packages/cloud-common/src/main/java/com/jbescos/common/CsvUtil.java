@@ -57,6 +57,19 @@ public class CsvUtil {
 			writer.flush();
 		}
 	}
+	
+	public static void writeCsvRows(List<CsvRow> csv, char separator, OutputStream output) throws IOException {
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
+		String line = Utils.CSV_ROW_HEADER;
+		writer.append(line);
+		for (CsvRow row : csv) {
+			StringBuilder builder = new StringBuilder();
+			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, row.getDate())).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg());
+			writer.append(builder.toString());
+			writer.newLine();
+		}
+		writer.flush();
+	}
 
 	public static <T> List<T> readCsv(boolean skipFirst, Function<String, T> mapper, BufferedReader reader) throws IOException {
 		List<T> content = new ArrayList<>();
@@ -115,7 +128,11 @@ public class CsvUtil {
 			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
 			if (date.getTime() >= from.getTime() && date.getTime() < to.getTime()) {
 				String symbol = columns[1];
-				CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]));
+				Double avg = null;
+				if (columns.length > 3) {
+					avg = Double.parseDouble(columns[3]);
+				}
+				CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg);
 				return row;
 			} else {
 				return null;

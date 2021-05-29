@@ -7,4 +7,5 @@ public interface IRow {
 	Date getDate();
 	double getPrice();
 	String getLabel();
+	Double getAvg();
 }

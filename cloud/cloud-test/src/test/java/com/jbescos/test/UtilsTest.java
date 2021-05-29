@@ -77,6 +77,21 @@ public class UtilsTest {
 		assertEquals(1.87, result, PRECISSION);
 	}
 	
+	@Test
+	public void ewma2() {
+//		2021-05-08 08:33:48,BTCUSDT,59299.98,59299.98
+//		2021-05-08 08:34:50,BTCUSDT,59276.18,59298.79
+//		2021-05-08 09:00:04,BTCUSDT,58899.99,59278.85
+		final double PRECISSION = 0.01;
+		final double CONSTANT = 0.05;
+		double result = Utils.ewma(CONSTANT, 59299.98, 59299.98);
+		assertEquals(59299.98, result, PRECISSION);
+		result = Utils.ewma(CONSTANT, 59276.18, 59299.98);
+		assertEquals(59298.79, result, PRECISSION);
+		result = Utils.ewma(CONSTANT, 58899.99, 59298.79);
+		assertEquals(59278.85, result, PRECISSION);
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return new CsvTransactionRow(new Date(0), "", side, "any", usdt, quantity, usdt / quantity);
 	}

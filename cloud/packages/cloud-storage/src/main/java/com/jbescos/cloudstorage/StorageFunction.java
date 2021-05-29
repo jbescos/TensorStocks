@@ -10,6 +10,7 @@ import com.google.cloud.functions.HttpResponse;
 import com.jbescos.common.Account;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BucketStorage;
+import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.ExchangeInfo;
 import com.jbescos.common.Price;
@@ -19,7 +20,7 @@ import com.jbescos.common.Utils;
 // Entry: com.jbescos.cloudstorage.StorageFunction
 public class StorageFunction implements HttpFunction {
 
-	private static final byte[] CSV_HEADER_TOTAL = "DATE,SYMBOL,PRICE\r\n".getBytes(Utils.UTF8);
+	private static final byte[] CSV_HEADER_TOTAL = Utils.CSV_ROW_HEADER.getBytes(Utils.UTF8);
 	private static final byte[] CSV_HEADER_ACCOUNT_TOTAL = "DATE,SYMBOL,SYMBOL_VALUE,USDT\r\n".getBytes(Utils.UTF8);
 
 	@Override
@@ -30,8 +31,9 @@ public class StorageFunction implements HttpFunction {
 		String fileName = Utils.FORMAT.format(now) + ".csv";
 		List<Price> prices = BinanceAPI.price();
 		StringBuilder builder = new StringBuilder();
-		for (Price price : prices) {
-			builder.append(dateStr).append(",").append(price.getSymbol()).append(",").append(price.getPrice()).append("\r\n");
+		List<CsvRow> updatedRows = BucketStorage.withAvg(now, prices);
+		for (CsvRow row : updatedRows) {
+			builder.append(dateStr).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append("\r\n");
 		}
 		String downloadLink = BucketStorage.updateFile(fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
 		SecureBinanceAPI api = SecureBinanceAPI.create();

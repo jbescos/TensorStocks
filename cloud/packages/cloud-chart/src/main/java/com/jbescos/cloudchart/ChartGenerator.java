@@ -28,7 +28,7 @@ public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
 
-	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv, boolean avg)
+	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
 			throws IOException {
 
 		List<String> days = Utils.daysBack(new Date(), daysBack, chartCsv.prefix(), ".csv");
@@ -46,18 +46,15 @@ public class ChartGenerator {
 				}
 			}
 		}
-		writeChart(rows, output, chart, avg);
+		writeChart(rows, output, chart);
 		save(output, chart);
 	}
 
-	public static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart, boolean avg)
+	public static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart)
 			throws IOException {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
 		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
 			chart.add(entry.getKey(), entry.getValue());
-			if (avg) {
-				chart.add(entry.getKey() + "-AVG", ewma(entry.getValue()));
-			}
 		}
 	}
 	

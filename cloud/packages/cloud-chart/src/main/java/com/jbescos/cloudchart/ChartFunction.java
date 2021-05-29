@@ -18,18 +18,16 @@ public class ChartFunction implements HttpFunction {
 		String daysBack = Utils.getParam("days", "365", request.getQueryParameters());
 		String csv = Utils.getParam("csv", null, request.getQueryParameters());
 		IChartCsv chart = null;
-		boolean avg = false;
 		if (csv == null) {
 			chart = new AccountChartCsv();
 		} else {
-			avg = true;
 			List<String> symbols = request.getQueryParameters().get("symbol");
 			chart = new SymbolChartCsv(symbols);
 		}
 		String fileName = chart.getClass().getSimpleName() + "_" + Utils.today() + ".png";
 		response.setContentType("image/png");
 		response.appendHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-		ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), Integer.parseInt(daysBack), chart, avg);
+		ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), Integer.parseInt(daysBack), chart);
 		response.getOutputStream().flush();
 	}
 

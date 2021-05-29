@@ -24,6 +24,8 @@ public class Utils {
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 	public static final String USDT = "USDT";
+	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG\r\n";
+	public static final String LAST_PRICE = "last_price.csv";
 
 	public static Properties fromClasspath(String properties) throws IOException {
 		try (InputStream in = Utils.class.getResourceAsStream(properties)) {
@@ -155,11 +157,11 @@ public class Utils {
 	 *  Y is the new value
 	 *  prevousResult is the previous result
 	 */
-	public static double ewma(double contant, double y, Double prevousResult) {
-		if (prevousResult == null) {
+	public static double ewma(double contant, double y, Double previousResult) {
+		if (previousResult == null) {
 			return y;
 		} else {
-			return (contant * y) + (1 - contant) * prevousResult;
+			return (contant * y) + (1 - contant) * previousResult;
 		}
 	}
 }

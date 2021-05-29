@@ -49,7 +49,8 @@ public class Bot {
 			}
 		}
 		this.usdtSnapshot = usdtSnappshot(stats);
-		CsvRow walletUsdt = new CsvRow(stats.get(0).getNewest().getDate(), "WALLET-TOTAL-" + Utils.USDT, usdtSnapshot);
+		CsvRow newest = stats.get(0).getNewest();
+		CsvRow walletUsdt = new CsvRow(newest.getDate(), "WALLET-TOTAL-" + Utils.USDT, usdtSnapshot, null);
 		walletHistorical.add(walletUsdt);
 	}
 

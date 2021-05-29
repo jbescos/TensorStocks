@@ -43,4 +43,9 @@ public class CsvAccountRow implements IRow {
 		return symbol;
 	}
 
+	@Override
+	public Double getAvg() {
+		return null;
+	}
+
 }

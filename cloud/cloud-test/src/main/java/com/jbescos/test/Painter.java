@@ -13,15 +13,18 @@ import java.util.Date;
 // Java extension packages
 import javax.swing.JFrame;
 
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.Utils;
 
 public class Painter extends JFrame {
 	
-	private static final StringBuilder CSV = new StringBuilder("DATE,SYMBOL,PRICE\r\n");
+	private static final StringBuilder CSV = new StringBuilder("DATE,SYMBOL,PRICE,AVG\r\n");
 	private static final long START = new Date(0).getTime();
 	private static final long HOUR = 3600000;
+	private static final double EWMA = CloudProperties.EWMA_CONSTANT;
 	
 	private int x = 0, y = 0;
+	private Double previousResult;
 
 	public Painter() {
 
@@ -33,7 +36,9 @@ public class Painter extends JFrame {
 					x = event.getX();
 					y = event.getY();
 					long newDate = START + (x * HOUR);
-					CSV.append(Utils.fromDate(Utils.FORMAT_SECOND, new Date(newDate))).append(",").append("SYMBOL").append(",").append((double)(getHeight() - y)).append("\r\n");
+					double price = (double)(getHeight() - y);
+					previousResult = Utils.ewma(EWMA, price, previousResult);
+					CSV.append(Utils.fromDate(Utils.FORMAT_SECOND, new Date(newDate))).append(",").append("SYMBOL").append(",").append(price).append(",").append(previousResult).append("\r\n");
 					repaint();
 				}
 			}

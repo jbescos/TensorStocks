@@ -69,5 +69,10 @@ public class CsvTransactionRow implements IRow {
 	public String getLabel() {
 		return side.name();
 	}
+
+	@Override
+	public Double getAvg() {
+		return null;
+	}
 	
 }
