@@ -78,7 +78,7 @@ public class Utils {
 	}
 	
 	public static String format(double amount) {
-		return String.format(Locale.US, "%.6f", amount);
+		return String.format(Locale.US, "%.8f", amount);
 	}
 	
 	public static double minSellProfitable(List<CsvTransactionRow> previousTransactions) {

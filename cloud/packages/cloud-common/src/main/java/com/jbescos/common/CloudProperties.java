@@ -17,7 +17,6 @@ import java.util.logging.Logger;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
-import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BucketListOption;
@@ -45,6 +44,7 @@ public class CloudProperties {
 	public static final double BOT_MIN_MAX_RELATION;
 	public static final String BOT_DAYS_BACK_STATISTICS;
 	private static final Map<String, Double> MIN_SELL;
+	public static final double EWMA_CONSTANT;
 
 	static {
 		Properties properties = null;
@@ -96,6 +96,7 @@ public class CloudProperties {
 		BOT_DAYS_BACK_STATISTICS = properties.getProperty("bot.days.back.statistics");
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(properties.getProperty("binance.min.transaction"));
 		MIN_SELL = createMinSell(properties);
+		EWMA_CONSTANT = Double.parseDouble(properties.getProperty("ewma.constant"));
 	}
 
 	private static Map<String, Double> createMinSell(Properties properties) {

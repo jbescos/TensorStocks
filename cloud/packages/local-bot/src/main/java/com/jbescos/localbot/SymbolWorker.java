@@ -38,7 +38,7 @@ public class SymbolWorker {
 			last = middle;
 			middle = first;
 			first = internal;
-			MinMaxObject minMax = evaluate();
+			MinMaxObject minMax = evaluate(message);
 			boolean changed = false;
 			if (MinMax.MAX == minMax.minMax || MinMax.MIN == minMax.minMax) {
 				previousLimit = currentLimit;
@@ -51,8 +51,9 @@ public class SymbolWorker {
 				if (previousLimit.minMax == MinMax.MAX && currentLimit.minMax == MinMax.MIN) {
 					// MIN means it is time to buy. This applies commission.
 					BigDecimal withCommission = currentLimit.price.multiply(Constants.COMMISSION_APPLIED);
-					LOGGER.info("Trying to buy -> Previous " + previousLimit + ", Current " + currentLimit + ", withCommission " + withCommission);
+//					BigDecimal withCommission = currentLimit.price;
 					if (withCommission.compareTo(previousLimit.price) < 0) {
+						LOGGER.info("Trying to buy -> Previous " + previousLimit + ", Current " + currentLimit + ", withCommission " + withCommission);
 						BigDecimal usdtFromWallet =  wallet.get(Constants.USDT).multiply(Constants.AMOUNT_REDUCER);
 						BigDecimal cryptosToBuy = usdtFromWallet.divide(withCommission, 8, RoundingMode.HALF_EVEN);
 						if (usdtFromWallet.compareTo(Constants.MIN_BINANCE_USDT) > 0) {
@@ -90,20 +91,20 @@ public class SymbolWorker {
 		LOGGER.info("Wallet: " + wallet);
 	}
 	
-	private MinMaxObject evaluate() {
+	private MinMaxObject evaluate(Message message) {
 		if (first != null && middle != null && last != null) {
 			if (middle.sellingPrice.compareTo(first.sellingPrice) > 0 && middle.sellingPrice.compareTo(last.sellingPrice) > 0) {
 				// Check that new price is higher than the previous
 				if (previousLimit == null || (previousLimit != null && first.sellingPrice.compareTo(previousLimit.price) > 0)) {
 					// Note the price is the first because it is the current value, not the middle
-					MinMaxObject max = new MinMaxObject(MinMax.MAX, first.sellingPrice);
+					MinMaxObject max = new MinMaxObject(MinMax.MAX, new BigDecimal(message.b));
 //					LOGGER.info("Found " + max + ". The real MAX was " + middle.sellingPrice);
 					return max;
 				}
 			} else if (middle.buyingPrice.compareTo(first.buyingPrice) < 0 && middle.buyingPrice.compareTo(last.buyingPrice) < 0) {
 				if (previousLimit == null || (previousLimit != null && first.buyingPrice.compareTo(previousLimit.price) < 0)) {
 					// Note the price is the first because it is the current value, not the middle
-					MinMaxObject min = new MinMaxObject(MinMax.MIN, first.buyingPrice);
+					MinMaxObject min = new MinMaxObject(MinMax.MIN, new BigDecimal(message.a));
 //					LOGGER.info("Found " + min + ". The real MIN was " + middle.buyingPrice);
 					return min;
 				}
@@ -129,12 +130,17 @@ public class SymbolWorker {
 		}
 	}
 	
-	private static class MessageInternal {
+	private class MessageInternal {
 		private final BigDecimal buyingPrice;
 		private final BigDecimal sellingPrice;
 		public MessageInternal(Message message) {
-			buyingPrice = new BigDecimal(message.a);
-			sellingPrice = new BigDecimal(message.b);
+			if (first == null) {
+				buyingPrice = Constants.ewma(new BigDecimal(message.a), null);
+				sellingPrice = Constants.ewma(new BigDecimal(message.b), null);
+			} else {
+				buyingPrice = Constants.ewma(new BigDecimal(message.a), first.buyingPrice);
+				sellingPrice = Constants.ewma(new BigDecimal(message.b), first.sellingPrice);
+			}
 		}
 	}
 }

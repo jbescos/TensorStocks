@@ -5,8 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DateFormat;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +28,7 @@ public class Constants {
 	public static final BigDecimal COMMISSION_APPLIED;
 	public static final BigDecimal MIN_BINANCE_USDT;
 	public static final BigDecimal AMOUNT_REDUCER;
+	public static final BigDecimal EWMA_CONSTANT;
 	
 	static {
 		try {
@@ -41,6 +42,7 @@ public class Constants {
 			COMMISSION_APPLIED = new BigDecimal(1).add(new BigDecimal(properties.getProperty("binance.commission")));
 			MIN_BINANCE_USDT = new BigDecimal(properties.getProperty("binance.minimum.usdt"));
 			AMOUNT_REDUCER = new BigDecimal(properties.getProperty("amount.reducer"));
+			EWMA_CONSTANT = new BigDecimal(properties.getProperty("ewma.constant"));
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot load properties " + PROPERTY_PATH, e);
 		}
@@ -71,4 +73,13 @@ public class Constants {
 		return String.format(Locale.US, "%.8f", amount);
 	}
 	
+	public static BigDecimal ewma(BigDecimal y, BigDecimal prevousResult) {
+		if (prevousResult == null) {
+			return y;
+		} else {
+			BigDecimal firstPart = EWMA_CONSTANT.multiply(y);
+			BigDecimal secondPart = prevousResult.multiply(new BigDecimal(1).subtract(EWMA_CONSTANT));
+			return firstPart.add(secondPart).setScale(8, RoundingMode.CEILING);
+		}
+	}
 }

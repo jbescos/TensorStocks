@@ -1,7 +1,6 @@
 package com.jbescos.cloudbot;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,7 +76,7 @@ public class Bot {
 			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.BUY, symbol, buy, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);
 			didAction = true;
-			LOGGER.info(stat + "" + transaction);
+//			LOGGER.info(stat + "" + transaction);
 		}
 	}
 
@@ -89,10 +88,10 @@ public class Bot {
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
 			updateWallet(Utils.USDT, usdt);
-			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.SELL, symbol, sell, unitsOfSymbol, currentPrice);
+			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.SELL, symbol, usdt, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);
 			didAction = true;
-			LOGGER.info(stat + "" + transaction);
+//			LOGGER.info(stat + "" + transaction);
 		}
 
 	}
