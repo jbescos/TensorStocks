@@ -79,7 +79,6 @@ public class CloudProperties {
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot load " + PROPERTIES_FILE, e);
 		}
-		LOGGER.info("Properties loaded: " + properties.size());
 		BUCKET = properties.getProperty("storage.bucket");
 		USER = properties.getProperty("database.user");
 		PASSWORD = properties.getProperty("database.password");

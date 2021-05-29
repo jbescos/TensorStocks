@@ -53,7 +53,6 @@ public class XYChart implements IChart<IRow> {
 		logAxis.setMinorTickMarksVisible(true);
 		logAxis.setAutoRange(true);
 		xyplot.setRangeAxis(logAxis);
-//		plot.setDomainAxis(new DateAxis());
 		BufferedImage image = xylineChart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}

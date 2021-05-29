@@ -31,11 +31,13 @@ public class BotUtils {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		List<String> days = Utils.daysBack(new Date(), daysBack, "", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
+		Date now = new Date();
+		List<CsvRow> csvInDay = null;
 		for (String day : days) {
 			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
-				rows.addAll(csv);
+				csvInDay = CsvUtil.readCsvRows(true, ",", reader);
+				rows.addAll(csvInDay);
 			}
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
@@ -47,10 +49,18 @@ public class BotUtils {
 				transactions.addAll(csv);
 			}
 		}
-		Date now = new Date();
+		
 		List<CsvRow> latestCsv = BinanceAPI.price().stream()
 				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
 				.collect(Collectors.toList());
+		for (CsvRow last : latestCsv) {
+			for (CsvRow inDay : csvInDay) {
+				if (last.getSymbol().equals(inDay.getSymbol())) {
+					last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
+					break;
+				}
+			}
+		}
 		rows.addAll(latestCsv);
 		return fromCsvRows(rows, transactions);
 	}

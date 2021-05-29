@@ -47,19 +47,90 @@ public class BotTest {
 	}
 	
 	@Test
-	public void total() throws FileNotFoundException, IOException {
-		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 141.0);
-		wallet.put("DOGEUSDT", 348.25);
-		wallet.put("BTTUSDT", 16336.0);
-		check("/total.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "2021-05-10 08:33:48"));
+	public void ada() throws FileNotFoundException, IOException {
+		total("ADAUSDT");
+	}
+	
+	@Test
+	public void ankr() throws FileNotFoundException, IOException {
+		total("ANKRUSDT");
+	}
+	
+	@Test
+	public void bake() throws FileNotFoundException, IOException {
+		total("BAKEUSDT");
 	}
 	
 	@Test
 	public void bnb() throws FileNotFoundException, IOException {
+		total("BNBUSDT");
+	}
+	
+	@Test
+	public void btc() throws FileNotFoundException, IOException {
+		total("BTCUSDT");
+	}
+	
+	@Test
+	public void btt() throws FileNotFoundException, IOException {
+		total("BTTUSDT");
+	}
+	
+	@Test
+	public void cake() throws FileNotFoundException, IOException {
+		total("CAKEUSDT");
+	}
+	
+	@Test
+	public void chz() throws FileNotFoundException, IOException {
+		total("CHZUSDT");
+	}
+	
+	@Test
+	public void doge() throws FileNotFoundException, IOException {
+		total("DOGEUSDT");
+	}
+	
+	@Test
+	public void dot() throws FileNotFoundException, IOException {
+		total("DOTUSDT");
+	}
+	
+	@Test
+	public void grt() throws FileNotFoundException, IOException {
+		total("GRTUSDT");
+	}
+	
+	@Test
+	public void matic() throws FileNotFoundException, IOException {
+		total("MATICUSDT");
+	}
+	
+	@Test
+	public void shib() throws FileNotFoundException, IOException {
+		total("SHIBUSDT");
+	}
+	
+	@Test
+	public void sol() throws FileNotFoundException, IOException {
+		total("SOLUSDT");
+	}
+	
+	@Test
+	public void xrp() throws FileNotFoundException, IOException {
+		total("XRPUSDT");
+	}
+	
+	@Test
+	public void eth() throws FileNotFoundException, IOException {
+		total("ETHUSDT");
+	}
+	
+	private void total(String symbol) throws IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
-		check("/BNBUSDT.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "2021-06-22 01:11:24"));
+		wallet.put("USDT", 100.0);
+		wallet.put(symbol, 100.0);
+		check("/" + symbol + ".csv", wallet, null, Utils.fromString(Utils.FORMAT_SECOND, "2021-05-12 08:33:48"));
 	}
 	
 	@Test
@@ -119,6 +190,20 @@ public class BotTest {
 		check("/example8.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
+	@Test
+	public void example9() throws FileNotFoundException, IOException {
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 1000.0);
+		check("/example9.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
+	@Test
+	public void example10() throws FileNotFoundException, IOException {
+		Map<String, Double> wallet = new HashMap<>();
+		wallet.put("USDT", 1000.0);
+		check("/example10.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
+	}
+	
 	private void check(String csv, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
 		Bot trader = new Bot(wallet, false, cryptos);
 		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);
@@ -140,22 +225,23 @@ public class BotTest {
 			holder.execute(stats);
 			now = new Date(now.getTime() + (1000 * 60 * 30));
 		}
-		chart(csv, trader);
-		results.add(new TestResult(csv, trader.getUsdtSnapshot(), holder.getUsdtSnapshot()));
+		TestResult result = new TestResult(csv, trader.getUsdtSnapshot(), holder.getUsdtSnapshot());
+		chart(csv, trader, result, cryptos);
+		results.add(result);
 	}
 	
-	private void chart(String csv, Bot trader) throws IOException {
+	private void chart(String csv, Bot trader, TestResult result, List<String> cryptos) throws IOException {
 		List<? extends IRow> rows = null;
 		try (InputStream input = BotTest.class.getResourceAsStream(csv);
 				InputStreamReader inputReader = new InputStreamReader(input);
 				BufferedReader reader = new BufferedReader(inputReader);) {
 			rows = CsvUtil.readCsvRows(true, ",", reader);
 		}
-		File chartFile = new File("./target/" + csv + ".png");
+		File chartFile = new File("./target/" + csv + (result.success ? "_success_" : "_failure_") + ".png");
 		if (chartFile.exists()) {
 			chartFile.delete();
 		}
-		rows = rows.stream().filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getLabel())).collect(Collectors.toList());
+		rows = rows.stream().filter(row -> cryptos == null || cryptos.contains(row.getLabel())).collect(Collectors.toList());
 		try (FileOutputStream output = new FileOutputStream(chartFile)) {
 			IChart<IRow> chart = new XYChart();
 			ChartGenerator.writeChart(rows, output, chart);
