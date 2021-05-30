@@ -48,159 +48,157 @@ public class BotTest {
 	
 	@Test
 	public void ada() throws FileNotFoundException, IOException {
-		total("ADAUSDT");
+		total("ADAUSDT", 1.65);
 	}
 	
 	@Test
 	public void ankr() throws FileNotFoundException, IOException {
-		total("ANKRUSDT");
+		total("ANKRUSDT", 0.17);
 	}
 	
 	@Test
 	public void bake() throws FileNotFoundException, IOException {
-		total("BAKEUSDT");
+		total("BAKEUSDT", 6.75);
 	}
 	
 	@Test
 	public void bnb() throws FileNotFoundException, IOException {
-		total("BNBUSDT");
+		total("BNBUSDT", 638);
 	}
 	
 	@Test
 	public void btc() throws FileNotFoundException, IOException {
-		total("BTCUSDT");
+		total("BTCUSDT", 59000);
 	}
 	
 	@Test
 	public void btt() throws FileNotFoundException, IOException {
-		total("BTTUSDT");
+		total("BTTUSDT", 0.0079);
 	}
 	
 	@Test
 	public void cake() throws FileNotFoundException, IOException {
-		total("CAKEUSDT");
+		total("CAKEUSDT", 38);
 	}
 	
 	@Test
 	public void chz() throws FileNotFoundException, IOException {
-		total("CHZUSDT");
+		total("CHZUSDT", 0.5);
 	}
 	
 	@Test
 	public void doge() throws FileNotFoundException, IOException {
-		total("DOGEUSDT");
+		total("DOGEUSDT", 0.7);
 	}
 	
 	@Test
 	public void dot() throws FileNotFoundException, IOException {
-		total("DOTUSDT");
+		total("DOTUSDT", 40);
 	}
 	
 	@Test
 	public void grt() throws FileNotFoundException, IOException {
-		total("GRTUSDT");
+		total("GRTUSDT", 1.6);
 	}
 	
 	@Test
 	public void matic() throws FileNotFoundException, IOException {
-		total("MATICUSDT");
+		total("MATICUSDT", 0.75);
 	}
 	
 	@Test
 	public void shib() throws FileNotFoundException, IOException {
-		total("SHIBUSDT");
+		total("SHIBUSDT", 0.000035);
 	}
 	
 	@Test
 	public void sol() throws FileNotFoundException, IOException {
-		total("SOLUSDT");
+		total("SOLUSDT", 44);
 	}
 	
 	@Test
 	public void xrp() throws FileNotFoundException, IOException {
-		total("XRPUSDT");
+		total("XRPUSDT", 1.6);
 	}
 	
 	@Test
 	public void eth() throws FileNotFoundException, IOException {
-		total("ETHUSDT");
+		total("ETHUSDT", 3600);
 	}
 	
-	private void total(String symbol) throws IOException {
+	private void total(String symbol, double initialUSDT) throws IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 100.0);
-		wallet.put(symbol, 100.0);
+		wallet.put("USDT", initialUSDT);
 		check("/" + symbol + ".csv", wallet, null, Utils.fromString(Utils.FORMAT_SECOND, "2021-05-12 08:33:48"));
 	}
 	
 	@Test
 	public void example1() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 590.0);
 		check("/example1.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example2() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 720.0);
 		check("/example2.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example3() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 175.0);
 		check("/example3.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example4() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 55.0);
 		check("/example4.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example5() throws FileNotFoundException, IOException {
-		List<String> cryptos = Arrays.asList("SYMBOL");
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 75.0);
 		check("/example5.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example6() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 500.0);
 		check("/example6.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example7() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 200.0);
 		check("/example7.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example8() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 1160.0);
 		check("/example8.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example9() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 785.0);
 		check("/example9.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
 	@Test
 	public void example10() throws FileNotFoundException, IOException {
 		Map<String, Double> wallet = new HashMap<>();
-		wallet.put("USDT", 1000.0);
+		wallet.put("USDT", 400.0);
 		check("/example10.csv", wallet, CloudProperties.BOT_WHITE_LIST_SYMBOLS, Utils.fromString(Utils.FORMAT_SECOND, "1970-01-05 07:00:00"));
 	}
 	
@@ -268,7 +266,7 @@ public class BotTest {
 	@Test
 	public void minSell() {
 		// Good moment to sell
-		final String SYMBOL_LIMIMTED = "test";
+		final String SYMBOL_LIMIMTED = "TESTUSDT";
 		List<CsvRow> rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_LIMIMTED, 1.0), new CsvRow(new Date(50000), SYMBOL_LIMIMTED, 100.0), new CsvRow(new Date(100000), SYMBOL_LIMIMTED, 99.0));
 		SymbolStats stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
 		assertEquals(Action.NOTHING, stats.getAction());

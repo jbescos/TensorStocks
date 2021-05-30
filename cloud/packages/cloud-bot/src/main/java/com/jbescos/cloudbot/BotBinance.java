@@ -42,7 +42,7 @@ public class BotBinance {
 	private void buy(String symbol, SymbolStats stat) throws FileNotFoundException, IOException {
 		wallet.putIfAbsent(Utils.USDT, 0.0);
 		double usdt = wallet.get(Utils.USDT);
-		double buy = usdt * CloudProperties.BOT_AMOUNT_REDUCER * stat.getFactor();
+		double buy = usdt * CloudProperties.BOT_BUY_REDUCER * stat.getFactor();
 		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
@@ -57,7 +57,7 @@ public class BotBinance {
 		String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 		wallet.putIfAbsent(walletSymbol, 0.0);
 		double unitsOfSymbol = wallet.get(walletSymbol);
-		double sell = unitsOfSymbol * CloudProperties.BOT_AMOUNT_REDUCER * stat.getFactor();
+		double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
 		double usdtSell = sell * stat.getNewest().getPrice();
 		if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
 			usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;

@@ -48,11 +48,11 @@ public class XYChart implements IChart<IRow> {
 			throws IOException {
 		JFreeChart xylineChart = ChartFactory.createXYLineChart(title, horizontalLabel, verticalLabel, dataset,
 				PlotOrientation.VERTICAL, true, true, true);
-		XYPlot xyplot = xylineChart.getXYPlot();
-		LogAxis logAxis = new LogAxis("Logarithm USDT");
-		logAxis.setMinorTickMarksVisible(true);
-		logAxis.setAutoRange(true);
-		xyplot.setRangeAxis(logAxis);
+//		XYPlot xyplot = xylineChart.getXYPlot();
+//		LogAxis logAxis = new LogAxis("Logarithm USDT");
+//		logAxis.setMinorTickMarksVisible(true);
+//		logAxis.setAutoRange(true);
+//		xyplot.setRangeAxis(logAxis);
 		BufferedImage image = xylineChart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}

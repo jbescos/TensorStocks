@@ -27,8 +27,8 @@ public class UtilsTest {
 	public void minSell() {
 		double value = CloudProperties.minSell("does not exist");
 		assertEquals(0.0, value, 0.0);
-		value = CloudProperties.minSell("BTCUSDT");
-		assertEquals(70000.0, value, 0.0);
+		value = CloudProperties.minSell("TESTUSDT");
+		assertEquals(101, value, 0.0);
 	}
 	
 	
