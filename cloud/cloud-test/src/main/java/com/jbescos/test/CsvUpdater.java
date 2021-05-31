@@ -27,9 +27,9 @@ public class CsvUpdater {
 	private static final String ROOT_CSV_FOLDER = "C:\\Users\\jorge\\Downloads";
 
 	public static void main(String args[]) throws IOException {
-//		addAvg(ROOT_CSV_FOLDER);
+		addAvg("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
 //		addAvgDated(ROOT_CSV_FOLDER);
-		revert("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
+//		revert("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
 		LOGGER.info("Finished");
 	}
 	
