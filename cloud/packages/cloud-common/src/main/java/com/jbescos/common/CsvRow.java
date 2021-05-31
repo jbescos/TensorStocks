@@ -4,9 +4,9 @@ import java.util.Date;
 
 public class CsvRow implements IRow {
 
-	private final Date date;
-	private final String symbol;
-	private final double price;
+	private Date date;
+	private String symbol;
+	private double price;
 	private Double avg;
 	
 	public CsvRow(Date date, String symbol, double price, Double avg) {
@@ -18,6 +18,18 @@ public class CsvRow implements IRow {
 	
 	public CsvRow(Date date, String symbol, double price) {
 		this(date, symbol, price, null);
+	}
+
+	public void setDate(Date date) {
+		this.date = date;
+	}
+
+	public void setSymbol(String symbol) {
+		this.symbol = symbol;
+	}
+
+	public void setPrice(double price) {
+		this.price = price;
 	}
 
 	@Override

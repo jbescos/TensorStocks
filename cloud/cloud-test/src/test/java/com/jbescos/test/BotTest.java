@@ -48,88 +48,105 @@ public class BotTest {
 	
 	@Test
 	public void ada() throws FileNotFoundException, IOException {
-		total("ADAUSDT", 1.65);
+		total("ADAUSDT", "/ADAUSDT.csv", 1.65);
+		total("ADAUSDT", "/reversed_ADAUSDT.csv", 1.46);
 	}
 	
 	@Test
 	public void ankr() throws FileNotFoundException, IOException {
-		total("ANKRUSDT", 0.17);
+		total("ANKRUSDT", "/ANKRUSDT.csv", 0.17);
+		total("ANKRUSDT", "/reversed_ANKRUSDT.csv", 0.1);
 	}
 	
 	@Test
 	public void bake() throws FileNotFoundException, IOException {
-		total("BAKEUSDT", 6.75);
+		total("BAKEUSDT", "/BAKEUSDT.csv", 6.75);
+		total("BAKEUSDT", "/reversed_BAKEUSDT.csv", 4.3);
 	}
 	
 	@Test
 	public void bnb() throws FileNotFoundException, IOException {
-		total("BNBUSDT", 638);
+		total("BNBUSDT", "/BNBUSDT.csv", 638);
+		total("BNBUSDT", "/reversed_BNBUSDT.csv", 320);
 	}
 	
 	@Test
 	public void btc() throws FileNotFoundException, IOException {
-		total("BTCUSDT", 59000);
+		total("BTCUSDT", "/BTCUSDT.csv", 59000);
+		total("BTCUSDT", "/reversed_BTCUSDT.csv", 35000);
 	}
 	
 	@Test
 	public void btt() throws FileNotFoundException, IOException {
-		total("BTTUSDT", 0.0079);
+		total("BTTUSDT", "/BTTUSDT.csv", 0.0079);
+		total("BTTUSDT", "/reversed_BTTUSDT.csv", 0.0036);
 	}
 	
 	@Test
 	public void cake() throws FileNotFoundException, IOException {
-		total("CAKEUSDT", 38);
+		total("CAKEUSDT", "/CAKEUSDT.csv", 38);
+		total("CAKEUSDT", "/reversed_CAKEUSDT.csv", 15.5);
 	}
 	
 	@Test
 	public void chz() throws FileNotFoundException, IOException {
-		total("CHZUSDT", 0.5);
+		total("CHZUSDT", "/CHZUSDT.csv", 0.5);
+		total("CHZUSDT", "/reversed_CHZUSDT.csv", 0.28);
 	}
 	
 	@Test
 	public void doge() throws FileNotFoundException, IOException {
-		total("DOGEUSDT", 0.7);
+		total("DOGEUSDT", "/DOGEUSDT.csv", 0.7);
+		total("DOGEUSDT", "/reversed_DOGEUSDT.csv", 0.3);
 	}
 	
 	@Test
 	public void dot() throws FileNotFoundException, IOException {
-		total("DOTUSDT", 40);
+		total("DOTUSDT", "/DOTUSDT.csv", 40);
+		total("DOTUSDT", "/reversed_DOTUSDT.csv", 20.5);
 	}
 	
 	@Test
 	public void grt() throws FileNotFoundException, IOException {
-		total("GRTUSDT", 1.6);
+		total("GRTUSDT", "/GRTUSDT.csv", 1.6);
+		total("GRTUSDT", "/reversed_GRTUSDT.csv", 0.6);
 	}
 	
 	@Test
 	public void matic() throws FileNotFoundException, IOException {
-		total("MATICUSDT", 0.75);
+		total("MATICUSDT", "/MATICUSDT.csv", 0.75);
+		total("MATICUSDT", "/reversed_MATICUSDT.csv", 1.8);
 	}
 	
 	@Test
 	public void shib() throws FileNotFoundException, IOException {
-		total("SHIBUSDT", 0.000035);
+		total("SHIBUSDT", "/SHIBUSDT.csv", 0.000035);
+		total("SHIBUSDT", "/reversed_SHIBUSDT.csv", 0.000008);
 	}
 	
 	@Test
 	public void sol() throws FileNotFoundException, IOException {
-		total("SOLUSDT", 44);
+		total("SOLUSDT", "/SOLUSDT.csv", 44);
+		total("SOLUSDT", "/reversed_SOLUSDT.csv", 28.5);
 	}
 	
 	@Test
 	public void xrp() throws FileNotFoundException, IOException {
-		total("XRPUSDT", 1.6);
+		total("XRPUSDT", "/XRPUSDT.csv", 1.6);
+		total("XRPUSDT", "/reversed_XRPUSDT.csv", 0.85);
 	}
 	
 	@Test
 	public void eth() throws FileNotFoundException, IOException {
-		total("ETHUSDT", 3600);
+		total("ETHUSDT", "/ETHUSDT.csv", 3600);
+		total("ETHUSDT", "/reversed_ETHUSDT.csv", 2400);
 	}
 	
-	private void total(String symbol, double initialUSDT) throws IOException {
+	private void total(String symbol, String csv, double initialUSDT) throws IOException {
 		Map<String, Double> wallet = new HashMap<>();
 		wallet.put("USDT", initialUSDT);
-		check("/" + symbol + ".csv", wallet, null, Utils.fromString(Utils.FORMAT_SECOND, "2021-05-12 08:33:48"));
+//		wallet.put(symbol, 1.0);
+		check(csv, wallet, null, Utils.fromString(Utils.FORMAT_SECOND, "2021-05-12 08:33:48"));
 	}
 	
 	@Test

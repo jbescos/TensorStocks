@@ -9,6 +9,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -26,17 +27,49 @@ public class CsvUpdater {
 	private static final String ROOT_CSV_FOLDER = "C:\\Users\\jorge\\Downloads";
 
 	public static void main(String args[]) throws IOException {
-		addAvgDated();
+//		addAvg(ROOT_CSV_FOLDER);
+//		addAvgDated(ROOT_CSV_FOLDER);
+		revert("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
 		LOGGER.info("Finished");
 	}
 	
-	private static void addAvgDated() throws IOException {
-		File rootCsvFolder = new File(ROOT_CSV_FOLDER);
+	private static void revert(String rootFolder) throws IOException {
+		File rootCsvFolder = new File(rootFolder);
+		String[] files = rootCsvFolder.list();
+		for (String file : files) {
+			if (file.endsWith(".csv") && !file.contains("reversed")) {
+				String fullPath = rootFolder + "/" + file;
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
+					List<CsvRow> rows = CsvUtil.readCsvRows(true, ",", reader);
+					LOGGER.info("Read " + rows.size() + " rows in " + fullPath);
+					for (int i=0; i<(rows.size()/2);i++) {
+						CsvRow row0 = rows.get(i);
+						Date date0 = row0.getDate();
+						CsvRow rowLast = rows.get((rows.size() - 1) - i);
+						row0.setDate(rowLast.getDate());
+						rowLast.setDate(date0);
+					}
+					Collections.reverse(rows);
+					Double previousResult = null;
+					for (CsvRow row : rows) {
+						previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
+						row.setAvg(previousResult);
+					}
+					try (OutputStream output = new FileOutputStream(rootFolder + "/reversed_" + file)) {
+						CsvUtil.writeCsvRows(rows, ',', output);
+					}
+				}
+			}
+		}
+	}
+	
+	private static void addAvgDated(String rootFolder) throws IOException {
+		File rootCsvFolder = new File(rootFolder);
 		String[] files = rootCsvFolder.list();
 		List<CsvRow> rows = new ArrayList<>();
 		for (String file : files) {
 			if (file.endsWith(".csv")) {
-				String fullPath = ROOT_CSV_FOLDER + "/" + file;
+				String fullPath = rootFolder + "/" + file;
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
 					rows.addAll(CsvUtil.readCsvRows(true, ",", reader));
 					LOGGER.info("Read " + rows.size() + " rows in " + fullPath);
@@ -77,12 +110,12 @@ public class CsvUpdater {
 		}
 	}
 	
-	private static void addAvg() throws IOException {
-		File rootCsvFolder = new File(ROOT_CSV_FOLDER);
+	private static void addAvg(String rootFolder) throws IOException {
+		File rootCsvFolder = new File(rootFolder);
 		String[] files = rootCsvFolder.list();
 		for (String file : files) {
 			if (file.endsWith(".csv")) {
-				String fullPath = ROOT_CSV_FOLDER + "/" + file;
+				String fullPath = rootFolder + "/" + file;
 				LOGGER.info("Processing " + fullPath);
 				List<CsvRow> rows = null;
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
