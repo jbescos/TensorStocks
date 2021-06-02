@@ -9,9 +9,9 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.jbescos.common.BuySellAnalisys.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.SymbolStats.Action;
 import com.jbescos.common.Utils;
 
 public class UtilsTest {

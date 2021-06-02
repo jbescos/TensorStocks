@@ -24,11 +24,10 @@ import com.jbescos.common.Utils;
 public class CsvUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(CsvUpdater.class.getName());
-	private static final String ROOT_CSV_FOLDER = "C:\\Users\\jorge\\Downloads";
 
 	public static void main(String args[]) throws IOException {
-		addAvg("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
-//		addAvgDated(ROOT_CSV_FOLDER);
+//		addAvg("/home/jbescos/workspace/TensorStocks/cloud/cloud-test/src/test/resources");
+		addAvgDated("/home/jbescos/workspace/TensorStocks/cloud/cloud-test/src/test/resources");
 //		revert("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
 		LOGGER.info("Finished");
 	}
@@ -92,7 +91,7 @@ public class CsvUpdater {
 		Collections.sort(sortedDates);
 		List<CsvRow> dayRows = null;
 		for (String date : sortedDates) {
-			File updateFile = new File(ROOT_CSV_FOLDER + "/" +date + ".csv");
+			File updateFile = new File(rootFolder + "/" +date + ".csv");
 			LOGGER.info("Creating " + updateFile);
 			try (OutputStream output = new FileOutputStream(updateFile)) {
 				dayRows = groupedDate.get(date);
@@ -105,7 +104,7 @@ public class CsvUpdater {
 			CsvRow lastRow = day.getValue().get(day.getValue().size() - 1);
 			lastRows.add(lastRow);
 		}
-		try (FileOutputStream output = new FileOutputStream(ROOT_CSV_FOLDER + "/" + Utils.LAST_PRICE)) {
+		try (FileOutputStream output = new FileOutputStream(rootFolder + "/" + Utils.LAST_PRICE)) {
 			CsvUtil.writeCsvRows(lastRows, ',', output);
 		}
 	}

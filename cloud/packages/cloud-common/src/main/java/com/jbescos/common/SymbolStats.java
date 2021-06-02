@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-public class SymbolStats {
+public class SymbolStats implements BuySellAnalisys {
 
 	private static final Logger LOGGER = Logger.getLogger(SymbolStats.class.getName());
 	private final String symbol;
@@ -50,10 +50,12 @@ public class SymbolStats {
 		return max;
 	}
 
+	@Override
 	public String getSymbol() {
 		return symbol;
 	}
 
+	@Override
 	public double getFactor() {
 		return factor;
 	}
@@ -62,10 +64,12 @@ public class SymbolStats {
 		return avg;
 	}
 	
+	@Override
 	public Action getAction() {
 		return action;
 	}
 
+	@Override
 	public CsvRow getNewest() {
 		return newest;
 	}
@@ -132,7 +136,4 @@ public class SymbolStats {
 		return builder.toString();
 	}
 	
-	public static enum Action {
-		BUY, SELL, NOTHING;
-	}
 }

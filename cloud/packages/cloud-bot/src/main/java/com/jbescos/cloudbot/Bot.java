@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import com.jbescos.common.BuySellAnalisys;
+import com.jbescos.common.BuySellAnalisys.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.SymbolStats;
-import com.jbescos.common.SymbolStats.Action;
 import com.jbescos.common.Utils;
 
 public class Bot {
@@ -35,10 +35,10 @@ public class Bot {
 		this(wallet, skip, null);
 	}
 
-	public void execute(List<SymbolStats> stats) {
+	public void execute(List<BuySellAnalisys> stats) {
 		didAction = false;
 		if (!skip) {
-			for (SymbolStats stat : stats) {
+			for (BuySellAnalisys stat : stats) {
 				if (whiteListSymbols == null || whiteListSymbols.contains(stat.getSymbol())) {
 					if (stat.getAction() == Action.BUY) {
 						buy(stat.getSymbol(), stat);
@@ -58,9 +58,9 @@ public class Bot {
 		return wallet;
 	}
 
-	private double usdtSnappshot(List<SymbolStats> stats) {
+	private double usdtSnappshot(List<BuySellAnalisys> stats) {
 		double snapshot = wallet.get(Utils.USDT);
-		for (SymbolStats stat : stats) {
+		for (BuySellAnalisys stat : stats) {
 			Double amount = wallet.get(stat.getSymbol());
 			if (amount != null) {
 				snapshot = snapshot + (amount * stat.getNewest().getPrice());
@@ -69,7 +69,7 @@ public class Bot {
 		return snapshot;
 	}
 
-	private void buy(String symbol, SymbolStats stat) {
+	private void buy(String symbol, BuySellAnalisys stat) {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double usdt = wallet.get(Utils.USDT);
@@ -85,7 +85,7 @@ public class Bot {
 		}
 	}
 
-	private void sell(String symbol, SymbolStats stat) {
+	private void sell(String symbol, BuySellAnalisys stat) {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double unitsOfSymbol = wallet.get(symbol);

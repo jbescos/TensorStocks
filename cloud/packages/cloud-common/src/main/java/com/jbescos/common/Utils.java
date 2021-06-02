@@ -16,7 +16,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import com.jbescos.common.Account.Balances;
-import com.jbescos.common.SymbolStats.Action;
+import com.jbescos.common.BuySellAnalisys.Action;
 
 public class Utils {
 

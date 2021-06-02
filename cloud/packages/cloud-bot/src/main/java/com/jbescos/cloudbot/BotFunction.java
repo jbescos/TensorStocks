@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
+import com.jbescos.common.BuySellAnalisys;
+import com.jbescos.common.BuySellAnalisys.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SecureBinanceAPI;
-import com.jbescos.common.SymbolStats;
-import com.jbescos.common.SymbolStats.Action;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
@@ -26,7 +26,7 @@ public class BotFunction implements HttpFunction {
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date());
 		c.add(Calendar.DAY_OF_YEAR, Integer.parseInt(daysBack) * -1);
-		List<SymbolStats> stats = BotUtils.loadStatistics(Integer.parseInt(daysBack)).stream()
+		List<BuySellAnalisys> stats = BotUtils.loadStatistics(Integer.parseInt(daysBack)).stream()
 				.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
 		BotBinance bot = new BotBinance(SecureBinanceAPI.create());
 		bot.execute(stats);

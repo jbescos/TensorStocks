@@ -26,12 +26,12 @@ import com.jbescos.cloudbot.BotUtils;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
+import com.jbescos.common.BuySellAnalisys;
+import com.jbescos.common.BuySellAnalisys.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
-import com.jbescos.common.SymbolStats;
-import com.jbescos.common.SymbolStats.Action;
 import com.jbescos.common.Utils;
 
 public class BotTest {
@@ -43,6 +43,11 @@ public class BotTest {
 	@AfterClass
 	public static void afterClass() {
 		LOGGER.info(results.toString());
+		double total = 0;
+		for (TestResult result : results) {
+			total = total + result.multiplier;
+		}
+		LOGGER.info("Total multiplier: " + (total / results.size()));
 	}
 
 	@Test
@@ -55,7 +60,9 @@ public class BotTest {
 			LOGGER.info("Loading " + csvFile);
 			try (BufferedReader reader = new BufferedReader(
 					new InputStreamReader(CsvUtilTest.class.getResourceAsStream(csvFile)))) {
-				rows.addAll(CsvUtil.readCsvRows(true, ",", reader));
+				List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader);
+				dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
+				rows.addAll(dailyRows);
 			}
 			LOGGER.info("Rows loaded so far " + rows.size());
 		}
@@ -83,7 +90,7 @@ public class BotTest {
 			if (segment.isEmpty()) {
 				break;
 			}
-			List<SymbolStats> stats = BotUtils.fromCsvRows(segment, trader.getTransactions());
+			List<BuySellAnalisys> stats = BotUtils.fromCsvRows(segment, trader.getTransactions());
 			trader.execute(stats);
 			holder.execute(stats);
 			now = new Date(now.getTime() + (1000 * 60 * 30));
@@ -132,7 +139,7 @@ public class BotTest {
 		List<CsvRow> rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_LIMIMTED, 1.0),
 				new CsvRow(new Date(50000), SYMBOL_LIMIMTED, 100.0),
 				new CsvRow(new Date(100000), SYMBOL_LIMIMTED, 99.0));
-		SymbolStats stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
+		BuySellAnalisys stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
 		assertEquals(Action.NOTHING, stats.getAction());
 		final String SYMBOL_NOT_LIMIMTED = "unlimitedSymbol";
 		rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_NOT_LIMIMTED, 1.0),

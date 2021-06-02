@@ -15,9 +15,10 @@ import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.google.cloud.storage.Storage.BlobListOption;
+import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.BuySellAnalisys;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
@@ -27,7 +28,7 @@ import com.jbescos.common.Utils;
 
 public class BotUtils {
 
-	public static List<SymbolStats> loadStatistics(int daysBack) throws IOException {
+	public static List<BuySellAnalisys> loadStatistics(int daysBack) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		List<String> days = Utils.daysBack(new Date(), daysBack, "", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
@@ -65,8 +66,8 @@ public class BotUtils {
 		return fromCsvRows(rows, transactions);
 	}
 
-	public static List<SymbolStats> fromCsvRows(List<CsvRow> csv, List<CsvTransactionRow> transactions) {
-		Map<String, SymbolStats> minMax = new LinkedHashMap<>();
+	public static List<BuySellAnalisys> fromCsvRows(List<CsvRow> csv, List<CsvTransactionRow> transactions) {
+		Map<String, BuySellAnalisys> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
