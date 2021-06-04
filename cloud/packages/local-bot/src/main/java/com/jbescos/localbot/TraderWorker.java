@@ -9,9 +9,9 @@ import java.util.logging.Logger;
 
 import com.jbescos.localbot.WebSocket.Message;
 
-public class SymbolWorker {
+public class TraderWorker implements MessageWorker {
 
-	private static final Logger LOGGER = Logger.getLogger(SymbolWorker.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(TraderWorker.class.getName());
 	private final AtomicBoolean notWorking = new AtomicBoolean(true);
 	private final String cryptoSymbol;
 	private final String symbol;
@@ -22,17 +22,20 @@ public class SymbolWorker {
 	private MinMaxObject currentLimit;
 	private MinMaxObject previousLimit;
 	
-	public SymbolWorker(String symbol, Map<String, BigDecimal> wallet) {
+	public TraderWorker(String symbol, Map<String, BigDecimal> wallet) {
 		this.symbol = symbol.toUpperCase();
 		this.cryptoSymbol = this.symbol.replace(Constants.USDT, "");
 		this.wallet = wallet;
+		LOGGER.info("TraderWorker instanced for " + symbol);
 	}
 	
+	@Override
 	public boolean startToWork() {
 		return notWorking.compareAndSet(true, false);
 	}
 	
-	public void process(Message message) {
+	@Override
+	public void process(Message message, long now) {
 		try {
 			MessageInternal internal = new MessageInternal(message);
 			last = middle;

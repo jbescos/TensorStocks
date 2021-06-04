@@ -13,7 +13,7 @@ public class Main {
 		ConcurrentHashMap<String, BigDecimal> wallet = new ConcurrentHashMap<>();
 		wallet.put(Constants.USDT, new BigDecimal("500"));
 		Constants.SYMBOLS.stream().forEach(symbol -> wallet.put(symbol.toUpperCase().replace(Constants.USDT, ""), new BigDecimal(0)));
-		BookTickerMessageHandler handler = new BookTickerMessageHandler(wallet);
+		BookTickerMessageHandler handler = new BookTickerMessageHandler(wallet, CsvWorker.class);
 		WebSocket socket = new WebSocket(handler);
 		socket.start();
 		Thread.sleep(Long.MAX_VALUE);

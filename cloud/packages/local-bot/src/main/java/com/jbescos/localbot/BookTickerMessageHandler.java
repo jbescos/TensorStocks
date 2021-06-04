@@ -19,12 +19,14 @@ public class BookTickerMessageHandler implements MessageHandler.Whole<String> {
 	private final ObjectMapper mapper = new ObjectMapper();
 	private final ConcurrentHashMap<String, Long> symbolTimestamps = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<String, Boolean> symbolNotWorking = new ConcurrentHashMap<>();
-	private final ConcurrentHashMap<String, SymbolWorker> symbolWorkers = new ConcurrentHashMap<>();
+	private final ConcurrentHashMap<String, MessageWorker> symbolWorkers = new ConcurrentHashMap<>();
 	private final Executor executor = Executors.newFixedThreadPool(Constants.WORKERS);
 	private final ConcurrentHashMap<String, BigDecimal> wallet;
+	private final Class<? extends MessageWorker> worker;
 
-	public BookTickerMessageHandler(ConcurrentHashMap<String, BigDecimal> wallet) {
+	public BookTickerMessageHandler(ConcurrentHashMap<String, BigDecimal> wallet, Class<? extends MessageWorker> worker) {
 		this.wallet = wallet;
+		this.worker = worker;
 	}
 	
 	@Override
@@ -40,19 +42,27 @@ public class BookTickerMessageHandler implements MessageHandler.Whole<String> {
 				return val;
 			});
 			if (now == result) {
-				SymbolWorker worker = symbolWorkers.computeIfAbsent(obj.s, k -> new SymbolWorker(k, wallet));
+				MessageWorker worker = symbolWorkers.computeIfAbsent(obj.s, k -> createWorker(k));
 				// Only one thread can work at the same time for each symbol
 				boolean notWorking = symbolNotWorking.compute(obj.s, (key, val) -> {
 					return worker.startToWork();
 				});
 				if (notWorking) {
-					executor.execute(() -> worker.process(obj));
+					executor.execute(() -> worker.process(obj, now));
 				}
 			}
 		} catch (JsonProcessingException e) {
 			LOGGER.warning("Couldn't parse " + message);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unexpected error", e);
+		}
+	}
+	
+	private MessageWorker createWorker(String symbol) {
+		if (worker == CsvWorker.class) {
+			return new CsvWorker(symbol);
+		} else {
+			return new TraderWorker(symbol, wallet);
 		}
 	}
 	

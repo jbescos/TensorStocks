@@ -9,6 +9,7 @@ import java.math.RoundingMode;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -81,5 +82,9 @@ public class Constants {
 			BigDecimal secondPart = prevousResult.multiply(new BigDecimal(1).subtract(EWMA_CONSTANT));
 			return firstPart.add(secondPart).setScale(8, RoundingMode.CEILING);
 		}
+	}
+	
+	public static String format(Date date) {
+		return FORMAT_SECOND.format(date);
 	}
 }
