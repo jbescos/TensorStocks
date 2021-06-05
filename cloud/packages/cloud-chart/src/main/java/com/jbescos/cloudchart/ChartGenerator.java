@@ -19,7 +19,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
@@ -62,17 +61,6 @@ public class ChartGenerator {
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 
-	private static List<IRow> ewma(List<IRow> data) {
-		List<IRow> avg = new ArrayList<>(data.size());
-		Double prevousResult = null;
-		for (IRow row : data) {
-			prevousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), prevousResult);
-			IRow smoothed = new CsvRow(row.getDate(), row.getLabel(), prevousResult);
-			avg.add(smoothed);
-		}
-		return avg;
-	}
-
 	private static IChart<IRow> create() {
 		if ("date".equals(CloudProperties.CHART_TYPE)) {
 			return new DateChart();
@@ -91,7 +79,7 @@ public class ChartGenerator {
 
 		@Override
 		public String prefix() {
-			return "account_";
+			return "wallet/account_";
 		}
 
 		@Override
@@ -111,7 +99,7 @@ public class ChartGenerator {
 
 		@Override
 		public String prefix() {
-			return "";
+			return "data/";
 		}
 
 		@Override

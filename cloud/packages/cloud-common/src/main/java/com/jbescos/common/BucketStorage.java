@@ -67,12 +67,13 @@ public class BucketStorage {
 		if (retrieve == null) {
 			retrieve = storage.create(createBlobInfo(fileName, false), header);
 		}
-		final String TEMP_FILE = "tmp.csv";
+		final String TEMP_FILE = fileName + ".tmp";
 		storage.create(createBlobInfo(TEMP_FILE, false), content);
 		BlobInfo blobInfo = createBlobInfo(fileName, false);
 		ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
 				.addSource(fileName).addSource(TEMP_FILE).build();
 		blobInfo = storage.compose(request);
+		storage.delete(CloudProperties.BUCKET, TEMP_FILE);
 		return blobInfo.getMediaLink();
 	}
 	

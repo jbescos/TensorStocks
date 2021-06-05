@@ -148,7 +148,7 @@ public class SecureBinanceAPI {
 		double result = quoteOrderQtyBD/executedQtyBD;
 		StringBuilder data = new StringBuilder();
 		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
-		BucketStorage.updateFile("transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
+		BucketStorage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 		return response;
 	}
 	

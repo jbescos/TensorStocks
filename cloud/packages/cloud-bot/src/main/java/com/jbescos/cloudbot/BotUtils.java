@@ -30,7 +30,7 @@ public class BotUtils {
 
 	public static List<BuySellAnalisys> loadStatistics(int daysBack) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-		List<String> days = Utils.daysBack(new Date(), daysBack, "", ".csv");
+		List<String> days = Utils.daysBack(new Date(), daysBack, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
 		List<CsvRow> csvInDay = null;
@@ -42,7 +42,7 @@ public class BotUtils {
 			}
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
-		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix("transactions_"));
+		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix("transactions/transactions_"));
 		for (Blob blob : blobs.iterateAll()) {
 			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, blob.getName());
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {

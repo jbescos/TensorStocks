@@ -25,7 +25,7 @@ public class Utils {
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 	public static final String USDT = "USDT";
 	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG\r\n";
-	public static final String LAST_PRICE = "last_price.csv";
+	public static final String LAST_PRICE = "data/last_price.csv";
 
 	public static Properties fromClasspath(String properties) throws IOException {
 		try (InputStream in = Utils.class.getResourceAsStream(properties)) {
