@@ -72,8 +72,25 @@ public class BotTest {
 			CsvRow first = entry.getValue().get(0);
 			Map<String, Double> wallet = new HashMap<>();
 			wallet.put("USDT", first.getPrice());
-			check(entry.getValue(), wallet, null, new Date(first.getDate().getTime() + DAYS_BACK_MILLIS));
+			Date start = new Date(first.getDate().getTime() + DAYS_BACK_MILLIS);
+			check(entry.getValue(), wallet, null, start);
+			reverse(entry.getValue());
+			wallet = new HashMap<>();
+			wallet.put("USDT", first.getPrice());
+			check(entry.getValue(), wallet, null, start);
 		}
+	}
+	
+	private void reverse(List<CsvRow> rows) {
+		for (int i=0; i<(rows.size()/2);i++) {
+			CsvRow row0 = rows.get(i);
+			Date date0 = row0.getDate();
+			CsvRow rowLast = rows.get((rows.size() - 1) - i);
+			row0.setDate(rowLast.getDate());
+			rowLast.setDate(date0);
+		}
+		rows.stream().forEach(r -> r.setSymbol(r.getSymbol() + "-reversed"));
+		Collections.reverse(rows);
 	}
 
 	private void check(List<CsvRow> rows, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
