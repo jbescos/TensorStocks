@@ -54,6 +54,7 @@ public class DateChart implements IChart<IRow> {
 			throws IOException {
 		JFreeChart chart = ChartFactory.createTimeSeriesChart(title, horizontalLabel, verticalLabel, dataset, true,
 				true, true);
+		chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		BufferedImage image = chart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}

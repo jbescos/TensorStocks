@@ -41,7 +41,15 @@ public class ChartGenerator {
 				try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, fileName);
 						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 					List<? extends IRow> csv = chartCsv.read(reader);
-					rows.addAll(csv);
+					// Pick the last to avoid memory issues
+					Map<String, List<IRow>> grouped = csv.stream().collect(Collectors.groupingBy(IRow::getLabel));
+					List<IRow> lastOfEachSymbol = new ArrayList<>();
+					for (List<IRow> values : grouped.values()) {
+						if (!values.isEmpty()) {
+							lastOfEachSymbol.add(values.get(values.size() - 1));
+						}
+					}
+					rows.addAll(lastOfEachSymbol);
 				}
 			}
 		}
