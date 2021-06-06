@@ -26,13 +26,14 @@ import com.jbescos.common.Utils;
 public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
+	private static final int PRECISSION_CHART_DAYS = 7;
 
 	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
 			throws IOException {
 
 		List<String> days = Utils.daysBack(new Date(), daysBack, chartCsv.prefix(), ".csv");
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-		IChart<IRow> chart = create();
+		IChart<IRow> chart = create(daysBack);
 		List<IRow> rows = new ArrayList<>();
 		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(chartCsv.prefix()));
 		for (Blob blob : blobs.iterateAll()) {
@@ -41,15 +42,19 @@ public class ChartGenerator {
 				try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, fileName);
 						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 					List<? extends IRow> csv = chartCsv.read(reader);
-					// Pick the last to avoid memory issues
-					Map<String, List<IRow>> grouped = csv.stream().collect(Collectors.groupingBy(IRow::getLabel));
-					List<IRow> lastOfEachSymbol = new ArrayList<>();
-					for (List<IRow> values : grouped.values()) {
-						if (!values.isEmpty()) {
-							lastOfEachSymbol.add(values.get(values.size() - 1));
+					if (daysBack > PRECISSION_CHART_DAYS) {
+						// Pick the last to avoid memory issues
+						Map<String, List<IRow>> grouped = csv.stream().collect(Collectors.groupingBy(IRow::getLabel));
+						List<IRow> lastOfEachSymbol = new ArrayList<>();
+						for (List<IRow> values : grouped.values()) {
+							if (!values.isEmpty()) {
+								lastOfEachSymbol.add(values.get(values.size() - 1));
+							}
 						}
+						rows.addAll(lastOfEachSymbol);
+					} else {
+						rows.addAll(csv);
 					}
-					rows.addAll(lastOfEachSymbol);
 				}
 			}
 		}
@@ -69,8 +74,8 @@ public class ChartGenerator {
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 
-	private static IChart<IRow> create() {
-		if ("date".equals(CloudProperties.CHART_TYPE)) {
+	private static IChart<IRow> create(int daysBack) {
+		if (daysBack > PRECISSION_CHART_DAYS) {
 			return new DateChart();
 		} else {
 			return new XYChart();

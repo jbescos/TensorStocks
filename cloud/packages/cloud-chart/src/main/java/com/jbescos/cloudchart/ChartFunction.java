@@ -16,12 +16,11 @@ public class ChartFunction implements HttpFunction {
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
 		String daysBack = Utils.getParam("days", "365", request.getQueryParameters());
-		String csv = Utils.getParam("csv", null, request.getQueryParameters());
+		List<String> symbols = request.getQueryParameters().get("symbol");
 		IChartCsv chart = null;
-		if (csv == null) {
+		if (symbols == null || symbols.isEmpty()) {
 			chart = new AccountChartCsv();
 		} else {
-			List<String> symbols = request.getQueryParameters().get("symbol");
 			chart = new SymbolChartCsv(symbols);
 		}
 		String fileName = chart.getClass().getSimpleName() + "_" + Utils.today() + ".png";

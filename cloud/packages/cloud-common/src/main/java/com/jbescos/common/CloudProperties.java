@@ -36,7 +36,6 @@ public class CloudProperties {
 	public static final String BINANCE_PUBLIC_KEY;
 	public static final String BINANCE_PRIVATE_KEY;
 	public static final double BINANCE_MIN_TRANSACTION;
-	public static final String CHART_TYPE;
 	public static final List<String> BOT_WHITE_LIST_SYMBOLS;
 	public static final double BOT_SELL_REDUCER;
 	public static final double BOT_BUY_REDUCER;
@@ -87,7 +86,6 @@ public class CloudProperties {
 		DRIVER = properties.getProperty("database.driver");
 		BINANCE_PUBLIC_KEY = properties.getProperty("binance.public.key");
 		BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
-		CHART_TYPE = properties.getProperty("chart.type");
 		BOT_WHITE_LIST_SYMBOLS = Arrays.asList(properties.getProperty("bot.white.list").split(","));
 		BOT_SELL_REDUCER = Double.parseDouble(properties.getProperty("bot.sell.reducer"));
 		BOT_BUY_REDUCER = Double.parseDouble(properties.getProperty("bot.buy.reducer"));
