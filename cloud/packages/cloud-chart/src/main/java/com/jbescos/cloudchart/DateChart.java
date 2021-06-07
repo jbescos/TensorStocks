@@ -1,5 +1,6 @@
 package com.jbescos.cloudchart;
 
+import java.awt.BasicStroke;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -11,6 +12,8 @@ import java.util.stream.Collectors;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
@@ -54,7 +57,10 @@ public class DateChart implements IChart<IRow> {
 			throws IOException {
 		JFreeChart chart = ChartFactory.createTimeSeriesChart(title, horizontalLabel, verticalLabel, dataset, true,
 				true, true);
+		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+		renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 		chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
+		((XYPlot)chart.getPlot()).setRenderer(renderer);
 		BufferedImage image = chart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}

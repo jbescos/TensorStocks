@@ -76,7 +76,7 @@ public class BotTest {
 			check(entry.getValue(), wallet, null, start);
 			reverse(entry.getValue());
 			wallet = new HashMap<>();
-			wallet.put("USDT", first.getPrice());
+			wallet.put("USDT", entry.getValue().get(0).getPrice());
 			check(entry.getValue(), wallet, null, start);
 		}
 	}

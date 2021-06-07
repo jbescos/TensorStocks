@@ -1,5 +1,6 @@
 package com.jbescos.cloudchart;
 
+import java.awt.BasicStroke;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -9,6 +10,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
@@ -51,6 +54,9 @@ public class XYChart implements IChart<IRow> {
 //		logAxis.setMinorTickMarksVisible(true);
 //		logAxis.setAutoRange(true);
 //		xyplot.setRangeAxis(logAxis);
+		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+		renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+		((XYPlot)xylineChart.getPlot()).setRenderer(renderer);
 		xylineChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		BufferedImage image = xylineChart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
