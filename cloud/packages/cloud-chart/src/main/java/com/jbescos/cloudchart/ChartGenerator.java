@@ -18,7 +18,9 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
+import com.jbescos.common.BuySellAnalisys.Action;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
@@ -30,34 +32,8 @@ public class ChartGenerator {
 
 	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
 			throws IOException {
-
-		List<String> days = Utils.daysBack(new Date(), daysBack, chartCsv.prefix(), ".csv");
-		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		IChart<IRow> chart = create(daysBack);
-		List<IRow> rows = new ArrayList<>();
-		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(chartCsv.prefix()));
-		for (Blob blob : blobs.iterateAll()) {
-			String fileName = blob.getName();
-			if (days.contains(fileName)) {
-				try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, fileName);
-						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-					List<? extends IRow> csv = chartCsv.read(reader);
-					if (daysBack > PRECISSION_CHART_DAYS) {
-						// Pick the last to avoid memory issues
-						Map<String, List<IRow>> grouped = csv.stream().collect(Collectors.groupingBy(IRow::getLabel));
-						List<IRow> lastOfEachSymbol = new ArrayList<>();
-						for (List<IRow> values : grouped.values()) {
-							if (!values.isEmpty()) {
-								lastOfEachSymbol.add(values.get(values.size() - 1));
-							}
-						}
-						rows.addAll(lastOfEachSymbol);
-					} else {
-						rows.addAll(csv);
-					}
-				}
-			}
-		}
+		List<IRow> rows = chartCsv.read(daysBack);
 		writeChart(rows, output, chart);
 		save(output, chart);
 	}
@@ -83,45 +59,96 @@ public class ChartGenerator {
 	}
 
 	static interface IChartCsv {
-		String prefix();
 
-		List<? extends IRow> read(BufferedReader reader) throws IOException;
+		List<IRow> read(int daysBack) throws IOException;
 	}
 
 	static class AccountChartCsv implements IChartCsv {
+		
+		private static final String PREFIX = "wallet/account_";
+		private final Page<Blob> walletBlobs;
 
-		@Override
-		public String prefix() {
-			return "wallet/account_";
+		public AccountChartCsv () {
+			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+			walletBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(PREFIX));
 		}
 
 		@Override
-		public List<? extends IRow> read(BufferedReader reader) throws IOException {
-			return CsvUtil.readCsvAccountRows(true, ",", reader);
+		public List<IRow> read(int daysBack) throws IOException {
+			List<String> days = Utils.daysBack(new Date(), daysBack, PREFIX, ".csv");
+			List<IRow> rows = new ArrayList<>();
+			for (Blob blob : walletBlobs.iterateAll()) {
+				if (days.contains(blob.getName())) {
+					try (ReadChannel readChannel = blob.reader();
+							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+						rows.addAll(CsvUtil.readCsvAccountRows(true, ",", reader));
+					}
+				}
+			}
+			return rows;
 		}
 
 	}
 
 	static class SymbolChartCsv implements IChartCsv {
 
+		private static final String DATA_PREFIX = "data/";
+		private static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 		private final List<String> symbols;
+		private final Page<Blob> dataBlobs;
+		private final Page<Blob> transactionBlobs;
 
 		public SymbolChartCsv(List<String> symbols) {
 			this.symbols = symbols;
+			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+			dataBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(DATA_PREFIX));
+			transactionBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(TRANSACTIONS_PREFIX));
 		}
 
 		@Override
-		public String prefix() {
-			return "data/";
-		}
-
-		@Override
-		public List<? extends IRow> read(BufferedReader reader) throws IOException {
-			List<? extends IRow> rows = CsvUtil.readCsvRows(true, ",", reader);
-			if (symbols != null && !symbols.isEmpty()) {
-				rows = rows.stream().filter(row -> symbols.contains(row.getLabel())).collect(Collectors.toList());
+		public List<IRow> read(int daysBack) throws IOException {
+			Date now = new Date();
+			List<IRow> total = new ArrayList<>();
+			List<String> days = Utils.daysBack(now, daysBack, DATA_PREFIX, ".csv");
+			for (Blob blob : dataBlobs.iterateAll()) {
+				if (days.contains(blob.getName())) {
+					try (ReadChannel readChannel = blob.reader();
+							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+						List<? extends IRow> rows = CsvUtil.readCsvRows(true, ",", reader);
+						if (symbols != null && !symbols.isEmpty()) {
+							rows = rows.stream().filter(row -> symbols.contains(row.getLabel())).collect(Collectors.toList());
+						}
+						if (daysBack > PRECISSION_CHART_DAYS) {
+							// Pick the last to avoid memory issues
+							Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
+							List<IRow> lastOfEachSymbol = new ArrayList<>();
+							for (List<IRow> values : grouped.values()) {
+								if (!values.isEmpty()) {
+									lastOfEachSymbol.add(values.get(values.size() - 1));
+								}
+							}
+							total.addAll(lastOfEachSymbol);
+						} else {
+							total.addAll(rows);
+						}
+					}
+				}
 			}
-			return rows;
+			days = Utils.daysBack(now, daysBack, TRANSACTIONS_PREFIX, ".csv");
+			for (Blob blob : transactionBlobs.iterateAll()) {
+				if (days.contains(blob.getName())) {
+					try (ReadChannel readChannel = blob.reader();
+							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+						List<CsvTransactionRow> transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);
+						if (symbols != null && !symbols.isEmpty()) {
+							transactions = transactions.stream().filter(row -> symbols.contains(row.getSymbol())).collect(Collectors.toList());
+						}
+						transactions.stream().forEach(tx -> tx.setUsdt(tx.getUsdtUnit()));
+						total.addAll(transactions);
+					}
+				}
+			}
+			return total;
 		}
 
 	}

@@ -10,7 +10,7 @@ public class CsvTransactionRow implements IRow {
 	private final String orderId;
 	private final Action side;
 	private final String symbol;
-	private final double usdt;
+	private double usdt;
 	private final double quantity;
 	private final double usdtUnit;
 	
@@ -65,9 +65,13 @@ public class CsvTransactionRow implements IRow {
 		return usdt;
 	}
 
+	public void setUsdt(double usdt) {
+		this.usdt = usdt;
+	}
+
 	@Override
 	public String getLabel() {
-		return side.name();
+		return side.name() + "-" + symbol;
 	}
 
 	@Override
