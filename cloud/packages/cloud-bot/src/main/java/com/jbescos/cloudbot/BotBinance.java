@@ -43,6 +43,9 @@ public class BotBinance {
 		wallet.putIfAbsent(Utils.USDT, 0.0);
 		double usdt = wallet.get(Utils.USDT);
 		double buy = usdt * CloudProperties.BOT_BUY_REDUCER * stat.getFactor();
+		if (buy < CloudProperties.BINANCE_MIN_TRANSACTION) {
+			buy = CloudProperties.BINANCE_MIN_TRANSACTION;
+		}
 		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
@@ -74,10 +77,13 @@ public class BotBinance {
 	}
 
 	private boolean updateWallet(String symbol, double amount) {
-		double accumulated = wallet.get(symbol) + amount;
+		double current = wallet.get(symbol);
+		double accumulated = current + amount;
 		if (accumulated > 0) {
 			wallet.put(symbol, accumulated);
 			return true;
+		} else {
+			LOGGER.warning("There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
 		}
 		return false;
 	}

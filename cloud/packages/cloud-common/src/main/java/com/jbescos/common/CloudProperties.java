@@ -41,6 +41,7 @@ public class CloudProperties {
 	public static final double BOT_BUY_REDUCER;
 	public static final double BOT_PERCENTILE_FACTOR;
 	public static final double BOT_BUY_COMISSION;
+	public static final double BOT_SELL_COMISSION;
 	public static final double BOT_MIN_MAX_RELATION;
 	public static final String BOT_DAYS_BACK_STATISTICS;
 	private static final Map<String, Double> MIN_SELL;
@@ -91,6 +92,7 @@ public class CloudProperties {
 		BOT_BUY_REDUCER = Double.parseDouble(properties.getProperty("bot.buy.reducer"));
 		BOT_PERCENTILE_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.factor"));
 		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
+		BOT_SELL_COMISSION = Double.parseDouble(properties.getProperty("bot.sell.comission"));
 		BOT_MIN_MAX_RELATION = Double.parseDouble(properties.getProperty("bot.min.max.relation"));
 		BOT_DAYS_BACK_STATISTICS = properties.getProperty("bot.days.back.statistics");
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(properties.getProperty("binance.min.transaction"));

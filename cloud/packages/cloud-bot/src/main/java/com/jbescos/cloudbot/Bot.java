@@ -92,6 +92,7 @@ public class Bot {
 		double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
+			usdt = usdt - (usdt * CloudProperties.BOT_SELL_COMISSION);
 			updateWallet(Utils.USDT, usdt);
 			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.SELL, symbol, usdt, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);

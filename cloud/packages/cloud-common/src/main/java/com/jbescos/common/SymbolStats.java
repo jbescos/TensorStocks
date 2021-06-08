@@ -78,19 +78,20 @@ public class SymbolStats implements BuySellAnalisys {
 		Action action = Action.NOTHING;
 		if (factor > CloudProperties.BOT_MIN_MAX_RELATION) {
 			double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
+			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
 			if (buyCommision < avg && m < 0) { // It is going up
 				double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
 				if (buyCommision < percentileMin) {
 					action = Action.BUY;
 				}
-			} else if (price > avg && m > 0) { // It is going down
+			} else if (sellCommision > avg && m > 0) { // It is going down
 				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
-				if (price > percentileMax) {
+				if (sellCommision > percentileMax) {
 					double minSell = CloudProperties.minSell(this.symbol);
-					if (price < minSell) {
-						LOGGER.info(Utils.format(price) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
-					} else if (price < minProfitableSellPrice) {
-						LOGGER.info(Utils.format(price) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
+					if (sellCommision < minSell) {
+						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
+					} else if (sellCommision < minProfitableSellPrice) {
+						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
 					} else {
 						action = Action.SELL;
 					}
