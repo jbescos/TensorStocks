@@ -37,7 +37,7 @@ import com.jbescos.common.Utils;
 
 public class BotTest {
 
-	private static final boolean TEST_REVERSE = true;
+	private static final boolean TEST_REVERSE = false;
 	private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
 	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS) * 3600 * 1000 * 24;
 	private static final List<TestResult> results = new ArrayList<>();
@@ -77,12 +77,12 @@ public class BotTest {
 			Map<String, Double> wallet = new HashMap<>();
 			wallet.put("USDT", first.getPrice());
 			Date start = new Date(first.getDate().getTime() + DAYS_BACK_MILLIS);
-			check(entry.getValue(), wallet, null, start);
+			check(entry.getValue(), wallet, start);
 			if (TEST_REVERSE) {
 				reverse(entry.getValue());
 				wallet = new HashMap<>();
 				wallet.put("USDT", entry.getValue().get(0).getPrice());
-				check(entry.getValue(), wallet, null, start);
+				check(entry.getValue(), wallet, start);
 			}
 		}
 	}
@@ -99,9 +99,9 @@ public class BotTest {
 		Collections.reverse(rows);
 	}
 
-	private void check(List<CsvRow> rows, Map<String, Double> wallet, List<String> cryptos, Date now) throws IOException {
-		Bot trader = new Bot(wallet, false, cryptos);
-		Bot holder = new Bot(new HashMap<>(wallet), true, cryptos);
+	private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) throws IOException {
+		Bot trader = new Bot(wallet, false);
+		Bot holder = new Bot(new HashMap<>(wallet), true);
 		while (true) {
 			Date to = new Date(now.getTime());
 			// Days back
@@ -120,18 +120,16 @@ public class BotTest {
 		}
 		CsvRow first = rows.get(0);
 		TestResult result = new TestResult(first.getSymbol(), trader.getUsdtSnapshot(), holder.getUsdtSnapshot());
-		chart(rows, trader, result, cryptos);
+		chart(rows, trader, result);
 		results.add(result);
 	}
 
-	private void chart(List<CsvRow> rows, Bot trader, TestResult result, List<String> cryptos) throws IOException {
+	private void chart(List<CsvRow> rows, Bot trader, TestResult result) throws IOException {
 		CsvRow first = rows.get(0);
 		File chartFile = new File("./target/" + first.getSymbol() + (result.success ? "_success_" : "_failure_") + ".png");
 		if (chartFile.exists()) {
 			chartFile.delete();
 		}
-		rows = rows.stream().filter(row -> cryptos == null || cryptos.contains(row.getLabel()))
-				.collect(Collectors.toList());
 		try (FileOutputStream output = new FileOutputStream(chartFile)) {
 			IChart<IRow> chart = new XYChart();
 			ChartGenerator.writeChart(rows, output, chart);

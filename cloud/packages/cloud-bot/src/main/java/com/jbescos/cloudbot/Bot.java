@@ -17,34 +17,26 @@ public class Bot {
 
 	private static final Logger LOGGER = Logger.getLogger(Bot.class.getName());
 	private final Map<String, Double> wallet;
-	private final List<String> whiteListSymbols;
 	private final boolean skip;
 	private double usdtSnapshot;
 	private boolean didAction;
 	private final List<CsvTransactionRow> transactions = new ArrayList<>();
 	private final List<CsvRow> walletHistorical = new ArrayList<>();
 
-	public Bot(Map<String, Double> wallet, boolean skip, List<String> whiteListSymbols) {
+	public Bot(Map<String, Double> wallet, boolean skip) {
 		this.wallet = wallet;
 		this.skip = skip;
-		this.whiteListSymbols = whiteListSymbols;
 		wallet.putIfAbsent(Utils.USDT, 0.0);
-	}
-
-	public Bot(Map<String, Double> wallet, boolean skip) {
-		this(wallet, skip, null);
 	}
 
 	public void execute(List<BuySellAnalisys> stats) {
 		didAction = false;
 		if (!skip) {
 			for (BuySellAnalisys stat : stats) {
-				if (whiteListSymbols == null || whiteListSymbols.contains(stat.getSymbol())) {
-					if (stat.getAction() == Action.BUY) {
-						buy(stat.getSymbol(), stat);
-					} else if (stat.getAction() == Action.SELL) {
-						sell(stat.getSymbol(), stat);
-					}
+				if (stat.getAction() == Action.BUY) {
+					buy(stat.getSymbol(), stat);
+				} else if (stat.getAction() == Action.SELL) {
+					sell(stat.getSymbol(), stat);
 				}
 			}
 		}

@@ -37,7 +37,7 @@ public class BotUtils {
 		for (String day : days) {
 			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				csvInDay = CsvUtil.readCsvRows(true, ",", reader);
+				csvInDay = CsvUtil.readCsvRows(true, ",", reader).stream().filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol())).collect(Collectors.toList());
 				rows.addAll(csvInDay);
 			}
 		}
@@ -52,7 +52,7 @@ public class BotUtils {
 		}
 		
 		List<CsvRow> latestCsv = BinanceAPI.price().stream()
-				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
+				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice())).filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
 				.collect(Collectors.toList());
 		for (CsvRow last : latestCsv) {
 			for (CsvRow inDay : csvInDay) {

@@ -24,7 +24,7 @@ public class SymbolStats implements BuySellAnalisys {
 		this.factor = calculateFactor(min, max);
 		this.newest = values.get(values.size() - 1);
 		if (newest.getAvg() == null) {
-			LOGGER.warning("The CSV does not contain the AVG!. It is being calculated from the last " + CloudProperties.BOT_DAYS_BACK_STATISTICS + " days.");
+			LOGGER.warning("The CSV does not contain the AVG!. It is being calculated from the last " + CloudProperties.BOT_DAYS_BACK_STATISTICS + " days. Row is " + newest);
 			this.avg = avg(values);
 		} else {
 			this.avg = newest.getAvg();
@@ -83,6 +83,8 @@ public class SymbolStats implements BuySellAnalisys {
 				double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
 				if (buyCommision < percentileMin) {
 					action = Action.BUY;
+				} else {
+					LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
 				}
 			} else if (sellCommision > avg && m > 0) { // It is going down
 				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
@@ -95,8 +97,20 @@ public class SymbolStats implements BuySellAnalisys {
 					} else {
 						action = Action.SELL;
 					}
+				} else {
+					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
 				}
+			} else {
+				StringBuilder logText = new StringBuilder(symbol).append(" discarded because ");
+				if (m < 0) {
+					logText.append("current buy price ").append(Utils.format(buyCommision)).append(" is higher than the avg ").append(Utils.format(avg));
+				} else {
+					logText.append("current sell price ").append(Utils.format(sellCommision)).append(" is lower than the avg ").append(Utils.format(avg));
+				}
+				LOGGER.info(logText.toString());
 			}
+		} else {
+			LOGGER.info(symbol + " discarded because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION);
 		}
 		return action;
 	}

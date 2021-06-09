@@ -28,13 +28,11 @@ public class BotBinance {
 	
 	public void execute(List<BuySellAnalisys> stats) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		for (BuySellAnalisys stat : stats) {
-			if (CloudProperties.BOT_WHITE_LIST_SYMBOLS == null || CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(stat.getSymbol())) {
-				LOGGER.info("Processing " + stat);
-				if (stat.getAction() == Action.BUY) {
-					buy(stat.getSymbol(), stat);
-				} else if (stat.getAction() == Action.SELL) {
-					sell(stat.getSymbol(), stat);
-				}
+			LOGGER.info("Processing " + stat);
+			if (stat.getAction() == Action.BUY) {
+				buy(stat.getSymbol(), stat);
+			} else if (stat.getAction() == Action.SELL) {
+				sell(stat.getSymbol(), stat);
 			}
 		}
 	}
