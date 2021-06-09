@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +37,7 @@ import com.jbescos.common.Utils;
 
 public class BotTest {
 
+	private static final boolean TEST_REVERSE = true;
 	private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
 	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS) * 3600 * 1000 * 24;
 	private static final List<TestResult> results = new ArrayList<>();
@@ -52,19 +54,21 @@ public class BotTest {
 
 	@Test
 	public void realData() throws IOException {
-		Date from = Utils.fromString(Utils.FORMAT, "2021-05-31");
+		Date from = new Date();
 		List<String> days = Utils.daysBack(from, 24, "/", ".csv"); // Starts the 2021-05-08
 		List<CsvRow> rows = new ArrayList<>();
 		for (String day : days) {
 			String csvFile = day;
-			LOGGER.info("Loading " + csvFile);
-			try (BufferedReader reader = new BufferedReader(
-					new InputStreamReader(CsvUtilTest.class.getResourceAsStream(csvFile)))) {
-				List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader);
-				dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
-				rows.addAll(dailyRows);
+			InputStream csv = CsvUtilTest.class.getResourceAsStream(csvFile);
+			if (csv != null) {
+				LOGGER.info("Loading " + csvFile);
+				try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv))) {
+					List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader);
+					dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
+					rows.addAll(dailyRows);
+				}
+				LOGGER.info("Rows loaded so far " + rows.size());
 			}
-			LOGGER.info("Rows loaded so far " + rows.size());
 		}
 		Map<String, List<CsvRow>> grouped = rows.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		rows = null;
@@ -74,10 +78,12 @@ public class BotTest {
 			wallet.put("USDT", first.getPrice());
 			Date start = new Date(first.getDate().getTime() + DAYS_BACK_MILLIS);
 			check(entry.getValue(), wallet, null, start);
-			reverse(entry.getValue());
-			wallet = new HashMap<>();
-			wallet.put("USDT", entry.getValue().get(0).getPrice());
-			check(entry.getValue(), wallet, null, start);
+			if (TEST_REVERSE) {
+				reverse(entry.getValue());
+				wallet = new HashMap<>();
+				wallet.put("USDT", entry.getValue().get(0).getPrice());
+				check(entry.getValue(), wallet, null, start);
+			}
 		}
 	}
 	
