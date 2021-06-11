@@ -48,6 +48,7 @@ public class BotBinance {
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
 				api.order(symbol, Action.BUY.name(), Utils.format(buy));
+				// FIXME Update wallet with symbol, but it is not necessary
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
 			}
@@ -68,6 +69,7 @@ public class BotBinance {
 		if (updateWallet(walletSymbol, sell * -1)) {
 			try {
 				api.order(symbol, Action.SELL.name(), Utils.format(usdtSell));
+				updateWallet(Utils.USDT, usdtSell);
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
 			}
