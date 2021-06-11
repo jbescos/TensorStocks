@@ -80,11 +80,15 @@ public class SymbolStats implements BuySellAnalisys {
 			double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
 			if (buyCommision < avg && m < 0) { // It is going up
-				double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
-				if (buyCommision < percentileMin) {
-					action = Action.BUY;
+				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+					double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
+					if (buyCommision < percentileMin) {
+						action = Action.BUY;
+					} else {
+						LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
+					}
 				} else {
-					LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
+					LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
 				}
 			} else if (sellCommision > avg && m > 0) { // It is going down
 				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
@@ -110,7 +114,8 @@ public class SymbolStats implements BuySellAnalisys {
 				LOGGER.info(logText.toString());
 			}
 		} else {
-			LOGGER.info(symbol + " discarded because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION);
+			LOGGER.info(symbol + " discarded because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION 
+					 + ". Min " + min + " Max " + max);
 		}
 		return action;
 	}

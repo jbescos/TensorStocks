@@ -39,7 +39,8 @@ public class BotTest {
 
 	private static final boolean TEST_REVERSE = false;
 	private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
-	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS) * 3600 * 1000 * 24;
+	private static final long DAY_MILLIS = 3600 * 1000 * 24;
+	private static final long DAYS_BACK_MILLIS = Long.parseLong(CloudProperties.BOT_DAYS_BACK_STATISTICS) * DAY_MILLIS;
 	private static final List<TestResult> results = new ArrayList<>();
 
 	@AfterClass
@@ -76,7 +77,7 @@ public class BotTest {
 			CsvRow first = entry.getValue().get(0);
 			Map<String, Double> wallet = new HashMap<>();
 			wallet.put("USDT", first.getPrice());
-			Date start = new Date(first.getDate().getTime() + DAYS_BACK_MILLIS);
+			Date start = new Date(first.getDate().getTime() + DAY_MILLIS);
 			check(entry.getValue(), wallet, start);
 			if (TEST_REVERSE) {
 				reverse(entry.getValue());
