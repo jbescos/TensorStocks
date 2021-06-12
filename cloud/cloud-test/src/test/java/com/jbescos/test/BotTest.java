@@ -24,6 +24,7 @@ import org.junit.Test;
 
 import com.jbescos.cloudbot.Bot;
 import com.jbescos.cloudbot.BotUtils;
+import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
@@ -126,8 +127,9 @@ public class BotTest {
 	}
 
 	private void chart(List<CsvRow> rows, Bot trader, TestResult result) throws IOException {
-		CsvRow first = rows.get(0);
-		File chartFile = new File("./target/" + first.getSymbol() + (result.success ? "_success_" : "_failure_") + ".png");
+		CsvRow last = rows.get(rows.size() - 1);
+		String subfix = result.success ? "_success" : "_failure";
+		File chartFile = new File("./target/" + last.getSymbol() + subfix + ".png");
 		if (chartFile.exists()) {
 			chartFile.delete();
 		}
@@ -135,6 +137,17 @@ public class BotTest {
 			IChart<IRow> chart = new XYChart();
 			ChartGenerator.writeChart(rows, output, chart);
 			ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart);
+			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
+			ChartGenerator.save(output, chart);
+		}
+		File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");
+		if (barChartFile.exists()) {
+			barChartFile.delete();
+		}
+		try (FileOutputStream output = new FileOutputStream(barChartFile)) {
+			Map<String, CsvRow> current = new HashMap<>();
+			current.put(last.getSymbol(), last);
+			IChart<IRow> chart = new BarChart(current);
 			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
 		}

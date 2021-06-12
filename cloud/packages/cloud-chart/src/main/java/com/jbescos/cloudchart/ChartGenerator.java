@@ -6,6 +6,7 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,21 +19,25 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
+import com.jbescos.common.Price;
 import com.jbescos.common.Utils;
 
 public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
+	private static final String DATA_PREFIX = "data/";
+	private static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 	private static final int PRECISSION_CHART_DAYS = 7;
 
 	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
 			throws IOException {
-		IChart<IRow> chart = create(daysBack);
+		IChart<IRow> chart = chartCsv.chart(daysBack);
 		List<IRow> rows = chartCsv.read(daysBack);
 		writeChart(rows, output, chart);
 		save(output, chart);
@@ -50,17 +55,58 @@ public class ChartGenerator {
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 
-	private static IChart<IRow> create(int daysBack) {
-		if (daysBack > PRECISSION_CHART_DAYS) {
-			return new DateChart();
-		} else {
-			return new XYChart();
-		}
-	}
-
 	static interface IChartCsv {
 
 		List<IRow> read(int daysBack) throws IOException;
+		
+		IChart<IRow> chart(int daysBack);
+	}
+	
+	static class ProfitableBarChartCsv implements IChartCsv {
+
+		private final Page<Blob> transactionBlobs;
+		private final List<String> symbols;
+		private final Map<String, CsvRow> current = new LinkedHashMap<>();
+		
+		public ProfitableBarChartCsv(List<String> symbols) throws IOException {
+			this.symbols = symbols;
+			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+			Blob retrieve = storage.get(CloudProperties.BUCKET, Utils.LAST_PRICE);
+			try (ReadChannel readChannel = retrieve.reader();
+					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
+				for (CsvRow row : csv) {
+					current.put(row.getSymbol(), row);
+				}
+			}
+			transactionBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(TRANSACTIONS_PREFIX));
+		}
+		
+		@Override
+		public List<IRow> read(int daysBack) throws IOException {
+			List<IRow> total = new ArrayList<>();
+			Date now = new Date();
+			List<String> days = Utils.daysBack(now, daysBack, TRANSACTIONS_PREFIX, ".csv");
+			for (Blob blob : transactionBlobs.iterateAll()) {
+				if (days.contains(blob.getName())) {
+					try (ReadChannel readChannel = blob.reader();
+							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+						List<CsvTransactionRow> transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);
+						if (symbols != null && !symbols.isEmpty()) {
+							transactions = transactions.stream().filter(row -> symbols.contains(row.getSymbol())).collect(Collectors.toList());
+						}
+						total.addAll(transactions);
+					}
+				}
+			}
+			return total;
+		}
+
+		@Override
+		public IChart<IRow> chart(int daysBack) {
+			return new BarChart(current);
+		}
+		
 	}
 
 	static class AccountChartCsv implements IChartCsv {
@@ -88,12 +134,19 @@ public class ChartGenerator {
 			return rows;
 		}
 
+		@Override
+		public IChart<IRow> chart(int daysBack) {
+			if (daysBack > PRECISSION_CHART_DAYS) {
+				return new DateChart();
+			} else {
+				return new XYChart();
+			}
+		}
+
 	}
 
 	static class SymbolChartCsv implements IChartCsv {
 
-		private static final String DATA_PREFIX = "data/";
-		private static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 		private final List<String> symbols;
 		private final Page<Blob> dataBlobs;
 		private final Page<Blob> transactionBlobs;
@@ -105,6 +158,15 @@ public class ChartGenerator {
 			transactionBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(TRANSACTIONS_PREFIX));
 		}
 
+		@Override
+		public IChart<IRow> chart(int daysBack) {
+			if (daysBack > PRECISSION_CHART_DAYS) {
+				return new DateChart();
+			} else {
+				return new XYChart();
+			}
+		}
+		
 		@Override
 		public List<IRow> read(int daysBack) throws IOException {
 			Date now = new Date();
