@@ -26,6 +26,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.jbescos.common.Account.Balances;
+import com.jbescos.common.BuySellAnalisys.Action;
 
 public class SecureBinanceAPI {
 
@@ -132,15 +133,31 @@ public class SecureBinanceAPI {
 		return wallet;
 	}
 	
-	// quoteOrderQty is always in USDT !!!
-	public Map<String, String> order(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
+	// quoteOrderQty in USDT
+	public Map<String, String> orderUSDT(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
 		Date now =  new Date();
-		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
-		LOGGER.info("Prepared order: " + Arrays.asList(args).toString());
+		LOGGER.info("Prepared USDT order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
-		LOGGER.info("Completed order: " + response);
+		LOGGER.info("Completed USDT order: " + response);
+		saveTransaction(now, response);
+		return response;
+	}
+	
+	// quantity in units of symbol
+	public Map<String, String> orderSymbol(String symbol, String side, String quantity) throws FileNotFoundException, IOException {
+		Date now =  new Date();
+		String orderId = UUID.randomUUID().toString();
+		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quantity", quantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
+		LOGGER.info("Prepared Symbol order: " + Arrays.asList(args).toString());
+		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
+		LOGGER.info("Completed Symbol order: " + response);
+		saveTransaction(now, response);
+		return response;
+	}
+	
+	private void saveTransaction(Date now, Map<String, String> response) throws FileNotFoundException, IOException {
 		// Units of symbol
 		String executedQty = response.get("executedQty");
 		// USDT
@@ -149,10 +166,10 @@ public class SecureBinanceAPI {
 		double quoteOrderQtyBD = Double.parseDouble(cummulativeQuoteQty);
 		double executedQtyBD = Double.parseDouble(executedQty);
 		double result = quoteOrderQtyBD/executedQtyBD;
+		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
 		StringBuilder data = new StringBuilder();
-		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(side).append(",").append(symbol).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
+		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(response.get("side")).append(",").append(response.get("symbol")).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
 		BucketStorage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
-		return response;
 	}
 	
 	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {

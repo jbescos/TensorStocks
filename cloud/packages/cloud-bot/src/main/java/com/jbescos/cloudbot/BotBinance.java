@@ -47,8 +47,7 @@ public class BotBinance {
 		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
-				api.order(symbol, Action.BUY.name(), Utils.format(buy));
-				// FIXME Update wallet with symbol, but it is not necessary
+				api.orderUSDT(symbol, Action.BUY.name(), Utils.format(buy));
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
 			}
@@ -56,23 +55,34 @@ public class BotBinance {
 	}
 	
 	private void sell(String symbol, BuySellAnalisys stat) throws FileNotFoundException, IOException {
-		String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-		wallet.putIfAbsent(walletSymbol, 0.0);
-		double unitsOfSymbol = wallet.get(walletSymbol);
-		double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
-		double usdtSell = sell * stat.getNewest().getPrice();
-		if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
-			usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
-			sell = usdtSell / stat.getNewest().getPrice();
-		}
-		LOGGER.info("Trying to sell " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
-		if (updateWallet(walletSymbol, sell * -1)) {
-			try {
-				api.order(symbol, Action.SELL.name(), Utils.format(usdtSell));
-				updateWallet(Utils.USDT, usdtSell);
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
+		try {
+			String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
+			wallet.putIfAbsent(walletSymbol, 0.0);
+			double unitsOfSymbol = wallet.get(walletSymbol);
+			double usdtOfSymbol = unitsOfSymbol * stat.getNewest().getPrice();
+			if (usdtOfSymbol >= CloudProperties.BINANCE_MIN_TRANSACTION) {
+				if (usdtOfSymbol < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {
+					// Sell everything because next transaction will be less than CloudProperties.BINANCE_MIN_TRANSACTION
+					LOGGER.info("Selling everything " + unitsOfSymbol + " " + symbol + " because it costs " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
+					api.orderSymbol(symbol, Action.SELL.name(), Utils.format(unitsOfSymbol));
+				} else {
+					double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
+					double usdtSell = sell * stat.getNewest().getPrice();
+					if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
+						usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
+						sell = usdtSell / stat.getNewest().getPrice();
+					}
+					LOGGER.info("Trying to sell " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
+					if (updateWallet(walletSymbol, sell * -1)) {
+						api.orderUSDT(symbol, Action.SELL.name(), Utils.format(usdtSell));
+						updateWallet(Utils.USDT, usdtSell);
+					}
+				}
+			} else {
+				LOGGER.warning("Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + CloudProperties.BINANCE_MIN_TRANSACTION);
 			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
 		}
 	}
 
