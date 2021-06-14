@@ -141,13 +141,16 @@ public class SecureBinanceAPI {
 		LOGGER.info("Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info("Completed order: " + response);
+		// Units of symbol
 		String executedQty = response.get("executedQty");
+		// USDT
+		String cummulativeQuoteQty = response.get("cummulativeQuoteQty");
 		// quoteOrderQty / executedQty
-		double quoteOrderQtyBD = Double.parseDouble(quoteOrderQty);
+		double quoteOrderQtyBD = Double.parseDouble(cummulativeQuoteQty);
 		double executedQtyBD = Double.parseDouble(executedQty);
 		double result = quoteOrderQtyBD/executedQtyBD;
 		StringBuilder data = new StringBuilder();
-		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(side).append(",").append(symbol).append(",").append(quoteOrderQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
+		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(side).append(",").append(symbol).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
 		BucketStorage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 		return response;
 	}
