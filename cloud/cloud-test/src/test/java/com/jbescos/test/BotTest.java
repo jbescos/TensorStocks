@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -57,7 +58,9 @@ public class BotTest {
 	@Test
 	public void realData() throws IOException {
 		Date from = new Date();
-		List<String> days = Utils.daysBack(from, 24, "/", ".csv"); // Starts the 2021-05-08
+		Date to = Utils.fromString(Utils.FORMAT, "2021-05-08");
+		int daysBetween = (int) ChronoUnit.DAYS.between(to.toInstant(), from.toInstant());
+		List<String> days = Utils.daysBack(from, daysBetween, "/", ".csv"); // Starts the 2021-05-08
 		List<CsvRow> rows = new ArrayList<>();
 		for (String day : days) {
 			String csvFile = day;
