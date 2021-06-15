@@ -29,18 +29,13 @@ public class SymbolStats implements BuySellAnalisys {
 		} else {
 			this.avg = newest.getAvg();
 		}
-		MinMaxNone minMax = MinMaxNone.NONE;
-		if (values.size() > 2) {
-			CsvRow oldest = values.get(values.size() - 3);
-			CsvRow middle = values.get(values.size() - 2);
-			if (middle.getPrice() > oldest.getPrice() && middle.getPrice() > newest.getPrice()) {
-				minMax = MinMaxNone.MAX;
-			} else if (middle.getPrice() < oldest.getPrice() && middle.getPrice() < newest.getPrice()) {
-				minMax = MinMaxNone.MIN;
-			}
+		double m = 0;
+		if (values.size() > 1) {
+			CsvRow secondNewest = values.get(values.size() - 2);
+			m = secondNewest.getPrice() - newest.getPrice();
 		}
 		this.minProfitableSellPrice = Utils.minSellProfitable(previousTransactions);
-		this.action = evaluate(newest.getPrice(), minMax);
+		this.action = evaluate(newest.getPrice(), m);
 	}
 	
 	public SymbolStats(String symbol, List<CsvRow> values) {
@@ -79,46 +74,48 @@ public class SymbolStats implements BuySellAnalisys {
 		return newest;
 	}
 
-	private Action evaluate(double price, MinMaxNone m) {
+	private Action evaluate(double price, double m) {
 		Action action = Action.NOTHING;
-		if (m != MinMaxNone.NONE) {
-			if (factor > CloudProperties.BOT_MIN_MAX_RELATION) {
-				double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
-				double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
-				if (buyCommision < avg && m == MinMaxNone.MIN) {
-					if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-						double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
-						if (buyCommision < percentileMin) {
-							action = Action.BUY;
-						} else {
-							LOGGER.info(newest + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
-						}
+		if (factor > CloudProperties.BOT_MIN_MAX_RELATION) {
+			double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
+			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
+			if (buyCommision < avg && m < 0) { // It is going up
+				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+					double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
+					if (buyCommision < percentileMin) {
+						action = Action.BUY;
 					} else {
-						LOGGER.info(newest + " discarded to be bought because it is in the list of bot.never.buy");
-					}
-				} else if (sellCommision > avg && m == MinMaxNone.MAX) {
-					double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
-					if (sellCommision > percentileMax) {
-						double minSell = CloudProperties.minSell(this.symbol);
-						if (sellCommision < minSell) {
-							LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
-						} else if (sellCommision < minProfitableSellPrice) {
-							LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
-						} else {
-							action = Action.SELL;
-						}
-					} else {
-						LOGGER.info(newest + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
+						LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
 					}
 				} else {
-					LOGGER.info(newest + " discarded because it is a " + m + " and it is not in the correct position compared with the AVG");
+					LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
+				}
+			} else if (sellCommision > avg && m > 0) { // It is going down
+				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
+				if (sellCommision > percentileMax) {
+					double minSell = CloudProperties.minSell(this.symbol);
+					if (sellCommision < minSell) {
+						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
+					} else if (sellCommision < minProfitableSellPrice) {
+						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
+					} else {
+						action = Action.SELL;
+					}
+				} else {
+					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
 				}
 			} else {
-				LOGGER.info(newest + " discarded because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION 
-						 + ". Min " + min + " Max " + max);
+				StringBuilder logText = new StringBuilder(symbol).append(" discarded because ");
+				if (m < 0) {
+					logText.append("current buy price ").append(Utils.format(buyCommision)).append(" is higher than the avg ").append(Utils.format(avg));
+				} else {
+					logText.append("current sell price ").append(Utils.format(sellCommision)).append(" is lower than the avg ").append(Utils.format(avg));
+				}
+				LOGGER.info(logText.toString());
 			}
 		} else {
-			LOGGER.info(newest + " discarded because it is not a MIN or a MAX.");
+			LOGGER.info(symbol + " discarded because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION 
+					 + ". Min " + min + " Max " + max);
 		}
 		return action;
 	}
@@ -157,10 +154,6 @@ public class SymbolStats implements BuySellAnalisys {
 		}
 		builder.append(", newest=").append(newest).append(", avg=").append(avg).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
 		return builder.toString();
-	}
-	
-	private static enum MinMaxNone {
-		MIN, MAX, NONE;
 	}
 	
 }
