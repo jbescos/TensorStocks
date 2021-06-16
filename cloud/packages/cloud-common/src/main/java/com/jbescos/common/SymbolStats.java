@@ -78,14 +78,18 @@ public class SymbolStats implements BuySellAnalisys {
 		Action action = Action.NOTHING;
 		double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 		double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
-		if (buyCommision < avg && m < 0) { // It is going up
+		if (buyCommision < avg) {
 			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
 				if (factor > CloudProperties.BOT_MIN_MAX_RELATION_BUY) {
-					double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
-					if (buyCommision < percentileMin) {
-						action = Action.BUY;
+					if (m < 0) { // It is going up
+						double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
+						if (buyCommision < percentileMin) {
+							action = Action.BUY;
+						} else {
+							LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
+						}
 					} else {
-						LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
+						LOGGER.info(symbol + " buy discarded discarded because price is still going down");
 					}
 				} else {
 					LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION_BUY 
@@ -94,33 +98,29 @@ public class SymbolStats implements BuySellAnalisys {
 			} else {
 				LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
 			}
-		} else if (sellCommision > avg && m > 0) { // It is going down
+		} else if (sellCommision > avg) {
 			double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
 			if (factor > CloudProperties.BOT_MIN_MAX_RELATION_SELL) {
-				if (sellCommision > percentileMax) {
-					double minSell = CloudProperties.minSell(this.symbol);
-					if (sellCommision < minSell) {
-						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
-					} else if (sellCommision < minProfitableSellPrice) {
-						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
+				if (m > 0) { // It is going down
+					if (sellCommision > percentileMax) {
+						double minSell = CloudProperties.minSell(this.symbol);
+						if (sellCommision < minSell) {
+							LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
+						} else if (sellCommision < minProfitableSellPrice) {
+							LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
+						} else {
+							action = Action.SELL;
+						}
 					} else {
-						action = Action.SELL;
+						LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
 					}
 				} else {
-					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
+					LOGGER.info(symbol + " sell discarded discarded because price is still going up");
 				}
 			} else {
 				LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION_SELL 
 						 + ". Min " + min + " Max " + max);
 			}
-		} else {
-			StringBuilder logText = new StringBuilder(symbol).append(" discarded because ");
-			if (m < 0) {
-				logText.append("current buy price ").append(Utils.format(buyCommision)).append(" is higher than the avg ").append(Utils.format(avg));
-			} else {
-				logText.append("current sell price ").append(Utils.format(sellCommision)).append(" is lower than the avg ").append(Utils.format(avg));
-			}
-			LOGGER.info(logText.toString());
 		}
 		return action;
 	}

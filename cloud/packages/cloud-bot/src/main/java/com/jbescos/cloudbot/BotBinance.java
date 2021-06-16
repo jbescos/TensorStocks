@@ -67,7 +67,7 @@ public class BotBinance {
 				if ((usdtOfSymbol - usdtSell) < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {
 					// Sell everything
 					LOGGER.info("Selling everything " + unitsOfSymbol + " " + symbol + " because it costs " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
-					api.orderSymbol(symbol, Action.SELL.name(), Utils.format(unitsOfSymbol));
+					api.orderSymbol(symbol, Action.SELL.name(), Double.toString(unitsOfSymbol)); // Do not use the normal format because for example in SHIB it fails
 					sellFlag = false;
 				} else if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
 					usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
