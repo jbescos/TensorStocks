@@ -61,17 +61,19 @@ public class BotBinance {
 			double unitsOfSymbol = wallet.get(walletSymbol);
 			double usdtOfSymbol = unitsOfSymbol * stat.getNewest().getPrice();
 			if (usdtOfSymbol >= CloudProperties.BINANCE_MIN_TRANSACTION) {
-				if (usdtOfSymbol < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {
-					// Sell everything because next transaction will be less than CloudProperties.BINANCE_MIN_TRANSACTION
+				double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
+				double usdtSell = sell * stat.getNewest().getPrice();
+				boolean sellFlag = true;
+				if ((usdtOfSymbol - usdtSell) < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {
+					// Sell everything
 					LOGGER.info("Selling everything " + unitsOfSymbol + " " + symbol + " because it costs " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
 					api.orderSymbol(symbol, Action.SELL.name(), Utils.format(unitsOfSymbol));
-				} else {
-					double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
-					double usdtSell = sell * stat.getNewest().getPrice();
-					if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
-						usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
-						sell = usdtSell / stat.getNewest().getPrice();
-					}
+					sellFlag = false;
+				} else if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
+					usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
+					sell = usdtSell / stat.getNewest().getPrice();
+				}
+				if (sellFlag) {
 					LOGGER.info("Trying to sell " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
 					if (updateWallet(walletSymbol, sell * -1)) {
 						api.orderUSDT(symbol, Action.SELL.name(), Utils.format(usdtSell));
