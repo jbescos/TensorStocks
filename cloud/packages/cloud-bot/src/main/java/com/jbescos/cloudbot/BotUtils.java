@@ -9,13 +9,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BuySellAnalisys;
@@ -27,10 +26,12 @@ import com.jbescos.common.SymbolStats;
 import com.jbescos.common.Utils;
 
 public class BotUtils {
+	
+	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<BuySellAnalisys> loadStatistics(int daysBack) throws IOException {
+	public static List<BuySellAnalisys> loadStatistics() throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-		List<String> days = Utils.daysBack(new Date(), daysBack, "data/", ".csv");
+		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
 		List<CsvRow> csvInDay = null;
@@ -42,14 +43,18 @@ public class BotUtils {
 			}
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
-		Page<Blob> blobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix("transactions/transactions_"));
-		for (Blob blob : blobs.iterateAll()) {
-			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, blob.getName());
-					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
-				transactions.addAll(csv);
+		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, "transactions/transactions_", ".csv");
+		for (String day : days) {
+			Blob blob = storage.get(CloudProperties.BUCKET, day);
+			if (blob != null) {
+				try (ReadChannel readChannel = blob.reader();
+						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+					List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
+					transactions.addAll(csv);
+				}
 			}
 		}
+		LOGGER.info("Transactions loaded: " + transactions.size());
 		
 		List<CsvRow> latestCsv = BinanceAPI.price().stream()
 				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice())).filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
