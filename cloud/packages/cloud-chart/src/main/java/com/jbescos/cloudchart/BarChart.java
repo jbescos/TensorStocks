@@ -13,18 +13,18 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
-import com.jbescos.common.CsvRow;
+import com.jbescos.common.BuySellAnalisys.Action;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.IRow;
 
 public class BarChart implements IChart<IRow> {
 	
 	private static final Logger LOGGER = Logger.getLogger(BarChart.class.getName());
-	private final Map<String, CsvRow> current;
+	private final Map<String,Double> wallet;
 	private final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 	
-	public BarChart(Map<String, CsvRow> current) {
-		this.current = current;
+	public BarChart(Map<String,Double> wallet) {
+		this.wallet = wallet;
 	}
 
 	@Override
@@ -32,23 +32,28 @@ public class BarChart implements IChart<IRow> {
 		if (!data.isEmpty()) {
 			List<CsvTransactionRow> transactions = (List<CsvTransactionRow>) data;
 			CsvTransactionRow first = transactions.get(0);
-			CsvRow row = current.get(first.getSymbol());
-			dataset.addValue(row.getPrice(), "CURRENT_VALUE", row.getSymbol());
 			LOGGER.info("History of transactions: " + transactions);
 			String symbol = first.getSymbol();
-			dataset.addValue(avg(transactions), "AVG_" + first.getLabel(), symbol);
+			double sum = sum(transactions);
+			dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
+			Double walletPrice = wallet.get(symbol);
+			if (walletPrice == null) {
+				walletPrice = 0.0;
+			}
+			if (first.getSide() == Action.SELL) {
+				dataset.addValue(walletPrice, "PENDING_WALLET_" + first.getLabel(), symbol);
+				dataset.addValue(walletPrice + sum, "SUM_WALLET_AND_" + first.getLabel(), symbol);
+			}
 		}
 	}
 	
-	private double avg(List<CsvTransactionRow> entries) {
+	private double sum(List<CsvTransactionRow> entries) {
 		if (entries != null && !entries.isEmpty()) {
 			double totalPrice = 0;
-			int totalItems = 0;
 			for (CsvTransactionRow row : entries) {
-				totalPrice = totalPrice + row.getUsdtUnit();
-				totalItems++;
+				totalPrice = totalPrice + row.getUsdt();
 			}
-			return totalPrice / totalItems;
+			return totalPrice;
 		}
 		return 0;
 	}
@@ -56,7 +61,7 @@ public class BarChart implements IChart<IRow> {
 	@Override
 	public void save(OutputStream output, String title, String horizontalLabel, String verticalLabel)
 			throws IOException {
-		JFreeChart barChart = ChartFactory.createBarChart("Minimum profitable prices", "Symbols", "USDT", dataset,
+		JFreeChart barChart = ChartFactory.createBarChart("Total buy/sell", "Symbols", "USDT", dataset,
 				PlotOrientation.VERTICAL, true, true, false);
 		barChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		BufferedImage image = barChart.createBufferedImage(1080, 1200);

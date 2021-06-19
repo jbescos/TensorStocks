@@ -152,9 +152,11 @@ public class BotTest {
 			barChartFile.delete();
 		}
 		try (FileOutputStream output = new FileOutputStream(barChartFile)) {
-			Map<String, CsvRow> current = new HashMap<>();
-			current.put(last.getSymbol(), last);
-			IChart<IRow> chart = new BarChart(current);
+			Map<String, Double> walletUsdt = new HashMap<>();
+			for (Entry<String, Double> entry : trader.getWallet().entrySet()) {
+				walletUsdt.put(entry.getKey(),  entry.getValue() * last.getPrice());
+			}
+			IChart<IRow> chart = new BarChart(trader.getWallet());
 			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
 		}

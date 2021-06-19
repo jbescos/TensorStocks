@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -19,13 +20,11 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvRow;
+import com.jbescos.common.CsvAccountRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
-import com.jbescos.common.Price;
 import com.jbescos.common.Utils;
 
 public class ChartGenerator {
@@ -66,17 +65,26 @@ public class ChartGenerator {
 
 		private final Page<Blob> transactionBlobs;
 		private final List<String> symbols;
-		private final Map<String, CsvRow> current = new LinkedHashMap<>();
+		private final Map<String, Double> wallet = new LinkedHashMap<>();
+		private final Date now = new Date();
 		
 		public ProfitableBarChartCsv(List<String> symbols) throws IOException {
 			this.symbols = symbols;
 			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-			Blob retrieve = storage.get(CloudProperties.BUCKET, Utils.LAST_PRICE);
+			String todaysWalletCsv = AccountChartCsv.PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv";
+			Blob retrieve = storage.get(CloudProperties.BUCKET, todaysWalletCsv);
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
-				for (CsvRow row : csv) {
-					current.put(row.getSymbol(), row);
+				List<CsvAccountRow> account = CsvUtil.readCsvAccountRows(true, ",", reader);
+				LOGGER.info("Loaded from wallet " + account.size() + " from " + todaysWalletCsv);
+				Map<Date, List<CsvAccountRow>> byDate = account.stream().collect(Collectors.groupingBy(CsvAccountRow::getDate));
+				Date max = Collections.max(byDate.keySet());
+				Map<String, List<CsvAccountRow>> grouped = byDate.get(max).stream().collect(Collectors.groupingBy(IRow::getLabel));
+				for (Entry<String, List<CsvAccountRow>> entry : grouped.entrySet()) {
+					if (!entry.getValue().isEmpty()) {
+						wallet.put(entry.getKey() + Utils.USDT, entry.getValue().get(entry.getValue().size() - 1).getPrice());
+					}
+					
 				}
 			}
 			transactionBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(TRANSACTIONS_PREFIX));
@@ -85,7 +93,6 @@ public class ChartGenerator {
 		@Override
 		public List<IRow> read(int daysBack) throws IOException {
 			List<IRow> total = new ArrayList<>();
-			Date now = new Date();
 			List<String> days = Utils.daysBack(now, daysBack, TRANSACTIONS_PREFIX, ".csv");
 			for (Blob blob : transactionBlobs.iterateAll()) {
 				if (days.contains(blob.getName())) {
@@ -104,7 +111,7 @@ public class ChartGenerator {
 
 		@Override
 		public IChart<IRow> chart(int daysBack) {
-			return new BarChart(current);
+			return new BarChart(wallet);
 		}
 		
 	}
