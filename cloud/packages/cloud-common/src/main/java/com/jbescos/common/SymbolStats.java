@@ -101,21 +101,17 @@ public class SymbolStats implements BuySellAnalisys {
 		} else if (sellCommision > avg) {
 			double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
 			if (factor > CloudProperties.BOT_MIN_MAX_RELATION_SELL) {
-				if (m > 0) { // It is going down
-					if (sellCommision > percentileMax) {
-						double minSell = CloudProperties.minSell(this.symbol);
-						if (sellCommision < minSell) {
-							LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
-						} else if (sellCommision < minProfitableSellPrice) {
-							LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
-						} else {
-							action = Action.SELL;
-						}
+				if (sellCommision > percentileMax) {
+					double minSell = CloudProperties.minSell(this.symbol);
+					if (sellCommision < minSell) {
+						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
+					} else if (sellCommision < minProfitableSellPrice) {
+						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
 					} else {
-						LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
+						action = Action.SELL;
 					}
 				} else {
-					LOGGER.info(symbol + " sell discarded discarded because price is still going up");
+					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
 				}
 			} else {
 				LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION_SELL 
