@@ -156,7 +156,7 @@ public class BotTest {
 			for (Entry<String, Double> entry : trader.getWallet().entrySet()) {
 				walletUsdt.put(entry.getKey(),  entry.getValue() * last.getPrice());
 			}
-			IChart<IRow> chart = new BarChart(trader.getWallet());
+			IChart<IRow> chart = new BarChart(walletUsdt);
 			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
 		}
