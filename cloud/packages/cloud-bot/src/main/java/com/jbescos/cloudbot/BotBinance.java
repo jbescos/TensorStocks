@@ -61,7 +61,10 @@ public class BotBinance {
 			double unitsOfSymbol = wallet.get(walletSymbol);
 			double usdtOfSymbol = unitsOfSymbol * stat.getNewest().getPrice();
 			if (usdtOfSymbol >= CloudProperties.BINANCE_MIN_TRANSACTION) {
-				double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
+				double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER;
+				if (!CloudProperties.BOT_SELL_IGNORE_FACTOR_REDUCER) {
+		            sell = sell * stat.getFactor();
+		        }
 				double usdtSell = sell * stat.getNewest().getPrice();
 				boolean sellFlag = true;
 				if ((usdtOfSymbol - usdtSell) < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {

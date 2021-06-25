@@ -49,6 +49,7 @@ public class CloudProperties {
 	public static final int BOT_DAYS_BACK_TRANSACTIONS;
 	private static final Map<String, Double> MIN_SELL;
 	public static final double EWMA_CONSTANT;
+	public static final boolean BOT_SELL_IGNORE_FACTOR_REDUCER;
 
 	static {
 		Properties properties = null;
@@ -104,6 +105,7 @@ public class CloudProperties {
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(properties.getProperty("binance.min.transaction"));
 		MIN_SELL = createMinSell(properties);
 		EWMA_CONSTANT = Double.parseDouble(properties.getProperty("ewma.constant"));
+		BOT_SELL_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.sell.ignore.factor.reducer"));
 	}
 
 	private static Map<String, Double> createMinSell(Properties properties) {

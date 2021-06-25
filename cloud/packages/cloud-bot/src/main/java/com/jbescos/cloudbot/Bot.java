@@ -81,7 +81,10 @@ public class Bot {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double unitsOfSymbol = wallet.get(symbol);
-		double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER * stat.getFactor();
+		double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER;
+		if (!CloudProperties.BOT_SELL_IGNORE_FACTOR_REDUCER) {
+		    sell = sell * stat.getFactor();
+		}
 		if (updateWallet(symbol, sell * -1)) {
 			double usdt = currentPrice * sell;
 			usdt = usdt - (usdt * CloudProperties.BOT_SELL_COMISSION);
