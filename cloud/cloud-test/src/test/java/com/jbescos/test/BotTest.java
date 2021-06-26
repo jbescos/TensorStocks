@@ -71,7 +71,7 @@ public class BotTest {
 				LOGGER.info("Loading " + csvFile);
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv))) {
 					List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
-					dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
+					dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
 					rows.addAll(dailyRows);
 				}
 				LOGGER.info("Rows loaded so far " + rows.size());
