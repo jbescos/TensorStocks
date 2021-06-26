@@ -39,7 +39,7 @@ public class CsvUpdater {
 			if (file.endsWith(".csv") && !file.contains("reversed")) {
 				String fullPath = rootFolder + "/" + file;
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
-					List<CsvRow> rows = CsvUtil.readCsvRows(true, ",", reader);
+					List<CsvRow> rows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 					LOGGER.info("Read " + rows.size() + " rows in " + fullPath);
 					for (int i=0; i<(rows.size()/2);i++) {
 						CsvRow row0 = rows.get(i);
@@ -70,7 +70,7 @@ public class CsvUpdater {
 			if (file.endsWith(".csv")) {
 				String fullPath = rootFolder + "/" + file;
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
-					rows.addAll(CsvUtil.readCsvRows(true, ",", reader));
+					rows.addAll(CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList()));
 					LOGGER.info("Read " + rows.size() + " rows in " + fullPath);
 				}
 				File f = new File(fullPath);
@@ -118,7 +118,7 @@ public class CsvUpdater {
 				LOGGER.info("Processing " + fullPath);
 				List<CsvRow> rows = null;
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
-					rows = CsvUtil.readCsvRows(true, ",", reader);
+					rows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 				}
 				Double previousResult = null;
 				for (CsvRow row : rows) {

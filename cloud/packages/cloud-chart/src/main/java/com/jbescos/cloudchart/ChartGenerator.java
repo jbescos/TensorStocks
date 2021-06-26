@@ -183,10 +183,7 @@ public class ChartGenerator {
 				if (days.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();
 							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-						List<? extends IRow> rows = CsvUtil.readCsvRows(true, ",", reader);
-						if (symbols != null && !symbols.isEmpty()) {
-							rows = rows.stream().filter(row -> symbols.contains(row.getLabel())).collect(Collectors.toList());
-						}
+						List<? extends IRow> rows = CsvUtil.readCsvRows(true, ",", reader, symbols);
 						if (daysBack > PRECISSION_CHART_DAYS) {
 							// Pick the last to avoid memory issues
 							Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));

@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -38,7 +39,7 @@ public class BucketStorage {
 		} else {
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader);
+				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 				for (CsvRow row : csv) {
 					previousRows.put(row.getSymbol(), row);
 				}

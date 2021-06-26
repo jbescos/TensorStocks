@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,8 @@ import com.jbescos.common.BuySellAnalisys.Action;
 public class CsvUtil {
 
 	private static final Logger LOGGER = Logger.getLogger(CsvUtil.class.getName());
+	private static final Date MIN_DATE = new Date(0);
+	private static final Date MAX_DATE = new Date(Long.MAX_VALUE);
 
 	public static StringBuilder toString(List<Map<String, String>> rows) {
 		StringBuilder builder = new StringBuilder();
@@ -92,8 +95,8 @@ public class CsvUtil {
 		
 	}
 	
-	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
-		return readCsvRows(skipFirst, separator, reader, new Date(0), new Date(Long.MAX_VALUE));
+	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader, List<String> symbols) throws IOException {
+		return readCsvRows(skipFirst, separator, reader, MIN_DATE, MAX_DATE, symbols);
 		
 	}
 	
@@ -122,21 +125,22 @@ public class CsvUtil {
 		}, reader);
 	}
 	
-	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader, Date from, Date to) throws IOException {
+	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader, Date from, Date to, List<String> symbols) throws IOException {
 		return readCsv(skipFirst,  line -> {
 			String[] columns = line.split(separator);
 			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
 			if (date.getTime() >= from.getTime() && date.getTime() < to.getTime()) {
 				String symbol = columns[1];
-				Double avg = null;
-				if (columns.length > 3) {
-					avg = Double.parseDouble(columns[3]);
+				if (symbols.isEmpty() || symbols.contains(symbol)) {
+					Double avg = null;
+					if (columns.length > 3) {
+						avg = Double.parseDouble(columns[3]);
+					}
+					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg);
+					return row;
 				}
-				CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg);
-				return row;
-			} else {
-				return null;
 			}
+			return null;
 		}, reader);
 		
 	}

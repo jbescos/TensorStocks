@@ -38,8 +38,9 @@ public class BotUtils {
 		for (String day : days) {
 			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				csvInDay = CsvUtil.readCsvRows(true, ",", reader).stream().filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol())).collect(Collectors.toList());
+				csvInDay = CsvUtil.readCsvRows(true, ",", reader, CloudProperties.BOT_WHITE_LIST_SYMBOLS);
 				rows.addAll(csvInDay);
+				LOGGER.info("Loaded " + csvInDay.size() + " rows from " + day);
 			}
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
