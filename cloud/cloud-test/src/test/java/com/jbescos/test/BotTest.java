@@ -102,8 +102,13 @@ public class BotTest {
 			row0.setDate(rowLast.getDate());
 			rowLast.setDate(date0);
 		}
-		rows.stream().forEach(r -> r.setSymbol(r.getSymbol() + "-reversed"));
 		Collections.reverse(rows);
+		Double previousResult = null;
+		for (CsvRow row : rows) {
+			row.setSymbol(row.getSymbol() + "-reversed");
+			previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
+			row.setAvg(previousResult);
+		}
 	}
 
 	private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) throws IOException {
