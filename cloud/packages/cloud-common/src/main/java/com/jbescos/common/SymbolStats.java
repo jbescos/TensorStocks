@@ -82,7 +82,7 @@ public class SymbolStats implements BuySellAnalisys {
 			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
 				if (factor > CloudProperties.BOT_MIN_MAX_RELATION_BUY) {
 					if (m < 0) { // It is going up
-						double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_FACTOR) + min.getPrice();
+						double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
 						if (buyCommision < percentileMin) {
 							action = Action.BUY;
 						} else {
@@ -99,7 +99,7 @@ public class SymbolStats implements BuySellAnalisys {
 				LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
 			}
 		} else if (sellCommision > avg) {
-			double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_FACTOR);
+			double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
 			if (factor > CloudProperties.BOT_MIN_MAX_RELATION_SELL) {
 			    if (m > 0) { // It is going up
     				if (sellCommision > percentileMax) {

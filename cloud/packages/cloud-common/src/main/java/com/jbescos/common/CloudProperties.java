@@ -40,7 +40,8 @@ public class CloudProperties {
 	public static final List<String> BOT_WHITE_LIST_SYMBOLS;
 	public static final double BOT_SELL_REDUCER;
 	public static final double BOT_BUY_REDUCER;
-	public static final double BOT_PERCENTILE_FACTOR;
+	public static final double BOT_PERCENTILE_BUY_FACTOR;
+	public static final double BOT_PERCENTILE_SELL_FACTOR;
 	public static final double BOT_BUY_COMISSION;
 	public static final double BOT_SELL_COMISSION;
 	public static final double BOT_MIN_MAX_RELATION_BUY;
@@ -96,7 +97,8 @@ public class CloudProperties {
 		BOT_NEVER_BUY_LIST_SYMBOLS = Arrays.asList(properties.getProperty("bot.never.buy").split(","));
 		BOT_SELL_REDUCER = Double.parseDouble(properties.getProperty("bot.sell.reducer"));
 		BOT_BUY_REDUCER = Double.parseDouble(properties.getProperty("bot.buy.reducer"));
-		BOT_PERCENTILE_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.factor"));
+		BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.buy.factor"));
+		BOT_PERCENTILE_SELL_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.sell.factor"));
 		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
 		BOT_SELL_COMISSION = Double.parseDouble(properties.getProperty("bot.sell.comission"));
 		BOT_MIN_MAX_RELATION_BUY = Double.parseDouble(properties.getProperty("bot.min.max.relation.buy"));
