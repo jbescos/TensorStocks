@@ -86,7 +86,7 @@ public class SymbolStats implements BuySellAnalisys {
 						if (buyCommision < percentileMin) {
 							action = Action.BUY;
 						} else {
-							LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin));
+							LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
 						}
 					} else {
 						LOGGER.info(symbol + " buy discarded discarded because price is still going down");
@@ -105,7 +105,7 @@ public class SymbolStats implements BuySellAnalisys {
     				if (sellCommision > percentileMax) {
     					double minSell = CloudProperties.minSell(this.symbol);
     					if (sellCommision < minSell) {
-    						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell));
+    						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
     					} else if (sellCommision < minProfitableSellPrice) {
     						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
     					} else {
