@@ -51,6 +51,7 @@ public class CloudProperties {
 	private static final Map<String, Double> MIN_SELL;
 	public static final double EWMA_CONSTANT;
 	public static final boolean BOT_SELL_IGNORE_FACTOR_REDUCER;
+	public static final Map<String, FixedBuySell> FIXED_BUY_SELL;
 
 	static {
 		Properties properties = null;
@@ -109,6 +110,7 @@ public class CloudProperties {
 		MIN_SELL = createMinSell(properties);
 		EWMA_CONSTANT = Double.parseDouble(properties.getProperty("ewma.constant"));
 		BOT_SELL_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.sell.ignore.factor.reducer"));
+		FIXED_BUY_SELL = fixedBuySell(properties);
 	}
 
 	private static Map<String, Double> createMinSell(Properties properties) {
@@ -124,9 +126,42 @@ public class CloudProperties {
 		}
 		return Collections.unmodifiableMap(minSell);
 	}
+	
+	private static Map<String, FixedBuySell> fixedBuySell(Properties properties) {
+		Map<String, FixedBuySell> fixedBuySell = new HashMap<>();
+		Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+		while (enums.hasMoreElements()) {
+			String key = enums.nextElement();
+			if (key.startsWith("bot.fixed")) {
+				String symbol = key.split("\\.")[3];
+				if (!fixedBuySell.containsKey(symbol)) {
+					double fixedSell = Double.parseDouble(properties.getProperty("bot.fixed.sell." + symbol));
+					double fixedBuy = Double.parseDouble(properties.getProperty("bot.fixed.buy." + symbol));
+					FixedBuySell content = new FixedBuySell(fixedSell, fixedBuy);
+					fixedBuySell.put(symbol, content);
+				}
+			}
+		}
+		return Collections.unmodifiableMap(fixedBuySell);
+	}
 
 	public static double minSell(String symbol) {
 		Double value = MIN_SELL.get(symbol);
 		return value == null ? 0.0 : value;
+	}
+	
+	public static class FixedBuySell {
+		private final double fixedSell;
+		private final double fixedBuy;
+		public FixedBuySell(double fixedSell, double fixedBuy) {
+			this.fixedSell = fixedSell;
+			this.fixedBuy = fixedBuy;
+		}
+		public double getFixedSell() {
+			return fixedSell;
+		}
+		public double getFixedBuy() {
+			return fixedBuy;
+		}
 	}
 }
