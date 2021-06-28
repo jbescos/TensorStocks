@@ -2,8 +2,11 @@ package com.jbescos.common;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -80,7 +83,12 @@ public class Utils {
 	}
 	
 	public static String format(double amount) {
-		return String.format(Locale.US, "%.8f", amount);
+		DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+		symbols.setDecimalSeparator('.');
+		DecimalFormat df = new DecimalFormat("0", symbols);
+		df.setRoundingMode(RoundingMode.DOWN);
+        df.setMaximumFractionDigits(8);
+		return df.format(amount);
 	}
 	
 	public static double minSellProfitable(List<CsvTransactionRow> previousTransactions) {

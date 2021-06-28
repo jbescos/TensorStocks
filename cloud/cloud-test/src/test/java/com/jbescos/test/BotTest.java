@@ -169,7 +169,7 @@ public class BotTest {
 
 	@Test
 	public void round() {
-		assertEquals("21330.88888788", Utils.format(21330.888887878787));
+		assertEquals("21330.88888787", Utils.format(21330.888887878787));
 	}
 
 	@Test
