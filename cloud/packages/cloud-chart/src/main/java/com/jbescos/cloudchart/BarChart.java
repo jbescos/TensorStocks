@@ -35,15 +35,16 @@ public class BarChart implements IChart<IRow> {
 			LOGGER.info("History of transactions: " + transactions);
 			String symbol = first.getSymbol();
 			double sum = sum(transactions);
-			dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
 			Double walletPrice = wallet.get(symbol);
 			if (walletPrice == null) {
 				walletPrice = 0.0;
 			}
-			if (first.getSide() == Action.SELL) {
-				dataset.addValue(walletPrice, "PENDING_WALLET_" + first.getLabel(), symbol);
-				dataset.addValue(walletPrice + sum, "SUM_WALLET_AND_" + first.getLabel(), symbol);
-			}
+			if (first.getSide() == Action.BUY) {
+                dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
+            } else {
+                dataset.addValue(walletPrice + sum, "SUM_WALLET_AND_" + first.getLabel(), symbol);
+            }
+			dataset.addValue(walletPrice, "PENDING_WALLET_" + first.getLabel(), symbol);
 		}
 	}
 	
