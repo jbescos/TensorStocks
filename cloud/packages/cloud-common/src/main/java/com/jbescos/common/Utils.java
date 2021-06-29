@@ -2,6 +2,7 @@ package com.jbescos.common;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -187,8 +188,10 @@ public class Utils {
 	        LOGGER.warning(quantity + " is higher than maxQty " + maxQty + ". The quantity is modified");
 	        quantityD = maxQtyD;
 	    } else {
-	        double mod = quantityD % stepSizeD;
-	        quantityD = quantityD - mod;
+	        BigDecimal bd = new BigDecimal(quantity);
+	        BigDecimal mod = bd.remainder(new BigDecimal(stepSize));
+	        BigDecimal result = new BigDecimal(quantityD).subtract(mod);
+	        quantityD = result.doubleValue();
 	    }
 	    return format(quantityD);
 	}
