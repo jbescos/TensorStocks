@@ -17,12 +17,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Properties;
+import java.util.logging.Logger;
 
 import com.jbescos.common.Account.Balances;
 import com.jbescos.common.BuySellAnalisys.Action;
 
 public class Utils {
 
+    private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
 	public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
@@ -171,5 +173,23 @@ public class Utils {
 		} else {
 			return (contant * y) + (1 - contant) * previousResult;
 		}
+	}
+	
+	public static String filterLotSizeQuantity(String quantity, String minQty, String maxQty, String stepSize) {
+	    double quantityD = Double.parseDouble(quantity);
+	    double minQtyD = Double.parseDouble(minQty);
+	    double maxQtyD = Double.parseDouble(maxQty);
+	    double stepSizeD = Double.parseDouble(stepSize);
+	    if (quantityD < minQtyD) {
+	        LOGGER.warning(quantity + " is lower than minQty " + minQty + ". The quantity is modified");
+	        quantityD = minQtyD;
+	    } else if (quantityD > maxQtyD) {
+	        LOGGER.warning(quantity + " is higher than maxQty " + maxQty + ". The quantity is modified");
+	        quantityD = maxQtyD;
+	    } else {
+	        double mod = quantityD % stepSizeD;
+	        quantityD = quantityD - mod;
+	    }
+	    return format(quantityD);
 	}
 }

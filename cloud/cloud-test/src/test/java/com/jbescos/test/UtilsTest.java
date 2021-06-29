@@ -108,6 +108,20 @@ public class UtilsTest {
 		assertEquals("0.99999999", Utils.format(value));
 	}
 	
+	@Test
+	public void filterLotSizeQuantity() {
+	    String quantity = Utils.filterLotSizeQuantity("2.254", "1.00", "10000000000.00", "0.02");
+        assertEquals("2.24", quantity);
+        quantity = Utils.filterLotSizeQuantity("0.06178180", "0.00010000", "900000.00000000", "0.00010000");
+        assertEquals("0.0617", quantity);
+	    quantity = Utils.filterLotSizeQuantity("36601014.83", "1.00", "10000000000.00", "1.00");
+	    assertEquals("36601014", quantity);
+	    quantity = Utils.filterLotSizeQuantity("0.5", "1.00", "10000000000.00", "1.00");
+	    assertEquals("1", quantity);
+	    quantity = Utils.filterLotSizeQuantity("10000000001.00", "1.00", "10000000000.00", "1.00");
+        assertEquals("10000000000", quantity);
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return new CsvTransactionRow(new Date(0), "", side, "any", usdt, quantity, usdt / quantity);
 	}

@@ -25,7 +25,7 @@ public class StorageFunction implements HttpFunction {
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
-		ExchangeInfo exchangeInfo = BinanceAPI.exchangeInfo();
+		ExchangeInfo exchangeInfo = BinanceAPI.exchangeInfo("BTCUSDT");
 		Date now = new Date(exchangeInfo.getServerTime());
 		String dateStr = Utils.FORMAT_SECOND.format(now);
 		String fileName = Utils.FORMAT.format(now) + ".csv";

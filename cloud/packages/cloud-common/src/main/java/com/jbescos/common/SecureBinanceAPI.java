@@ -149,7 +149,10 @@ public class SecureBinanceAPI {
 	public Map<String, String> orderSymbol(String symbol, String side, String quantity) throws FileNotFoundException, IOException {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
-		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quantity", quantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
+		ExchangeInfo exchange = BinanceAPI.exchangeInfo(symbol);
+		Map<String, Object> filter = exchange.getFilter(symbol, ExchangeInfo.LOT_SIZE);
+		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, filter.get("minQty").toString(), filter.get("maxQty").toString(), filter.get("stepSize").toString());
+		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info("Prepared Symbol order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info("Completed Symbol order: " + response);
