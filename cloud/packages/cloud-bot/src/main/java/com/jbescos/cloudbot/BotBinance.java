@@ -40,7 +40,10 @@ public class BotBinance {
 	private void buy(String symbol, BuySellAnalisys stat) throws FileNotFoundException, IOException {
 		wallet.putIfAbsent(Utils.USDT, 0.0);
 		double usdt = wallet.get(Utils.USDT);
-		double buy = usdt * CloudProperties.BOT_BUY_REDUCER * stat.getFactor();
+		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
+		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+		    buy = buy * stat.getFactor();
+		}
 		if (buy < CloudProperties.BINANCE_MIN_TRANSACTION) {
 			buy = CloudProperties.BINANCE_MIN_TRANSACTION;
 		}
