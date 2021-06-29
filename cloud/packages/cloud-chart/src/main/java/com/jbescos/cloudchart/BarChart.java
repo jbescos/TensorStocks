@@ -42,9 +42,10 @@ public class BarChart implements IChart<IRow> {
 			if (first.getSide() == Action.BUY) {
                 dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
             } else {
+                dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
                 dataset.addValue(walletPrice + sum, "SUM_WALLET_AND_" + first.getLabel(), symbol);
             }
-			dataset.addValue(walletPrice, "PENDING_WALLET_" + first.getLabel(), symbol);
+			dataset.addValue(walletPrice, "PENDING_WALLET", symbol);
 		}
 	}
 	
