@@ -49,11 +49,12 @@ public class BotTest {
 
 	@AfterClass
 	public static void afterClass() {
-		LOGGER.info(results.toString());
+		Collections.sort(results, (a, b) -> Double.compare(a.multiplier, b.multiplier));
 		double total = 0;
 		for (TestResult result : results) {
 			total = total + result.multiplier;
 		}
+		LOGGER.info(results.toString());
 		LOGGER.info("Total multiplier: " + (total / results.size()));
 	}
 
