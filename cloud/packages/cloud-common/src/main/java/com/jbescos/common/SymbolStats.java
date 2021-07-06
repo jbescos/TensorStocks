@@ -17,6 +17,7 @@ public class SymbolStats implements BuySellAnalisys {
 	private final CsvRow max;
 	private final CsvRow newest;
 	private final Action action;
+	private final Mode mode;
 	private final double minProfitableSellPrice;
 
 	public SymbolStats(String symbol, List<CsvRow> values, List<CsvTransactionRow> previousTransactions) {
@@ -29,6 +30,11 @@ public class SymbolStats implements BuySellAnalisys {
 			throw new IllegalArgumentException("Row does not contain AVG. It needs it to work: " + newest);
 		} else {
 			this.avg = newest.getAvg();
+		}
+		if (newest.getPrice() > newest.getAvg2()) {
+			mode = Mode.BULLISH;
+		} else {
+			mode = Mode.BEARISH;
 		}
 		double m = 0;
 		if (values.size() > 1) {
@@ -91,7 +97,9 @@ public class SymbolStats implements BuySellAnalisys {
 			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
 			if (buyCommision < avg) {
 				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-					if (factor > CloudProperties.BOT_MIN_MAX_RELATION_BUY) {
+					Style style = getStyle(Action.BUY);
+					double comparedFactor = style == Style.PESSIMISTIC ? CloudProperties.BOT_MIN_MAX_RELATION_PESSIMISTIC : CloudProperties.BOT_MIN_MAX_RELATION_OPTIMISTIC;
+					if (factor > comparedFactor) {
 						if (m < 0) { // It is going up
 							double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
 							if (buyCommision < percentileMin) {
@@ -103,15 +111,17 @@ public class SymbolStats implements BuySellAnalisys {
 							LOGGER.info(symbol + " buy discarded discarded because price is still going down");
 						}
 					} else {
-						LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION_BUY 
+						LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode + " in " + style
 								 + ". Min " + min + " Max " + max);
 					}
 				} else {
 					LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
 				}
 			} else if (sellCommision > avg) {
+				Style style = getStyle(Action.SELL);
 				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
-				if (factor > CloudProperties.BOT_MIN_MAX_RELATION_SELL) {
+				double comparedFactor = style == Style.PESSIMISTIC ? CloudProperties.BOT_MIN_MAX_RELATION_PESSIMISTIC : CloudProperties.BOT_MIN_MAX_RELATION_OPTIMISTIC;
+				if (factor > comparedFactor) {
 				    if (m > 0) { // It is going up
 	    				if (sellCommision > percentileMax) {
 	    					double minSell = CloudProperties.minSell(this.symbol);
@@ -129,7 +139,7 @@ public class SymbolStats implements BuySellAnalisys {
 				        LOGGER.info(symbol + " sell discarded discarded because price is still going up");
 				    }
 				} else {
-					LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + CloudProperties.BOT_MIN_MAX_RELATION_SELL 
+					LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode + " in " + style
 							 + ". Min " + min + " Max " + max);
 				}
 			}
@@ -137,12 +147,21 @@ public class SymbolStats implements BuySellAnalisys {
 		return action;
 	}
 	
-	private double avg(List<CsvRow> values) {
-		Double prevousResult = null;
-		for (CsvRow row : values) {
-			prevousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), prevousResult);
+	private Style getStyle(Action action) {
+		if (action == Action.SELL) {
+			if (mode == Mode.BULLISH) {
+				return Style.PESSIMISTIC;
+			} else {
+				return Style.OPTIMISTIC;
+			}
+		} else if (action == Action.BUY) {
+			if (mode == Mode.BULLISH) {
+				return Style.OPTIMISTIC;
+			} else {
+				return Style.PESSIMISTIC;
+			}
 		}
-		return prevousResult;
+		return Style.PESSIMISTIC;
 	}
 	
 	private double calculateFactor(CsvRow min, CsvRow max) {
@@ -173,4 +192,11 @@ public class SymbolStats implements BuySellAnalisys {
 		return builder.toString();
 	}
 	
+	private static enum Mode {
+		BULLISH, BEARISH;
+	}
+
+	private static enum Style {
+		PESSIMISTIC, OPTIMISTIC;
+	}
 }

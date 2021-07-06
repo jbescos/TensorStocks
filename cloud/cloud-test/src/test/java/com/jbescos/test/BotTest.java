@@ -104,11 +104,18 @@ public class BotTest {
 			rowLast.setDate(date0);
 		}
 		Collections.reverse(rows);
+		rows.stream().forEach(row -> row.setSymbol(row.getSymbol() + "-reversed"));
+		setAvgs(rows);
+	}
+	
+	private void setAvgs(List<CsvRow> rows) {
 		Double previousResult = null;
+		Double previousResult2 = null;
 		for (CsvRow row : rows) {
-			row.setSymbol(row.getSymbol() + "-reversed");
 			previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
+			previousResult2 = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), previousResult2);
 			row.setAvg(previousResult);
+			row.setAvg2(previousResult2);
 		}
 	}
 
@@ -189,12 +196,14 @@ public class BotTest {
 		List<CsvRow> rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_LIMIMTED, 1.0),
 				new CsvRow(new Date(50000), SYMBOL_LIMIMTED, 100.0),
 				new CsvRow(new Date(100000), SYMBOL_LIMIMTED, 99.0));
+		setAvgs(rows);
 		BuySellAnalisys stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
 		assertEquals(Action.NOTHING, stats.getAction());
 		final String SYMBOL_NOT_LIMIMTED = "unlimitedSymbol";
 		rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_NOT_LIMIMTED, 1.0),
 				new CsvRow(new Date(50000), SYMBOL_NOT_LIMIMTED, 100.0),
 				new CsvRow(new Date(100000), SYMBOL_NOT_LIMIMTED, 99.0));
+		setAvgs(rows);
 		stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
 		assertEquals(Action.SELL, stats.getAction());
 	}

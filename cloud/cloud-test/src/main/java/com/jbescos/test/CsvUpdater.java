@@ -107,7 +107,12 @@ public class CsvUpdater {
 			CsvRow lastRow = day.getValue().get(day.getValue().size() - 1);
 			lastRows.add(lastRow);
 		}
-		try (FileOutputStream output = new FileOutputStream(rootFolder + "/" + Utils.LAST_PRICE)) {
+		File last = new File(rootFolder + "/last_price.csv");
+		if (!last.exists()) {
+			LOGGER.info("Creating " + last.getAbsolutePath());
+			last.createNewFile();
+		}
+		try (FileOutputStream output = new FileOutputStream(last)) {
 			CsvUtil.writeCsvRows(lastRows, ',', output);
 		}
 	}
@@ -124,9 +129,12 @@ public class CsvUpdater {
 					rows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 				}
 				Double previousResult = null;
+				Double previousResult2 = null;
 				for (CsvRow row : rows) {
 					previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
 					row.setAvg(previousResult);
+					previousResult2 = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult2);
+					row.setAvg2(previousResult2);
 				}
 				File f = new File(fullPath);
 				f.delete();
