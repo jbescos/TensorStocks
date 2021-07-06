@@ -56,7 +56,8 @@ public class Chart {
 				String symbol = columns[1];
 				double price = Double.parseDouble(columns[2]);
 				double avg = Double.parseDouble(columns[4]);
-				CsvRow row = new CsvRow(date, direction + "_" + symbol, price, avg);
+				double longAvg = Double.parseDouble(columns[5]);
+				CsvRow row = new CsvRow(date, direction + "_" + symbol, price, avg, longAvg);
 				return row;
 			} else {
 				return null;

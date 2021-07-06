@@ -27,7 +27,7 @@ public class CsvUpdater {
 
 	public static void main(String args[]) throws IOException {
 //		addAvg("/home/jbescos/workspace/TensorStocks/cloud/cloud-test/src/test/resources");
-		addAvgDated("/home/jbescos/workspace/TensorStocks/cloud/cloud-test/src/test/resources");
+		addAvgDated("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources");
 //		revert("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
 		LOGGER.info("Finished");
 	}
@@ -81,9 +81,12 @@ public class CsvUpdater {
 		Map<String, List<CsvRow>> groupedSymbol = rows.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		for (List<CsvRow> values : groupedSymbol.values()) {
 			Double previousResult = null;
+			Double previousLongThermResult = null;
 			for (CsvRow row : values) {
 				previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
+				previousLongThermResult = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), previousLongThermResult);
 				row.setAvg(previousResult);
+				row.setAvg2(previousLongThermResult);
 			}
 		}
 		Map<String, List<CsvRow>> groupedDate = rows.stream().collect(Collectors.groupingBy(row -> Utils.fromDate(Utils.FORMAT, row.getDate())));

@@ -67,7 +67,7 @@ public class CsvUtil {
 		writer.append(line);
 		for (CsvRow row : csv) {
 			StringBuilder builder = new StringBuilder();
-			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, row.getDate())).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg());
+			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, row.getDate())).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append(",").append(row.getAvg2());
 			writer.append(builder.toString());
 			writer.newLine();
 		}
@@ -133,10 +133,14 @@ public class CsvUtil {
 				String symbol = columns[1];
 				if (symbols.isEmpty() || symbols.contains(symbol)) {
 					Double avg = null;
+					Double longAvg = null;
 					if (columns.length > 3) {
 						avg = Double.parseDouble(columns[3]);
+						if (columns.length > 4) {
+							longAvg = Double.parseDouble(columns[4]);
+						}
 					}
-					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg);
+					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg);
 					return row;
 				}
 			}

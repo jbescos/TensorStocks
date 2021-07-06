@@ -8,16 +8,18 @@ public class CsvRow implements IRow {
 	private String symbol;
 	private double price;
 	private Double avg;
+	private Double avg2;
 	
-	public CsvRow(Date date, String symbol, double price, Double avg) {
+	public CsvRow(Date date, String symbol, double price, Double avg, Double avg2) {
 		this.date = date;
 		this.symbol = symbol;
 		this.price = price;
 		this.avg = avg;
+		this.avg2 = avg2;
 	}
 	
 	public CsvRow(Date date, String symbol, double price) {
-		this(date, symbol, price, null);
+		this(date, symbol, price, null, null);
 	}
 
 	public void setDate(Date date) {
@@ -64,5 +66,15 @@ public class CsvRow implements IRow {
 	public String getLabel() {
 		return symbol;
 	}
+
+	@Override
+	public Double getAvg2() {
+		return avg2;
+	}
+
+	public void setAvg2(Double avg2) {
+		this.avg2 = avg2;
+	}
+
 	
 }

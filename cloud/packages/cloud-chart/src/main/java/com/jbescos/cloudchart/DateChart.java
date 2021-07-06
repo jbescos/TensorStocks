@@ -29,11 +29,17 @@ public class DateChart implements IChart<IRow> {
 	public void add(String lineLabel, List<? extends IRow> data) {
 		TimeSeries series = new TimeSeries(lineLabel);
 		TimeSeries seriesAvg = null;
+		TimeSeries seriesAvg2 = null;
 		boolean avg = false;
+		boolean avg2 = false;
 		if (! data.isEmpty()) {
 			avg = data.get(0).getAvg() != null;
 			if (avg) {
 				seriesAvg = new TimeSeries(lineLabel + "-AVG");
+			}
+			avg2 = data.get(0).getAvg() != null;
+			if (avg2) {
+				seriesAvg2 = new TimeSeries(lineLabel + "-AVG_2");
 			}
 		}
 		Map<String, List<IRow>> grouped = data.stream().collect(Collectors.groupingBy(row -> Utils.fromDate(Utils.FORMAT, row.getDate())));
@@ -45,10 +51,16 @@ public class DateChart implements IChart<IRow> {
 			if (avg) {
 				seriesAvg.add(new Day(date), last.getAvg());
 			}
+			if (avg2) {
+				seriesAvg2.add(new Day(date), last.getAvg2());
+			}
 		}
 		dataset.addSeries(series);
 		if (avg) {
 			dataset.addSeries(seriesAvg);
+		}
+		if (avg2) {
+			dataset.addSeries(seriesAvg2);
 		}
 	}
 

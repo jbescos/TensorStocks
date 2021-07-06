@@ -26,8 +26,7 @@ public class SymbolStats implements BuySellAnalisys {
 		this.factor = calculateFactor(min, max);
 		this.newest = values.get(values.size() - 1);
 		if (newest.getAvg() == null) {
-			LOGGER.warning("The CSV does not contain the AVG!. It is being calculated from the last " + CloudProperties.BOT_DAYS_BACK_STATISTICS + " days. Row is " + newest);
-			this.avg = avg(values);
+			throw new IllegalArgumentException("Row does not contain AVG. It needs it to work: " + newest);
 		} else {
 			this.avg = newest.getAvg();
 		}

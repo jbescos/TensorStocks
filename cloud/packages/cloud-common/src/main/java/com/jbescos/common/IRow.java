@@ -8,4 +8,5 @@ public interface IRow {
 	double getPrice();
 	String getLabel();
 	Double getAvg();
+	Double getAvg2();
 }

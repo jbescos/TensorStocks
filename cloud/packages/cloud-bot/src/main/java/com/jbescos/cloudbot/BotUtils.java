@@ -64,6 +64,7 @@ public class BotUtils {
 			for (CsvRow inDay : csvInDay) {
 				if (last.getSymbol().equals(inDay.getSymbol())) {
 					last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
+					last.setAvg2(Utils.ewma(CloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
 					break;
 				}
 			}

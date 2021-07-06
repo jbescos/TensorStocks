@@ -33,7 +33,7 @@ public class StorageFunction implements HttpFunction {
 		StringBuilder builder = new StringBuilder();
 		List<CsvRow> updatedRows = BucketStorage.withAvg(now, prices);
 		for (CsvRow row : updatedRows) {
-			builder.append(dateStr).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append("\r\n");
+			builder.append(dateStr).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append(",").append(row.getAvg2()).append("\r\n");
 		}
 		String downloadLink = BucketStorage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
 		SecureBinanceAPI api = SecureBinanceAPI.create();

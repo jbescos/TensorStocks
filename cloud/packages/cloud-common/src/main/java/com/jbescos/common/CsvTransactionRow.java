@@ -78,5 +78,10 @@ public class CsvTransactionRow implements IRow {
 	public Double getAvg() {
 		return null;
 	}
+
+	@Override
+	public Double getAvg2() {
+		return null;
+	}
 	
 }

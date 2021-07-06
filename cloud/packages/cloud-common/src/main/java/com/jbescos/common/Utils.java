@@ -30,7 +30,7 @@ public class Utils {
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 	public static final String USDT = "USDT";
-	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG\r\n";
+	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2\r\n";
 	public static final String LAST_PRICE = "data/last_price.csv";
 
 	public static Properties fromClasspath(String properties) throws IOException {

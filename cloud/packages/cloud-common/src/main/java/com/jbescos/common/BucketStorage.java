@@ -50,12 +50,12 @@ public class BucketStorage {
 			CsvRow previous = previousRows.get(price.getSymbol());
 			CsvRow newRow = null;
 			if (previous != null) {
-				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()));
+				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
 			} else {
-				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice());
+				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
 			}
 			newRows.add(newRow);
-			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(newRow.getSymbol()).append(",").append(newRow.getPrice()).append(",").append(newRow.getAvg()).append("\r\n");
+			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(newRow.getSymbol()).append(",").append(newRow.getPrice()).append(",").append(newRow.getAvg()).append(",").append(newRow.getAvg2()).append("\r\n");
 		}
 		storage.create(createBlobInfo(Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
 		return newRows;
