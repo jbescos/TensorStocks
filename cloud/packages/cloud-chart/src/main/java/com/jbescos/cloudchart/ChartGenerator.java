@@ -45,9 +45,11 @@ public class ChartGenerator {
 	public static void writeChart(List<? extends IRow> rows, OutputStream output, IChart<IRow> chart)
 			throws IOException {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
-		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
-			LOGGER.info("Adding in chart " + entry.getKey());
-			chart.add(entry.getKey(), entry.getValue());
+		List<String> keys = new ArrayList<>(grouped.keySet());
+		Utils.sortForChart(keys);
+		LOGGER.info("Chart display order " + keys);
+		for (String key : keys) {
+			chart.add(key, grouped.get(key));
 		}
 	}
 	

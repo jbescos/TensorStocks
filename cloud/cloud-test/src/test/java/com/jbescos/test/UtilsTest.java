@@ -3,6 +3,7 @@ package com.jbescos.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -122,6 +123,13 @@ public class UtilsTest {
 	    assertEquals("1", quantity);
 	    quantity = Utils.filterLotSizeQuantity("10000000001.00", "1.00", "10000000000.00", "1.00");
         assertEquals("10000000000", quantity);
+	}
+	
+	@Test
+	public void sortForChart() {
+		List<String> symbols = new ArrayList<>(Arrays.asList("SYMBOL1", "SYMBOL2", "BUY-SYMBOL", "SELL-SYMBOL"));
+		Utils.sortForChart(symbols);
+		assertEquals(Arrays.asList("SELL-SYMBOL", "BUY-SYMBOL", "SYMBOL1", "SYMBOL2"), symbols);
 	}
 	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {

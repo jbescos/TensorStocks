@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -194,5 +195,16 @@ public class Utils {
 	        quantityD = result.doubleValue();
 	    }
 	    return format(quantityD);
+	}
+	
+	public static void sortForChart(List<String> symbols) {
+		Collections.sort(symbols, (c1, c2) -> {
+			if (c1.startsWith("BUY") || c1.startsWith("SELL")) {
+				return -1;
+			} else if (c2.startsWith("BUY") || c2.startsWith("SELL")) {
+				return 1;
+			}
+			return c1.compareTo(c2);
+		});
 	}
 }
