@@ -44,8 +44,10 @@ public class CloudProperties {
 	public static final double BOT_PERCENTILE_SELL_FACTOR;
 	public static final double BOT_BUY_COMISSION;
 	public static final double BOT_SELL_COMISSION;
-	public static final double BOT_MIN_MAX_RELATION_PESSIMISTIC;
-	public static final double BOT_MIN_MAX_RELATION_OPTIMISTIC;
+	public static final double BOT_MIN_MAX_RELATION_SELL_BEARISH;
+	public static final double BOT_MIN_MAX_RELATION_SELL_BULLISH;
+	public static final double BOT_MIN_MAX_RELATION_BUY_BEARISH;
+	public static final double BOT_MIN_MAX_RELATION_BUY_BULLISH;
 	public static final int BOT_DAYS_BACK_STATISTICS;
 	public static final int BOT_DAYS_BACK_TRANSACTIONS;
 	private static final Map<String, Double> MIN_SELL;
@@ -104,8 +106,10 @@ public class CloudProperties {
 		BOT_PERCENTILE_SELL_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.sell.factor"));
 		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
 		BOT_SELL_COMISSION = Double.parseDouble(properties.getProperty("bot.sell.comission"));
-		BOT_MIN_MAX_RELATION_PESSIMISTIC = Double.parseDouble(properties.getProperty("bot.min.max.relation.pessimistic"));
-		BOT_MIN_MAX_RELATION_OPTIMISTIC = Double.parseDouble(properties.getProperty("bot.min.max.relation.optimistic"));
+		BOT_MIN_MAX_RELATION_SELL_BEARISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.sell.bearish"));
+		BOT_MIN_MAX_RELATION_SELL_BULLISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.sell.bullish"));
+		BOT_MIN_MAX_RELATION_BUY_BEARISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.buy.bearish"));
+		BOT_MIN_MAX_RELATION_BUY_BULLISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.buy.bullish"));
 		BOT_DAYS_BACK_STATISTICS = Integer.parseInt(properties.getProperty("bot.days.back.statistics"));
 		BOT_DAYS_BACK_TRANSACTIONS = Integer.parseInt(properties.getProperty("bot.days.back.transactions"));
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(properties.getProperty("binance.min.transaction"));

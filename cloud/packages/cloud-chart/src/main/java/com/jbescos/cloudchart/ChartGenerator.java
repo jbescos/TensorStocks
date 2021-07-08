@@ -46,6 +46,7 @@ public class ChartGenerator {
 			throws IOException {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
 		for (Entry<String, List<IRow>> entry : grouped.entrySet()) {
+			LOGGER.info("Adding in chart " + entry.getKey());
 			chart.add(entry.getKey(), entry.getValue());
 		}
 	}

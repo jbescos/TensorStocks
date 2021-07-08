@@ -97,8 +97,7 @@ public class SymbolStats implements BuySellAnalisys {
 			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
 			if (buyCommision < avg) {
 				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-					Style style = getStyle(Action.BUY);
-					double comparedFactor = style == Style.PESSIMISTIC ? CloudProperties.BOT_MIN_MAX_RELATION_PESSIMISTIC : CloudProperties.BOT_MIN_MAX_RELATION_OPTIMISTIC;
+					double comparedFactor = getComparedFactor(Action.BUY);
 					if (factor > comparedFactor) {
 						if (m < 0) { // It is going up
 							double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
@@ -108,19 +107,18 @@ public class SymbolStats implements BuySellAnalisys {
 								LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
 							}
 						} else {
-							LOGGER.info(symbol + " buy discarded discarded because price is still going down");
+							LOGGER.info(symbol + " buy discarded because price is still going down");
 						}
 					} else {
-						LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode + " in " + style
+						LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
 								 + ". Min " + min + " Max " + max);
 					}
 				} else {
 					LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
 				}
 			} else if (sellCommision > avg) {
-				Style style = getStyle(Action.SELL);
 				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
-				double comparedFactor = style == Style.PESSIMISTIC ? CloudProperties.BOT_MIN_MAX_RELATION_PESSIMISTIC : CloudProperties.BOT_MIN_MAX_RELATION_OPTIMISTIC;
+				double comparedFactor = getComparedFactor(Action.SELL);
 				if (factor > comparedFactor) {
 				    if (m > 0) { // It is going up
 	    				if (sellCommision > percentileMax) {
@@ -136,10 +134,10 @@ public class SymbolStats implements BuySellAnalisys {
 	    					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
 	    				}
 				    } else {
-				        LOGGER.info(symbol + " sell discarded discarded because price is still going up");
+				        LOGGER.info(symbol + " sell discarded because price is still going up");
 				    }
 				} else {
-					LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode + " in " + style
+					LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
 							 + ". Min " + min + " Max " + max);
 				}
 			}
@@ -147,21 +145,21 @@ public class SymbolStats implements BuySellAnalisys {
 		return action;
 	}
 	
-	private Style getStyle(Action action) {
+	private double getComparedFactor(Action action) {
 		if (action == Action.SELL) {
 			if (mode == Mode.BULLISH) {
-				return Style.PESSIMISTIC;
+				return CloudProperties.BOT_MIN_MAX_RELATION_SELL_BULLISH;
 			} else {
-				return Style.OPTIMISTIC;
+				return CloudProperties.BOT_MIN_MAX_RELATION_SELL_BEARISH;
 			}
 		} else if (action == Action.BUY) {
 			if (mode == Mode.BULLISH) {
-				return Style.OPTIMISTIC;
+				return CloudProperties.BOT_MIN_MAX_RELATION_BUY_BULLISH;
 			} else {
-				return Style.PESSIMISTIC;
+				return CloudProperties.BOT_MIN_MAX_RELATION_BUY_BEARISH;
 			}
 		}
-		return Style.PESSIMISTIC;
+		return 0;
 	}
 	
 	private double calculateFactor(CsvRow min, CsvRow max) {
