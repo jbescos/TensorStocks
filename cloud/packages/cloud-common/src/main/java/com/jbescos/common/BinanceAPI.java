@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,6 +34,16 @@ public final class BinanceAPI {
 				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT")).collect(Collectors.toList());
 		return prices;
 	}
+	
+	public static List<Kline> klines(Interval interval, String symbol, int limit, long startTime, long endTime) {
+		List<Object[]> result = BinanceAPI.get("/api/v3/klines", new GenericType<List<Object[]>>() {},
+				new String[] {"interval", interval.value, "symbol", symbol, "limit", Integer.toString(limit), "startTime", Long.toString(startTime), "endTime", Long.toString(endTime)});
+		List<Kline> klines = new ArrayList<>(result.size());
+		for (Object[] values : result) {
+			klines.add(Kline.fromArray(values));
+		}
+		return klines;
+	}
 
     public static <T> T get(String path, GenericType<T> type, String... query) {
         Client client = ClientBuilder.newClient();
@@ -59,6 +70,16 @@ public final class BinanceAPI {
                         + webTarget.getUri().toString() + " : " + response.readEntity(String.class));
             }
         }
+    }
+    
+    public static enum Interval {
+    	MINUTES_30("30m");
+    	
+    	private final String value;
+    	
+    	private Interval(String value) {
+    		this.value = value;
+    	}
     }
 
 }

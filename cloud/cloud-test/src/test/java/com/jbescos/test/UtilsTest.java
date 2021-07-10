@@ -123,6 +123,10 @@ public class UtilsTest {
 	    assertEquals("1", quantity);
 	    quantity = Utils.filterLotSizeQuantity("10000000001.00", "1.00", "10000000000.00", "1.00");
         assertEquals("10000000000", quantity);
+        quantity = Utils.filterLotSizeQuantity("9.30", "0.01", "900000", "0.01");
+        assertEquals("9.3", quantity);
+        quantity = Utils.filterLotSizeQuantity("9.29999999", "0.01", "900000", "0.01");
+        assertEquals("9.29", quantity);
 	}
 	
 	@Test
