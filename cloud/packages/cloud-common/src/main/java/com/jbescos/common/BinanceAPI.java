@@ -15,28 +15,33 @@ import javax.ws.rs.core.Response;
 public final class BinanceAPI {
 
 	private static final String URL = "https://api.binance.com";
+	private final Client client;
 	
-	public static ExchangeInfo exchangeInfo(String symbol) {
+	public BinanceAPI(Client client) {
+		this.client = client;
+	}
+	
+	public ExchangeInfo exchangeInfo(String symbol) {
 	    String[] query = null;
 	    if (symbol != null) {
 	        query = new String[] {"symbol", symbol};
 	    } else {
 	        query = new String[0];
 	    }
-		ExchangeInfo exchangeInfo = BinanceAPI.get("/api/v3/exchangeInfo", new GenericType<ExchangeInfo>() {}, query);
+		ExchangeInfo exchangeInfo = get("/api/v3/exchangeInfo", new GenericType<ExchangeInfo>() {}, query);
 		return exchangeInfo;
 	}
 	
-	public static List<Price> price() {
-		List<Price> prices = BinanceAPI.get("/api/v3/ticker/price", new GenericType<List<Price>>() {});
+	public List<Price> price() {
+		List<Price> prices = get("/api/v3/ticker/price", new GenericType<List<Price>>() {});
 		prices = prices.stream().filter(price -> price.getSymbol().endsWith("USDT"))
 				.filter(price -> !price.getSymbol().endsWith("UPUSDT"))
 				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT")).collect(Collectors.toList());
 		return prices;
 	}
 	
-	public static List<Kline> klines(Interval interval, String symbol, int limit, long startTime, long endTime) {
-		List<Object[]> result = BinanceAPI.get("/api/v3/klines", new GenericType<List<Object[]>>() {},
+	public List<Kline> klines(Interval interval, String symbol, int limit, long startTime, long endTime) {
+		List<Object[]> result = get("/api/v3/klines", new GenericType<List<Object[]>>() {},
 				new String[] {"interval", interval.value, "symbol", symbol, "limit", Integer.toString(limit), "startTime", Long.toString(startTime), "endTime", Long.toString(endTime)});
 		List<Kline> klines = new ArrayList<>(result.size());
 		for (Object[] values : result) {
@@ -45,8 +50,7 @@ public final class BinanceAPI {
 		return klines;
 	}
 
-    public static <T> T get(String path, GenericType<T> type, String... query) {
-        Client client = ClientBuilder.newClient();
+    public <T> T get(String path, GenericType<T> type, String... query) {
         WebTarget webTarget = client.target(URL).path(path);
         StringBuilder queryStr = new StringBuilder();
         if (query.length != 0) {

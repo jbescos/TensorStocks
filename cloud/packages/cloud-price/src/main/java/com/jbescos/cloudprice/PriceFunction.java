@@ -7,6 +7,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.GenericType;
 
 import com.google.cloud.functions.HttpFunction;
@@ -22,8 +24,9 @@ public class PriceFunction implements HttpFunction {
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
+		Client client = ClientBuilder.newClient();
 		Date date = new Date();
-		List<Price> prices = BinanceAPI.get("/api/v3/ticker/price", new GenericType<List<Price>>() {});
+		List<Price> prices = new BinanceAPI(client).get("/api/v3/ticker/price", new GenericType<List<Price>>() {});
 		prices = prices.stream().filter(price -> price.getSymbol().endsWith("USDT")).collect(Collectors.toList());
 		try {
 			int result = new DataBase().insert("INSERT INTO PRICE_HISTORY (SYMBOL, PRICE, DATE) VALUES (?, ?, ?)", prices, date);
@@ -35,5 +38,6 @@ public class PriceFunction implements HttpFunction {
 			LOGGER.log(Level.SEVERE, "Cannot insert " + prices.size() + " records", e);
 		}
 		response.getWriter().flush();
+		client.close();
 	}
 }

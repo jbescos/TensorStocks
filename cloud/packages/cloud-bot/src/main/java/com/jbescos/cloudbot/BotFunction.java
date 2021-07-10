@@ -5,6 +5,9 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
@@ -23,7 +26,8 @@ public class BotFunction implements HttpFunction {
 	
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
-		SecureBinanceAPI api = SecureBinanceAPI.create();
+		Client client = ClientBuilder.newClient();
+		SecureBinanceAPI api = SecureBinanceAPI.create(client);
 		String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
 		if (side != null) {
 			LOGGER.info("Actively invoked to sell or buy");
@@ -32,7 +36,7 @@ public class BotFunction implements HttpFunction {
 			Map<String, String> apiResponse = api.orderSymbol(symbol, side, quantity);
 			response.getWriter().write(apiResponse.toString());
 		} else {
-			List<BuySellAnalisys> stats = BotUtils.loadStatistics().stream()
+			List<BuySellAnalisys> stats = BotUtils.loadStatistics(client).stream()
 					.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
 			BotBinance bot = new BotBinance(api);
 			bot.execute(stats);
@@ -40,6 +44,7 @@ public class BotFunction implements HttpFunction {
 		}
 		response.setStatusCode(200);
 		response.setContentType("text/plain");
+		client.close();
 	}
 
 }

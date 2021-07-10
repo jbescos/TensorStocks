@@ -8,7 +8,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -17,7 +16,6 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -26,7 +24,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.jbescos.common.Account.Balances;
-import com.jbescos.common.BuySellAnalisys.Action;
 
 public class SecureBinanceAPI {
 
@@ -36,11 +33,13 @@ public class SecureBinanceAPI {
 	private static final String URL = "https://api.binance.com";
 	private final Mac mac;
 	private final String publicKey;
+	private final Client client;
 
-	private SecureBinanceAPI(String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
+	private SecureBinanceAPI(Client client, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
 		mac = Mac.getInstance(HMAC_SHA_256);
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
 		this.publicKey = publicKey;
+		this.client = client;
 	}
 
 	public String signature(String data) {
@@ -58,7 +57,6 @@ public class SecureBinanceAPI {
 	}
 
 	public <T> T get(String path, GenericType<T> type, String... query) {
-		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
 		StringBuilder queryStr = new StringBuilder();
 		if (query.length != 0) {
@@ -87,7 +85,6 @@ public class SecureBinanceAPI {
 	}
 	
 	public <T> T post(String path, GenericType<T> type, String... query) {
-		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
 		StringBuilder queryStr = new StringBuilder();
 		if (query.length != 0) {
@@ -149,7 +146,7 @@ public class SecureBinanceAPI {
 	public Map<String, String> orderSymbol(String symbol, String side, String quantity) throws FileNotFoundException, IOException {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
-		ExchangeInfo exchange = BinanceAPI.exchangeInfo(symbol);
+		ExchangeInfo exchange = new BinanceAPI(client).exchangeInfo(symbol);
 		Map<String, Object> filter = exchange.getFilter(symbol, ExchangeInfo.LOT_SIZE);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, filter.get("minQty").toString(), filter.get("maxQty").toString(), filter.get("stepSize").toString());
 		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
@@ -185,13 +182,13 @@ public class SecureBinanceAPI {
 		return response;
 	}
 
-	public static SecureBinanceAPI create(String publicKey, String privateKey)
+	public static SecureBinanceAPI create(Client client, String publicKey, String privateKey)
 			throws InvalidKeyException, NoSuchAlgorithmException {
-		return new SecureBinanceAPI(publicKey, privateKey);
+		return new SecureBinanceAPI(client, publicKey, privateKey);
 	}
 	
-	public static SecureBinanceAPI create()
+	public static SecureBinanceAPI create(Client client)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		return new SecureBinanceAPI(CloudProperties.BINANCE_PUBLIC_KEY, CloudProperties.BINANCE_PRIVATE_KEY);
+		return new SecureBinanceAPI(client, CloudProperties.BINANCE_PUBLIC_KEY, CloudProperties.BINANCE_PRIVATE_KEY);
 	}
 }

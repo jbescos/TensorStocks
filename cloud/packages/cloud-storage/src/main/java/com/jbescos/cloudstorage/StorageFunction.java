@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
@@ -25,21 +28,24 @@ public class StorageFunction implements HttpFunction {
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
-		ExchangeInfo exchangeInfo = BinanceAPI.exchangeInfo("BTCUSDT");
+		Client client = ClientBuilder.newClient();
+		BinanceAPI binanceAPI = new BinanceAPI(client);
+		ExchangeInfo exchangeInfo = binanceAPI.exchangeInfo("BTCUSDT");
 		Date now = new Date(exchangeInfo.getServerTime());
 		String dateStr = Utils.FORMAT_SECOND.format(now);
 		String fileName = Utils.FORMAT.format(now) + ".csv";
-		List<Price> prices = BinanceAPI.price();
+		List<Price> prices = binanceAPI.price();
 		StringBuilder builder = new StringBuilder();
 		List<CsvRow> updatedRows = BucketStorage.withAvg(now, prices);
 		for (CsvRow row : updatedRows) {
 			builder.append(dateStr).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append(",").append(row.getAvg2()).append("\r\n");
 		}
 		String downloadLink = BucketStorage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
-		SecureBinanceAPI api = SecureBinanceAPI.create();
+		SecureBinanceAPI api = SecureBinanceAPI.create(client);
 		Account account = api.account();
 		List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
 		BucketStorage.updateFile("wallet/account_" + fileName, CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+		client.close();
 		response.setStatusCode(200);
 		response.getWriter().write(downloadLink);
 		

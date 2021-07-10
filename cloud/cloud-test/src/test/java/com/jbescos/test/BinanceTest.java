@@ -7,6 +7,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -27,11 +30,13 @@ public class BinanceTest {
 //        "maxQty": "10000000000.00",
 //        "stepSize": "1.00"
         String symbol = "SHIBUSDT";
-        ExchangeInfo info = BinanceAPI.exchangeInfo(symbol);
+        Client client = ClientBuilder.newClient();
+        ExchangeInfo info = new BinanceAPI(client).exchangeInfo(symbol);
         Map<String, Object> filter = info.getFilter(symbol, ExchangeInfo.LOT_SIZE);
         assertEquals("1.00", filter.get("minQty").toString());
         assertEquals("10000000000.00", filter.get("maxQty").toString());
         assertEquals("1.00", filter.get("stepSize").toString());
+        client.close();
     }
     
     @Test
@@ -44,7 +49,9 @@ public class BinanceTest {
     	now.set(Calendar.MINUTE, 30);
     	long endTime = now.getTime().getTime();
     	String symbol = "BTCUSDT";
-    	List<Kline> klines = BinanceAPI.klines(Interval.MINUTES_30, symbol, 1, startTime, endTime);
+    	Client client = ClientBuilder.newClient();
+    	List<Kline> klines = new BinanceAPI(client).klines(Interval.MINUTES_30, symbol, 1, startTime, endTime);
     	LOGGER.info(klines.toString());
+    	client.close();
     }
 }

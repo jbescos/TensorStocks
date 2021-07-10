@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
+
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
@@ -29,7 +31,7 @@ public class BotUtils {
 	
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<BuySellAnalisys> loadStatistics() throws IOException {
+	public static List<BuySellAnalisys> loadStatistics(Client client) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
@@ -56,8 +58,7 @@ public class BotUtils {
 			}
 		}
 		LOGGER.info("Transactions loaded: " + transactions.size());
-		
-		List<CsvRow> latestCsv = BinanceAPI.price().stream()
+		List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
 				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice())).filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
 				.collect(Collectors.toList());
 		for (CsvRow last : latestCsv) {
