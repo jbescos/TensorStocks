@@ -9,6 +9,7 @@ import java.util.List;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -69,6 +70,7 @@ public class XYChart implements IChart<IRow> {
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 		renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 		((XYPlot)xylineChart.getPlot()).setRenderer(renderer);
+		((XYPlot)xylineChart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
 		xylineChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		BufferedImage image = xylineChart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);

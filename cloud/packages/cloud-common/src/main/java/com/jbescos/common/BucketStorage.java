@@ -54,7 +54,7 @@ public class BucketStorage {
 				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
 				List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, newRow.getSymbol(), null, previous.getDate().getTime(), null);
 				if (!klines.isEmpty()) {
-					LOGGER.info("Found " + klines.size() + " Klines from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
+					LOGGER.info("Found " + klines + " from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
 					Kline kline = klines.get(klines.size() - 1);
 					if (kline.getOpenTime() <= newRow.getDate().getTime() && kline.getCloseTime() >= newRow.getDate().getTime()) {
 						newRow.setKline(kline);

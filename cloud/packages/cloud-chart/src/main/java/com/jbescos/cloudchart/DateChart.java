@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.AxisLocation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.time.Day;
@@ -73,6 +74,7 @@ public class DateChart implements IChart<IRow> {
 		renderer.setSeriesStroke(0, new BasicStroke(1.0f));
 		chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		((XYPlot)chart.getPlot()).setRenderer(renderer);
+		((XYPlot)chart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
 		BufferedImage image = chart.createBufferedImage(1080, 1200);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}
