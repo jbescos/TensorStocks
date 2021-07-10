@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
@@ -40,9 +39,23 @@ public final class BinanceAPI {
 		return prices;
 	}
 	
-	public List<Kline> klines(Interval interval, String symbol, int limit, long startTime, long endTime) {
-		List<Object[]> result = get("/api/v3/klines", new GenericType<List<Object[]>>() {},
-				new String[] {"interval", interval.value, "symbol", symbol, "limit", Integer.toString(limit), "startTime", Long.toString(startTime), "endTime", Long.toString(endTime)});
+	public List<Kline> klines(Interval interval, String symbol, Integer limit, long startTime, Long endTime) {
+		List<String> queryParams = new ArrayList<>();
+		queryParams.add("interval");
+		queryParams.add(interval.value);
+		queryParams.add("symbol");
+		queryParams.add(symbol);
+		if (limit != null) {
+			queryParams.add("limit");
+			queryParams.add(Integer.toString(limit));
+		}
+		queryParams.add("startTime");
+		queryParams.add(Long.toString(startTime));
+		if (endTime != null) {
+			queryParams.add("endTime");
+			queryParams.add(Long.toString(endTime));
+		}
+		List<Object[]> result = get("/api/v3/klines", new GenericType<List<Object[]>>() {}, queryParams.toArray(new String[0]));
 		List<Kline> klines = new ArrayList<>(result.size());
 		for (Object[] values : result) {
 			klines.add(Kline.fromArray(values));

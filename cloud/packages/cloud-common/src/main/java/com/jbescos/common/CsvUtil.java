@@ -41,7 +41,7 @@ public class CsvUtil {
 	}
 
 	public static void writeCsv(List<Map<String, Object>> csv, char separator, OutputStream output) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, Utils.UTF8));
 		for (Map<String, Object> row : csv) {
 			StringBuilder builder = new StringBuilder();
 			for (Entry<String, Object> entry : row.entrySet()) {
@@ -62,14 +62,11 @@ public class CsvUtil {
 	}
 	
 	public static void writeCsvRows(List<CsvRow> csv, char separator, OutputStream output) throws IOException {
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, "UTF-8"));
+		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, Utils.UTF8));
 		String line = Utils.CSV_ROW_HEADER;
 		writer.append(line);
 		for (CsvRow row : csv) {
-			StringBuilder builder = new StringBuilder();
-			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, row.getDate())).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append(",").append(row.getAvg2());
-			writer.append(builder.toString());
-			writer.newLine();
+			writer.append(row.toCsvLine());
 		}
 		writer.flush();
 	}
@@ -134,13 +131,22 @@ public class CsvUtil {
 				if (symbols.isEmpty() || symbols.contains(symbol)) {
 					Double avg = null;
 					Double longAvg = null;
+					Kline kline = null;
 					if (columns.length > 3) {
 						avg = Double.parseDouble(columns[3]);
 						if (columns.length > 4) {
 							longAvg = Double.parseDouble(columns[4]);
+							if (columns.length > 5) {
+								String takerBuyBaseAssetVolume = columns[5];
+								String volume = columns[6];
+								String open = columns[7];
+								String close = columns[8];
+								kline = new Kline(-1, open, null, null, close, volume, -1, null, -1, takerBuyBaseAssetVolume, null);
+							}
 						}
 					}
 					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg);
+					row.setKline(kline);
 					return row;
 				}
 			}

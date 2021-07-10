@@ -32,13 +32,12 @@ public class StorageFunction implements HttpFunction {
 		BinanceAPI binanceAPI = new BinanceAPI(client);
 		ExchangeInfo exchangeInfo = binanceAPI.exchangeInfo("BTCUSDT");
 		Date now = new Date(exchangeInfo.getServerTime());
-		String dateStr = Utils.FORMAT_SECOND.format(now);
 		String fileName = Utils.FORMAT.format(now) + ".csv";
 		List<Price> prices = binanceAPI.price();
 		StringBuilder builder = new StringBuilder();
-		List<CsvRow> updatedRows = BucketStorage.withAvg(now, prices);
+		List<CsvRow> updatedRows = BucketStorage.withAvg(binanceAPI, now, prices);
 		for (CsvRow row : updatedRows) {
-			builder.append(dateStr).append(",").append(row.getSymbol()).append(",").append(row.getPrice()).append(",").append(row.getAvg()).append(",").append(row.getAvg2()).append("\r\n");
+			builder.append(row.toCsvLine());
 		}
 		String downloadLink = BucketStorage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
 		SecureBinanceAPI api = SecureBinanceAPI.create(client);

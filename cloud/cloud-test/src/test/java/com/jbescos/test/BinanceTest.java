@@ -46,11 +46,9 @@ public class BinanceTest {
     	now.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY) - 1);
     	now.set(Calendar.MINUTE, 0);
     	long startTime = now.getTime().getTime();
-    	now.set(Calendar.MINUTE, 30);
-    	long endTime = now.getTime().getTime();
     	String symbol = "BTCUSDT";
     	Client client = ClientBuilder.newClient();
-    	List<Kline> klines = new BinanceAPI(client).klines(Interval.MINUTES_30, symbol, 1, startTime, endTime);
+    	List<Kline> klines = new BinanceAPI(client).klines(Interval.MINUTES_30, symbol, null, startTime, null);
     	LOGGER.info(klines.toString());
     	client.close();
     }

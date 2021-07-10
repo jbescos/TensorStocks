@@ -23,12 +23,13 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 import com.google.cloud.storage.StorageOptions;
+import com.jbescos.common.BinanceAPI.Interval;
 
 public class BucketStorage {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
 	
-	public static List<CsvRow> withAvg(Date now, List<Price> prices) throws IOException{
+	public static List<CsvRow> withAvg(BinanceAPI binanceAPI, Date now, List<Price> prices) throws IOException{
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
 		Blob retrieve = storage.get(CloudProperties.BUCKET, Utils.LAST_PRICE);
@@ -51,11 +52,23 @@ public class BucketStorage {
 			CsvRow newRow = null;
 			if (previous != null) {
 				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
+				List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, newRow.getSymbol(), null, previous.getDate().getTime(), null);
+				if (!klines.isEmpty()) {
+					LOGGER.info("Found " + klines.size() + " Klines from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
+					Kline kline = klines.get(klines.size() - 1);
+					if (kline.getOpenTime() <= newRow.getDate().getTime() && kline.getCloseTime() >= newRow.getDate().getTime()) {
+						newRow.setKline(kline);
+					} else {
+						LOGGER.warning(newRow.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()) + ". This others were found instead " + klines);
+					}
+				} else {
+					LOGGER.warning(newRow.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
+				}
 			} else {
 				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
 			}
 			newRows.add(newRow);
-			builder.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(newRow.getSymbol()).append(",").append(newRow.getPrice()).append(",").append(newRow.getAvg()).append(",").append(newRow.getAvg2()).append("\r\n");
+			builder.append(newRow.toCsvLine());
 		}
 		storage.create(createBlobInfo(Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
 		return newRows;

@@ -1,7 +1,5 @@
 package com.jbescos.common;
 
-import java.util.Arrays;
-
 public class Kline {
 
 	private final long openTime;
@@ -84,7 +82,7 @@ public class Kline {
 
 	@Override
 	public String toString() {
-		return "Kline [openTime=" + openTime + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close
+		return Utils.NEW_LINE + "Kline [openTime=" + openTime + ", open=" + open + ", high=" + high + ", low=" + low + ", close=" + close
 				+ ", volume=" + volume + ", closeTime=" + closeTime + ", quoteAssetVolume=" + quoteAssetVolume
 				+ ", numerOfTrades=" + numerOfTrades + ", takerBuyBaseAssetVolume=" + takerBuyBaseAssetVolume
 				+ ", takerBuyQuoteAssetVolume=" + takerBuyQuoteAssetVolume + "]";
