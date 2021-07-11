@@ -99,6 +99,15 @@ public class Utils {
 		return df.format(amount);
 	}
 	
+	public static String format(BigDecimal amount) {
+		DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+		symbols.setDecimalSeparator('.');
+		DecimalFormat df = new DecimalFormat("0", symbols);
+		df.setRoundingMode(RoundingMode.DOWN);
+        df.setMaximumFractionDigits(8);
+		return df.format(amount);
+	}
+	
 	public static double minSellProfitable(List<CsvTransactionRow> previousTransactions) {
 		if (previousTransactions == null || previousTransactions.isEmpty()) {
 			return 0.0;
@@ -182,21 +191,20 @@ public class Utils {
 	}
 	
 	public static String filterLotSizeQuantity(String quantity, String minQty, String maxQty, String stepSize) {
-	    double quantityD = Double.parseDouble(quantity);
-	    double minQtyD = Double.parseDouble(minQty);
-	    double maxQtyD = Double.parseDouble(maxQty);
-	    double stepSizeD = Double.parseDouble(stepSize);
-	    if (quantityD < minQtyD) {
+		BigDecimal quantityD = new BigDecimal(quantity);
+		BigDecimal minQtyD = new BigDecimal(minQty);
+		BigDecimal maxQtyD = new BigDecimal(maxQty);
+	    if (quantityD.compareTo(minQtyD) < 0) {
 	        LOGGER.warning(quantity + " is lower than minQty " + minQty + ". The quantity is modified");
 	        quantityD = minQtyD;
-	    } else if (quantityD > maxQtyD) {
+	    } else if (quantityD.compareTo(maxQtyD) > 0) {
 	        LOGGER.warning(quantity + " is higher than maxQty " + maxQty + ". The quantity is modified");
 	        quantityD = maxQtyD;
 	    } else {
 	        BigDecimal bd = new BigDecimal(quantity);
 	        BigDecimal mod = bd.remainder(new BigDecimal(stepSize));
-	        BigDecimal result = new BigDecimal(quantityD).subtract(mod);
-	        quantityD = result.doubleValue();
+	        BigDecimal result = bd.subtract(mod);
+	        quantityD = result;
 	    }
 	    return format(quantityD);
 	}

@@ -111,7 +111,9 @@ public class UtilsTest {
 	
 	@Test
 	public void filterLotSizeQuantity() {
-	    String quantity = Utils.filterLotSizeQuantity("2.254", "1.00", "10000000000.00", "0.02");
+		String quantity = Utils.filterLotSizeQuantity("388.8108", "0.1", "9000000", "0.1");
+        assertEquals("388.8", quantity);
+	    quantity = Utils.filterLotSizeQuantity("2.254", "1.00", "10000000000.00", "0.02");
         assertEquals("2.24", quantity);
         quantity = Utils.filterLotSizeQuantity("291.2", "0.10000000", "9222449.00000000", "0.10000000");
         assertEquals("291.2", quantity);
