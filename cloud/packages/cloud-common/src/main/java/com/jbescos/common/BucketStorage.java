@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -52,15 +53,12 @@ public class BucketStorage {
 			CsvRow newRow = null;
 			if (previous != null) {
 				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
-				List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, newRow.getSymbol(), null, previous.getDate().getTime(), null);
+				long roundedDate = Utils.dateRoundedTo10Min(previous.getDate()).getTime();
+				List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, newRow.getSymbol(), null, roundedDate, roundedDate + Utils.MINUTES_30_MILLIS);
 				if (!klines.isEmpty()) {
-					LOGGER.info("Found " + klines + " from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
-					Kline kline = klines.get(klines.size() - 1);
-					if (kline.getOpenTime() <= newRow.getDate().getTime() && kline.getCloseTime() >= newRow.getDate().getTime()) {
-						newRow.setKline(kline);
-					} else {
-						LOGGER.warning(newRow.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()) + ". This others were found instead " + klines);
-					}
+					LOGGER.info(newRow.getSymbol() + ". Found " + klines + " from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
+					Kline kline = klines.get(0);
+					newRow.setKline(kline);
 				} else {
 					LOGGER.warning(newRow.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
 				}

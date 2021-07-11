@@ -27,6 +27,7 @@ import com.jbescos.common.BuySellAnalisys.Action;
 public class Utils {
 
     private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
+    public static final long MINUTES_30_MILLIS = 30 * 60 * 1000;
 	public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
@@ -209,5 +210,14 @@ public class Utils {
 			}
 			return c1.compareTo(c2);
 		});
+	}
+	
+	public static Date dateRoundedTo10Min(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.SECOND, 0);
+		int minute = calendar.get(Calendar.MINUTE);
+		calendar.set(Calendar.MINUTE, minute - (minute % 10));
+		return calendar.getTime();
 	}
 }

@@ -136,6 +136,16 @@ public class UtilsTest {
 		assertEquals(Arrays.asList("SELL-SYMBOL", "BUY-SYMBOL", "SYMBOL1", "SYMBOL2"), symbols);
 	}
 	
+	@Test
+	public void dateRoundedTo10Min() {
+		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:00:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:00:12")));
+		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:00:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:01:12")));
+		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:30:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:30:12")));
+		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:30:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:31:12")));
+		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:40:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:40:12")));
+		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:40:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:49:12")));
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return new CsvTransactionRow(new Date(0), "", side, "any", usdt, quantity, usdt / quantity);
 	}
