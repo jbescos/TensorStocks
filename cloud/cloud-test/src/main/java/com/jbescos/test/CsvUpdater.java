@@ -36,7 +36,7 @@ public class CsvUpdater {
 	private static final long MILLIS_24H = 3600 * 1000 * 24;
 
 	public static void main(String args[]) throws IOException {
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources", "2021-07-10.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources", "2021-07-11.csv");
 		LOGGER.info("Finished");
 	}
 	
