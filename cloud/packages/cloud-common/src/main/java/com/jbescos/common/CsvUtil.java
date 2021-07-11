@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -61,7 +61,7 @@ public class CsvUtil {
 		}
 	}
 	
-	public static void writeCsvRows(List<CsvRow> csv, char separator, OutputStream output) throws IOException {
+	public static void writeCsvRows(Collection<CsvRow> csv, char separator, OutputStream output) throws IOException {
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(output, Utils.UTF8));
 		String line = Utils.CSV_ROW_HEADER;
 		writer.append(line);

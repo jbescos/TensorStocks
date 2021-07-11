@@ -8,140 +8,105 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
+import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.BinanceAPI.Interval;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
+import com.jbescos.common.Kline;
 import com.jbescos.common.Utils;
 
 public class CsvUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(CsvUpdater.class.getName());
+	private static final long MILLIS_24H = 3600 * 1000 * 24;
 
 	public static void main(String args[]) throws IOException {
-//		addAvg("/home/jbescos/workspace/TensorStocks/cloud/cloud-test/src/test/resources");
 		addAvgDated("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources");
-//		revert("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources");
 		LOGGER.info("Finished");
 	}
 	
-	private static void revert(String rootFolder) throws IOException {
-		File rootCsvFolder = new File(rootFolder);
-		String[] files = rootCsvFolder.list();
-		for (String file : files) {
-			if (file.endsWith(".csv") && !file.contains("reversed")) {
-				String fullPath = rootFolder + "/" + file;
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
-					List<CsvRow> rows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
-					LOGGER.info("Read " + rows.size() + " rows in " + fullPath);
-					for (int i=0; i<(rows.size()/2);i++) {
-						CsvRow row0 = rows.get(i);
-						Date date0 = row0.getDate();
-						CsvRow rowLast = rows.get((rows.size() - 1) - i);
-						row0.setDate(rowLast.getDate());
-						rowLast.setDate(date0);
-					}
-					Collections.reverse(rows);
-					Double previousResult = null;
-					for (CsvRow row : rows) {
-						previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
-						row.setAvg(previousResult);
-					}
-					try (OutputStream output = new FileOutputStream(rootFolder + "/reversed_" + file)) {
-						CsvUtil.writeCsvRows(rows, ',', output);
-					}
-				}
+	private static Kline getKline(CsvRow row, List<Kline> klines) {
+		long rowTimestamp = row.getDate().getTime();
+		for (Kline kline : klines) {
+			if (kline.getOpenTime() <= rowTimestamp && kline.getCloseTime() >= rowTimestamp) {
+				return kline;
+			}
+		}
+		return null;
+	}
+	
+	private static void addKlines(BinanceAPI api, Map<String, List<CsvRow>> groupedSymbol, Date startTime, Date endTime) {
+		for (Entry<String, List<CsvRow>> symbolRows : groupedSymbol.entrySet()) {
+			List<Kline> klines = api.klines(Interval.MINUTES_30, symbolRows.getKey(), 1000, startTime.getTime(), endTime.getTime());
+			for (CsvRow row : symbolRows.getValue()) {
+				Kline kline = getKline(row, klines);
+				row.setKline(kline);
 			}
 		}
 	}
 	
 	private static void addAvgDated(String rootFolder) throws IOException {
+		Client client = ClientBuilder.newClient();
+		BinanceAPI api = new BinanceAPI(client);
 		File rootCsvFolder = new File(rootFolder);
-		String[] files = rootCsvFolder.list();
-		List<CsvRow> rows = new ArrayList<>();
+		List<String> files = new ArrayList<>(Arrays.asList(rootCsvFolder.list()));
+		Collections.sort(files);
+		Map<String, CsvRow> lastPrices = new HashMap<>();
 		for (String file : files) {
-			if (file.endsWith(".csv")) {
+			LOGGER.info("Processing " + file);
+			try {
+				Date startTime = Utils.fromString(Utils.FORMAT, file.replace(".csv", ""));
+				Date endTime = new Date(startTime.getTime() + MILLIS_24H);
 				String fullPath = rootFolder + "/" + file;
+				List<CsvRow> rowsInFile = null;
 				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
-					rows.addAll(CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList()));
-					LOGGER.info("Read " + rows.size() + " rows in " + fullPath);
+					rowsInFile = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
+					LOGGER.info("Read " + rowsInFile.size() + " rows in " + fullPath);
+					Collections.sort(rowsInFile, (r1, r2) -> r1.getDate().compareTo(r2.getDate()));
+					Map<String, List<CsvRow>> groupedSymbol = rowsInFile.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
+					addKlines(api, groupedSymbol, startTime, endTime);
+					for (List<CsvRow> values : groupedSymbol.values()) {
+						CsvRow last = lastPrices.get(values.get(0).getSymbol());
+						Double previousResult = last == null ? null : last.getAvg();
+						Double previousLongThermResult = last == null ? null : last.getAvg2();
+						for (CsvRow row : values) {
+							previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
+							previousLongThermResult = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), previousLongThermResult);
+							row.setAvg(previousResult);
+							row.setAvg2(previousLongThermResult);
+						}
+						last = values.get(values.size() - 1);
+						lastPrices.put(last.getSymbol(), last);
+					}
 				}
 				File f = new File(fullPath);
 				f.delete();
+				try (OutputStream output = new FileOutputStream(f)) {
+					CsvUtil.writeCsvRows(rowsInFile, ',', output);
+				}
+				LOGGER.info(f + " has been created ");
+			} catch (IllegalArgumentException e) {
+				LOGGER.warning(file + " is discarded");
 			}
-		}
-		Collections.sort(rows, (r1, r2) -> r1.getDate().compareTo(r2.getDate()));
-		Map<String, List<CsvRow>> groupedSymbol = rows.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-		for (List<CsvRow> values : groupedSymbol.values()) {
-			Double previousResult = null;
-			Double previousLongThermResult = null;
-			for (CsvRow row : values) {
-				previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
-				previousLongThermResult = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), previousLongThermResult);
-				row.setAvg(previousResult);
-				row.setAvg2(previousLongThermResult);
-			}
-		}
-		Map<String, List<CsvRow>> groupedDate = rows.stream().collect(Collectors.groupingBy(row -> Utils.fromDate(Utils.FORMAT, row.getDate())));
-		List<String> sortedDates = new ArrayList<>(groupedDate.keySet());
-		Collections.sort(sortedDates);
-		List<CsvRow> dayRows = null;
-		for (String date : sortedDates) {
-			File updateFile = new File(rootFolder + "/" +date + ".csv");
-			LOGGER.info("Creating " + updateFile);
-			try (OutputStream output = new FileOutputStream(updateFile)) {
-				dayRows = groupedDate.get(date);
-				CsvUtil.writeCsvRows(dayRows, ',', output);
-			}
-		}
-		Map<String, List<CsvRow>> lastDayGrouped = dayRows.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-		List<CsvRow> lastRows = new ArrayList<>();
-		for (Entry<String, List<CsvRow>> day : lastDayGrouped.entrySet()) {
-			CsvRow lastRow = day.getValue().get(day.getValue().size() - 1);
-			lastRows.add(lastRow);
 		}
 		File last = new File(rootFolder + "/last_price.csv");
-		if (!last.exists()) {
-			LOGGER.info("Creating " + last.getAbsolutePath());
-			last.createNewFile();
-		}
 		try (FileOutputStream output = new FileOutputStream(last)) {
-			CsvUtil.writeCsvRows(lastRows, ',', output);
+			CsvUtil.writeCsvRows(lastPrices.values(), ',', output);
 		}
 	}
-	
-	private static void addAvg(String rootFolder) throws IOException {
-		File rootCsvFolder = new File(rootFolder);
-		String[] files = rootCsvFolder.list();
-		for (String file : files) {
-			if (file.endsWith(".csv")) {
-				String fullPath = rootFolder + "/" + file;
-				LOGGER.info("Processing " + fullPath);
-				List<CsvRow> rows = null;
-				try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(fullPath)))) {
-					rows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
-				}
-				Double previousResult = null;
-				Double previousResult2 = null;
-				for (CsvRow row : rows) {
-					previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
-					row.setAvg(previousResult);
-					previousResult2 = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult2);
-					row.setAvg2(previousResult2);
-				}
-				File f = new File(fullPath);
-				f.delete();
-				try (OutputStream output = new FileOutputStream(fullPath)) {
-					CsvUtil.writeCsvRows(rows, ',', output);
-				}
-			}
-		}
-	}
+
 }
