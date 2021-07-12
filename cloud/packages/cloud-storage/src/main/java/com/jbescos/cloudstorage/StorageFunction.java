@@ -10,9 +10,11 @@ import javax.ws.rs.client.ClientBuilder;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
+import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.Account;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BucketStorage;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.ExchangeInfo;
@@ -30,20 +32,22 @@ public class StorageFunction implements HttpFunction {
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
 		Client client = ClientBuilder.newClient();
 		BinanceAPI binanceAPI = new BinanceAPI(client);
+		BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
+		Map<String, CsvRow> previousRows = storage.previousRowsUpdatedKline();
 		ExchangeInfo exchangeInfo = binanceAPI.exchangeInfo("BTCUSDT");
-		Date now = new Date(exchangeInfo.getServerTime());
-		String fileName = Utils.FORMAT.format(now) + ".csv";
 		List<Price> prices = binanceAPI.price();
+		Date now = new Date(exchangeInfo.getServerTime());
+        String fileName = Utils.FORMAT.format(now) + ".csv";
+		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now);
 		StringBuilder builder = new StringBuilder();
-		List<CsvRow> updatedRows = BucketStorage.withAvg(binanceAPI, now, prices);
 		for (CsvRow row : updatedRows) {
 			builder.append(row.toCsvLine());
 		}
-		String downloadLink = BucketStorage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
-		SecureBinanceAPI api = SecureBinanceAPI.create(client);
+		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+		SecureBinanceAPI api = SecureBinanceAPI.create(client, storage);
 		Account account = api.account();
 		List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
-		BucketStorage.updateFile("wallet/account_" + fileName, CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+		storage.updateFile("wallet/account_" + fileName, CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
 		client.close();
 		response.setStatusCode(200);
 		response.getWriter().write(downloadLink);

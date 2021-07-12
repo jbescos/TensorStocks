@@ -29,12 +29,18 @@ import com.jbescos.common.BinanceAPI.Interval;
 public class BucketStorage {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
+	private final Storage storage;
+	private final BinanceAPI binanceAPI;
 	
-	public static List<CsvRow> withAvg(BinanceAPI binanceAPI, Date now, List<Price> prices) throws IOException{
+	public BucketStorage(Storage storage, BinanceAPI binanceAPI) {
+	    this.storage = storage;
+	    this.binanceAPI = binanceAPI;
+	}
+	
+	public Map<String, CsvRow> previousRowsUpdatedKline() throws IOException{
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
 		Blob retrieve = storage.get(CloudProperties.BUCKET, Utils.LAST_PRICE);
-		StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 		if (retrieve == null) {
 			LOGGER.warning(Utils.CSV_ROW_HEADER + " was not found");
 			// TODO It is better to get it from the last records of the date.csv
@@ -44,37 +50,43 @@ public class BucketStorage {
 				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 				for (CsvRow row : csv) {
 					previousRows.put(row.getSymbol(), row);
+					long roundedDate = Utils.dateRoundedTo10Min(row.getDate()).getTime();
+	                List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, row.getSymbol(), null, roundedDate, roundedDate + Utils.MINUTES_30_MILLIS);
+	                if (!klines.isEmpty()) {
+	                    LOGGER.info(row.getSymbol() + ". Found " + klines + " from " + Utils.fromDate(Utils.FORMAT_SECOND, row.getDate()));
+	                    Kline kline = klines.get(0);
+	                    row.setKline(kline);
+	                } else {
+	                    LOGGER.warning(row.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, row.getDate()));
+	                }
 				}
 			}
 		}
-		List<CsvRow> newRows = new ArrayList<>();
-		for (Price price : prices) {
-			CsvRow previous = previousRows.get(price.getSymbol());
-			CsvRow newRow = null;
-			if (previous != null) {
-				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
-				long roundedDate = Utils.dateRoundedTo10Min(previous.getDate()).getTime();
-				List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, newRow.getSymbol(), null, roundedDate, roundedDate + Utils.MINUTES_30_MILLIS);
-				if (!klines.isEmpty()) {
-					LOGGER.info(newRow.getSymbol() + ". Found " + klines + " from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
-					Kline kline = klines.get(0);
-					newRow.setKline(kline);
-				} else {
-					LOGGER.warning(newRow.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, previous.getDate()));
-				}
-			} else {
-				newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
-			}
-			newRows.add(newRow);
-			builder.append(newRow.toCsvLine());
-		}
-		storage.create(createBlobInfo(Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
-		return newRows;
+		return previousRows;
 	}
-	
-	public static String updateFile(String fileName, byte[] content, byte[] header)
+
+	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, List<Price> prices, Date now) {
+	    Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
+	    List<CsvRow> newRows = new ArrayList<>();
+        for (Price price : prices) {
+            CsvRow previous = previousRows.get(price.getSymbol());
+            CsvRow newRow = null;
+            if (previous != null) {
+                newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
+                newRow.setKline(previous.getKline());
+            } else {
+                newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
+            }
+            newRows.add(newRow);
+            builder.append(newRow.toCsvLine());
+        }
+        storage.create(createBlobInfo(Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
+        return newRows;
+	}
+
+	public String updateFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
 			retrieve = storage.create(createBlobInfo(fileName, false), header);

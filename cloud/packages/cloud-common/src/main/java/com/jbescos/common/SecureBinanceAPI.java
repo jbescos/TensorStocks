@@ -34,12 +34,14 @@ public class SecureBinanceAPI {
 	private final Mac mac;
 	private final String publicKey;
 	private final Client client;
+	private final BucketStorage storage;
 
-	private SecureBinanceAPI(Client client, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
+	private SecureBinanceAPI(Client client, BucketStorage storage, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
 		mac = Mac.getInstance(HMAC_SHA_256);
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
 		this.publicKey = publicKey;
 		this.client = client;
+		this.storage = storage;
 	}
 
 	public String signature(String data) {
@@ -169,7 +171,7 @@ public class SecureBinanceAPI {
 		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
 		StringBuilder data = new StringBuilder();
 		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(response.get("side")).append(",").append(response.get("symbol")).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
-		BucketStorage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
+		storage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 	}
 	
 	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
@@ -182,13 +184,13 @@ public class SecureBinanceAPI {
 		return response;
 	}
 
-	public static SecureBinanceAPI create(Client client, String publicKey, String privateKey)
+	public static SecureBinanceAPI create(Client client, BucketStorage storage, String publicKey, String privateKey)
 			throws InvalidKeyException, NoSuchAlgorithmException {
-		return new SecureBinanceAPI(client, publicKey, privateKey);
+		return new SecureBinanceAPI(client, storage, publicKey, privateKey);
 	}
 	
-	public static SecureBinanceAPI create(Client client)
+	public static SecureBinanceAPI create(Client client, BucketStorage storage)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		return new SecureBinanceAPI(client, CloudProperties.BINANCE_PUBLIC_KEY, CloudProperties.BINANCE_PRIVATE_KEY);
+		return new SecureBinanceAPI(client, storage, CloudProperties.BINANCE_PUBLIC_KEY, CloudProperties.BINANCE_PRIVATE_KEY);
 	}
 }

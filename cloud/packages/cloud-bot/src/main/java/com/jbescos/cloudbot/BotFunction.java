@@ -11,8 +11,12 @@ import javax.ws.rs.client.ClientBuilder;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
+import com.google.cloud.storage.StorageOptions;
+import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.BucketStorage;
 import com.jbescos.common.BuySellAnalisys;
 import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
 
@@ -27,7 +31,9 @@ public class BotFunction implements HttpFunction {
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
 		Client client = ClientBuilder.newClient();
-		SecureBinanceAPI api = SecureBinanceAPI.create(client);
+		BinanceAPI binanceAPI = new BinanceAPI(client);
+		BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
+		SecureBinanceAPI api = SecureBinanceAPI.create(client, storage);
 		String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
 		if (side != null) {
 			LOGGER.info("Actively invoked to sell or buy");
