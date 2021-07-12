@@ -29,6 +29,8 @@ public class CloudProperties {
 	private static final String PROPERTIES_FILE = "cloud.properties";
 	public static final String PROJECT_ID = System.getenv("GCP_PROJECT");
 	public static final String BUCKET;
+	public static final String GOOGLE_TOPIC_ID;
+	public static final String GOOGLE_PROJECT_ID;
 	public static final String USER;
 	public static final String PASSWORD;
 	public static final String URL;
@@ -91,6 +93,8 @@ public class CloudProperties {
 			throw new IllegalStateException("Cannot load " + PROPERTIES_FILE, e);
 		}
 		BUCKET = properties.getProperty("storage.bucket");
+		GOOGLE_TOPIC_ID = properties.getProperty("google.topic.id");
+		GOOGLE_PROJECT_ID = properties.getProperty("google.project.id");
 		USER = properties.getProperty("database.user");
 		PASSWORD = properties.getProperty("database.password");
 		URL = properties.getProperty("database.url");

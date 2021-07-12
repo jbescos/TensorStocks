@@ -31,7 +31,7 @@ public class BotUtils {
 	
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<BuySellAnalisys> loadStatistics(Client client) throws IOException {
+	public static List<BuySellAnalisys> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
@@ -58,19 +58,21 @@ public class BotUtils {
 			}
 		}
 		LOGGER.info("Transactions loaded: " + transactions.size());
-		List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
-				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice())).filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
-				.collect(Collectors.toList());
-		for (CsvRow last : latestCsv) {
-			for (CsvRow inDay : csvInDay) {
-				if (last.getSymbol().equals(inDay.getSymbol())) {
-					last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
-					last.setAvg2(Utils.ewma(CloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
-					break;
-				}
-			}
+		if (requestLatestPrices) {
+    		List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
+    				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice())).filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
+    				.collect(Collectors.toList());
+    		for (CsvRow last : latestCsv) {
+    			for (CsvRow inDay : csvInDay) {
+    				if (last.getSymbol().equals(inDay.getSymbol())) {
+    					last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
+    					last.setAvg2(Utils.ewma(CloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
+    					break;
+    				}
+    			}
+    		}
+    		rows.addAll(latestCsv);
 		}
-		rows.addAll(latestCsv);
 		return fromCsvRows(rows, transactions);
 	}
 
@@ -78,6 +80,7 @@ public class BotUtils {
 		Map<String, BuySellAnalisys> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
+		LOGGER.info("There is data for: " + grouped.keySet());
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			minMax.put(entry.getKey(), new SymbolStats(entry.getKey(), entry.getValue(), groupedTransactions.get(entry.getKey())));
 		}

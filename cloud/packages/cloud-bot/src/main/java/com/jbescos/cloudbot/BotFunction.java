@@ -42,7 +42,7 @@ public class BotFunction implements HttpFunction {
 			Map<String, String> apiResponse = api.orderSymbol(symbol, side, quantity);
 			response.getWriter().write(apiResponse.toString());
 		} else {
-			List<BuySellAnalisys> stats = BotUtils.loadStatistics(client).stream()
+			List<BuySellAnalisys> stats = BotUtils.loadStatistics(client, true).stream()
 					.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
 			BotBinance bot = new BotBinance(api);
 			bot.execute(stats);
