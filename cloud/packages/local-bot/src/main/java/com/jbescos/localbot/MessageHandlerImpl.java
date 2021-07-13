@@ -13,9 +13,9 @@ import com.jbescos.localbot.WebSocket.Symbolable;
 
 import jakarta.websocket.MessageHandler;
 
-public class BookTickerMessageHandler<T extends Symbolable> implements MessageHandler.Whole<String> {
+public class MessageHandlerImpl<T extends Symbolable> implements MessageHandler.Whole<String> {
 
-	private static final Logger LOGGER = Logger.getLogger(BookTickerMessageHandler.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(MessageHandlerImpl.class.getName());
 	private final ObjectMapper mapper = new ObjectMapper();
 	private final ConcurrentHashMap<String, Long> symbolTimestamps = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<String, Boolean> symbolNotWorking = new ConcurrentHashMap<>();
@@ -24,7 +24,7 @@ public class BookTickerMessageHandler<T extends Symbolable> implements MessageHa
 	private final Function<String, MessageWorker<T>> worker;
 	private final Class<T> messageType;
 
-	public BookTickerMessageHandler(Class<T> messageType, Function<String, MessageWorker<T>> worker) {
+	public MessageHandlerImpl(Class<T> messageType, Function<String, MessageWorker<T>> worker) {
 		this.worker = worker;
 		this.messageType = messageType;
 	}
