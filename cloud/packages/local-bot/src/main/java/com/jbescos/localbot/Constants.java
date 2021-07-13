@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
@@ -30,6 +32,7 @@ public class Constants {
 	public static final BigDecimal MIN_BINANCE_USDT;
 	public static final BigDecimal AMOUNT_REDUCER;
 	public static final BigDecimal EWMA_CONSTANT;
+	private static final DecimalFormat DECIMAL_FORMAT;
 	
 	static {
 		try {
@@ -47,6 +50,11 @@ public class Constants {
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot load properties " + PROPERTY_PATH, e);
 		}
+		DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+		symbols.setDecimalSeparator('.');
+		DECIMAL_FORMAT = new DecimalFormat("0", symbols);
+		DECIMAL_FORMAT.setRoundingMode(RoundingMode.DOWN);
+		DECIMAL_FORMAT.setMaximumFractionDigits(8);
 	}
 	
 	private static Properties load(String properties) throws IOException {
@@ -70,8 +78,8 @@ public class Constants {
 		return null;
 	}
 	
-	public static String format(double amount) {
-		return String.format(Locale.US, "%.8f", amount);
+	public static String format(BigDecimal amount) {
+		return DECIMAL_FORMAT.format(amount);
 	}
 	
 	public static BigDecimal ewma(BigDecimal y, BigDecimal prevousResult) {

@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 import com.jbescos.localbot.WebSocket.Message;
 
-public class CsvWorker implements MessageWorker {
+public class CsvWorker implements MessageWorker<Message> {
 
 	private static final Logger LOGGER = Logger.getLogger(CsvWorker.class.getName());
 	private final AtomicBoolean notWorking = new AtomicBoolean(true);

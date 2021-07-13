@@ -1,11 +1,11 @@
 package com.jbescos.localbot;
 
-import com.jbescos.localbot.WebSocket.Message;
+import com.jbescos.localbot.WebSocket.Symbolable;
 
-public interface MessageWorker {
+public interface MessageWorker<T extends Symbolable> {
 
 	boolean startToWork();
 	
-	void process(Message message, long now);
+	void process(T message, long now);
 	
 }

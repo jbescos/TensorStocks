@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 import com.jbescos.localbot.WebSocket.Message;
 
-public class TraderWorker implements MessageWorker {
+public class TraderWorker implements MessageWorker<Message> {
 
 	private static final Logger LOGGER = Logger.getLogger(TraderWorker.class.getName());
 	private final AtomicBoolean notWorking = new AtomicBoolean(true);
