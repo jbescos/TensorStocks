@@ -61,6 +61,13 @@ public class Utils {
 		return days;
 	}
 	
+	public static Date getDateOfDaysBack(Date currentTime, int daysBack) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(currentTime);
+		c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
+		return c.getTime();
+	}
+	
 	public static Date fromString(DateFormat format, String date) {
 		try {
 			return format.parse(date);

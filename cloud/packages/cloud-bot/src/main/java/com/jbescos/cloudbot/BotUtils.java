@@ -33,17 +33,23 @@ public class BotUtils {
 
 	public static List<BuySellAnalisys> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS, "data/", ".csv");
+		// Get 1 day more and compare dates later
+		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS + 1, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
+		Date from = Utils.getDateOfDaysBack(now, CloudProperties.BOT_DAYS_BACK_STATISTICS);
 		List<CsvRow> csvInDay = null;
 		for (String day : days) {
 			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				csvInDay = CsvUtil.readCsvRows(true, ",", reader, CloudProperties.BOT_WHITE_LIST_SYMBOLS);
+				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime()).collect(Collectors.toList());
 				rows.addAll(csvInDay);
 				LOGGER.info("Loaded " + csvInDay.size() + " rows from " + day);
 			}
+		}
+		if (!rows.isEmpty()) {
+			LOGGER.info("Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
 		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, "transactions/transactions_", ".csv");
