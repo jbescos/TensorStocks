@@ -21,6 +21,7 @@ public class SymbolStats implements BuySellAnalisys {
 	private final Action action;
 	private final Mode mode;
 	private final double minProfitableSellPrice;
+	private final boolean hasPreviousTransactions;
 
 	public SymbolStats(String symbol, List<CsvRow> values, List<CsvTransactionRow> previousTransactions) {
 		this.symbol = symbol;
@@ -46,6 +47,7 @@ public class SymbolStats implements BuySellAnalisys {
 			    oldest = values.get(values.size() - 3);
 			}
 		}
+		this.hasPreviousTransactions = previousTransactions != null && !previousTransactions.isEmpty();
 		this.minProfitableSellPrice = Utils.minSellProfitable(previousTransactions);
 		this.action = evaluate(newest.getPrice(), m);
 	}
@@ -99,8 +101,8 @@ public class SymbolStats implements BuySellAnalisys {
 	}
 	
 	private Action evaluate(double price, double m) {
-	    double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 		Action action = Action.NOTHING;
+	    double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
 		if (fixedBuySell != null) {
 			if (price >= fixedBuySell.getFixedSell()) {
@@ -111,60 +113,65 @@ public class SymbolStats implements BuySellAnalisys {
                     if (buyCommision < percentileMin) {
                         action = Action.BUY;
                     } else {
-                        LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+                        LOGGER.info(symbol + " discarded to buy because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                     }
                 } else {
-                    LOGGER.info(symbol + " discarded because it is not a min");
+                    LOGGER.info(symbol + " discarded to buy because it is not a min");
                 }
 			} else {
-				LOGGER.info(symbol + " discarded because " + Utils.format(price) + " is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));
+				LOGGER.info(symbol + " discarded to buy because " + Utils.format(price) + " is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));
 			}
 		} else {
-			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
-			if (buyCommision < avg) {
-				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-					double comparedFactor = getComparedFactor(Action.BUY);
-					if (factor > comparedFactor) {
-						if (m < 0) { // It is going up
-							double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
-							if (buyCommision < percentileMin) {
-								action = Action.BUY;
+			if (hasPreviousTransactions && ( 1 - (minProfitableSellPrice / price)) > CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
+				action = Action.SELL;
+				LOGGER.info(symbol + " is going to be sold because current price " + Utils.format(price) + " is more than " + CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS + " times higher than minProfitableSellPrice " + Utils.format(minProfitableSellPrice));
+			} else {
+				double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
+				if (buyCommision < avg) {
+					if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+						double comparedFactor = getComparedFactor(Action.BUY);
+						if (factor > comparedFactor) {
+							if (m < 0) { // It is going up
+								double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
+								if (buyCommision < percentileMin) {
+									action = Action.BUY;
+								} else {
+									LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+								}
 							} else {
-								LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+								LOGGER.info(symbol + " buy discarded because price is still going down");
 							}
 						} else {
-							LOGGER.info(symbol + " buy discarded because price is still going down");
+							LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
+									 + ". Min " + min + " Max " + max);
 						}
 					} else {
-						LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
+						LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
+					}
+				} else if (sellCommision > avg) {
+					double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
+					double comparedFactor = getComparedFactor(Action.SELL);
+					if (factor > comparedFactor) {
+					    if (m > 0) { // It is going up
+		    				if (sellCommision > percentileMax) {
+		    					double minSell = CloudProperties.minSell(this.symbol);
+		    					if (sellCommision < minSell) {
+		    						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
+		    					} else if (sellCommision < minProfitableSellPrice) {
+		    						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
+		    					} else {
+		    						action = Action.SELL;
+		    					}
+		    				} else {
+		    					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
+		    				}
+					    } else {
+					        LOGGER.info(symbol + " sell discarded because price is still going up");
+					    }
+					} else {
+						LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
 								 + ". Min " + min + " Max " + max);
 					}
-				} else {
-					LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
-				}
-			} else if (sellCommision > avg) {
-				double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
-				double comparedFactor = getComparedFactor(Action.SELL);
-				if (factor > comparedFactor) {
-				    if (m > 0) { // It is going up
-	    				if (sellCommision > percentileMax) {
-	    					double minSell = CloudProperties.minSell(this.symbol);
-	    					if (sellCommision < minSell) {
-	    						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
-	    					} else if (sellCommision < minProfitableSellPrice) {
-	    						LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
-	    					} else {
-	    						action = Action.SELL;
-	    					}
-	    				} else {
-	    					LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
-	    				}
-				    } else {
-				        LOGGER.info(symbol + " sell discarded because price is still going up");
-				    }
-				} else {
-					LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
-							 + ". Min " + min + " Max " + max);
 				}
 			}
 		}

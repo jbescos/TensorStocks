@@ -57,6 +57,7 @@ public class CloudProperties {
 	public static final double EWMA_2_CONSTANT;
 	public static final boolean BOT_SELL_IGNORE_FACTOR_REDUCER;
 	public static final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
+	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
 	public static final Map<String, FixedBuySell> FIXED_BUY_SELL;
 
 	static {
@@ -122,6 +123,7 @@ public class CloudProperties {
 		EWMA_2_CONSTANT = Double.parseDouble(properties.getProperty("ewma.2.constant"));
 		BOT_SELL_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.sell.ignore.factor.reducer"));
 		BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.buy.ignore.factor.reducer"));
+		BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
 		FIXED_BUY_SELL = fixedBuySell(properties);
 	}
 
