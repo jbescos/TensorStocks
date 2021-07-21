@@ -17,11 +17,9 @@
 
 	<modules>
 		<module>cloud-common</module>
-		<module>cloud-price</module>
 		<module>cloud-storage</module>
 		<module>cloud-chart</module>
 		<module>cloud-bot</module>
-		<module>cloud-csv</module>
 		<module>local-bot</module>
 	</modules>
 
