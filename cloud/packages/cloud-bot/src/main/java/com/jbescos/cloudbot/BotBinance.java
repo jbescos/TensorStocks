@@ -87,7 +87,7 @@ public class BotBinance {
 					}
 				}
 			} else {
-				LOGGER.warning("Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + CloudProperties.BINANCE_MIN_TRANSACTION);
+				LOGGER.info("Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + CloudProperties.BINANCE_MIN_TRANSACTION);
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
@@ -101,7 +101,7 @@ public class BotBinance {
 			wallet.put(symbol, accumulated);
 			return true;
 		} else {
-			LOGGER.warning("There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
+			LOGGER.info("There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
 		}
 		return false;
 	}

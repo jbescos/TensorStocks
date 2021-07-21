@@ -16,6 +16,8 @@ public class SymbolStats implements BuySellAnalisys {
 	private final CsvRow min;
 	private final CsvRow max;
 	private final CsvRow newest;
+	private CsvRow middle;
+	private CsvRow oldest;
 	private final Action action;
 	private final Mode mode;
 	private final double minProfitableSellPrice;
@@ -38,8 +40,11 @@ public class SymbolStats implements BuySellAnalisys {
 		}
 		double m = 0;
 		if (values.size() > 1) {
-			CsvRow secondNewest = values.get(values.size() - 2);
-			m = secondNewest.getPrice() - newest.getPrice();
+		    middle = values.get(values.size() - 2);
+			m = middle.getPrice() - newest.getPrice();
+			if (values.size() > 2) {
+			    oldest = values.get(values.size() - 3);
+			}
 		}
 		this.minProfitableSellPrice = Utils.minSellProfitable(previousTransactions);
 		this.action = evaluate(newest.getPrice(), m);
@@ -81,19 +86,40 @@ public class SymbolStats implements BuySellAnalisys {
 		return newest;
 	}
 
+	private boolean isMin() {
+	    double first = newest.getPrice();
+	    if (middle != null) {
+	        double second = middle.getPrice();
+	        if (oldest != null) {
+	            double third = oldest.getPrice();
+	            return second < first && second < third;
+	        }
+	    }
+	    return false;
+	}
+	
 	private Action evaluate(double price, double m) {
+	    double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 		Action action = Action.NOTHING;
 		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
 		if (fixedBuySell != null) {
 			if (price >= fixedBuySell.getFixedSell()) {
-				action = Action.SELL;
+			     action = Action.SELL;
 			} else if (price <= fixedBuySell.getFixedBuy()) {
-				action = Action.BUY;
+			    if (isMin()) {
+			        double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
+                    if (buyCommision < percentileMin) {
+                        action = Action.BUY;
+                    } else {
+                        LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+                    }
+                } else {
+                    LOGGER.info(symbol + " discarded because it is not a min");
+                }
 			} else {
 				LOGGER.info(symbol + " discarded because " + Utils.format(price) + " is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));
 			}
 		} else {
-			double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 			double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
 			if (buyCommision < avg) {
 				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
