@@ -26,9 +26,10 @@ import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.SymbolStats;
 import com.jbescos.common.Utils;
+import com.jbescos.common.BuySellAnalisys.Action;
 
 public class BotUtils {
-	
+
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
 	public static List<BuySellAnalisys> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
@@ -43,16 +44,19 @@ public class BotUtils {
 			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				csvInDay = CsvUtil.readCsvRows(true, ",", reader, CloudProperties.BOT_WHITE_LIST_SYMBOLS);
-				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime()).collect(Collectors.toList());
+				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime())
+						.collect(Collectors.toList());
 				rows.addAll(csvInDay);
 				LOGGER.info("Loaded " + csvInDay.size() + " rows from " + day);
 			}
 		}
 		if (!rows.isEmpty()) {
-			LOGGER.info("Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, now));
+			LOGGER.info("Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to "
+					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
-		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, "transactions/transactions_", ".csv");
+		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, "transactions/transactions_",
+				".csv");
 		for (String day : days) {
 			Blob blob = storage.get(CloudProperties.BUCKET, day);
 			if (blob != null) {
@@ -65,19 +69,20 @@ public class BotUtils {
 		}
 		LOGGER.info("Transactions loaded: " + transactions.size());
 		if (requestLatestPrices) {
-    		List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
-    				.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice())).filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
-    				.collect(Collectors.toList());
-    		for (CsvRow last : latestCsv) {
-    			for (CsvRow inDay : csvInDay) {
-    				if (last.getSymbol().equals(inDay.getSymbol())) {
-    					last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
-    					last.setAvg2(Utils.ewma(CloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
-    					break;
-    				}
-    			}
-    		}
-    		rows.addAll(latestCsv);
+			List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
+					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
+					.filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
+					.collect(Collectors.toList());
+			for (CsvRow last : latestCsv) {
+				for (CsvRow inDay : csvInDay) {
+					if (last.getSymbol().equals(inDay.getSymbol())) {
+						last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
+						last.setAvg2(Utils.ewma(CloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
+						break;
+					}
+				}
+			}
+			rows.addAll(latestCsv);
 		}
 		return fromCsvRows(rows, transactions);
 	}
@@ -85,13 +90,31 @@ public class BotUtils {
 	public static List<BuySellAnalisys> fromCsvRows(List<CsvRow> csv, List<CsvTransactionRow> transactions) {
 		Map<String, BuySellAnalisys> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
+		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
+				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
 		LOGGER.info("There is data for: " + grouped.keySet());
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
-			minMax.put(entry.getKey(), new SymbolStats(entry.getKey(), entry.getValue(), groupedTransactions.get(entry.getKey())));
+			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
+			if (symbolTransactions != null) {
+				symbolTransactions = filterLastBuys(symbolTransactions);
+			}
+			minMax.put(entry.getKey(), new SymbolStats(entry.getKey(), entry.getValue(), symbolTransactions));
 		}
 		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
 				.collect(Collectors.toList());
+	}
+
+	private static List<CsvTransactionRow> filterLastBuys(List<CsvTransactionRow> symbolTransactions) {
+		List<CsvTransactionRow> filtered = new ArrayList<>();
+		for (int i = symbolTransactions.size() - 1; i >= 0; i--) {
+			CsvTransactionRow tx = symbolTransactions.get(i);
+			if (tx.getSide() == Action.BUY) {
+				filtered.add(tx);
+			} else {
+				break;
+			}
+		}
+		return filtered;
 	}
 
 }
