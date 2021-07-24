@@ -152,7 +152,7 @@ public class SymbolStats implements BuySellAnalisys {
 					double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
 					double comparedFactor = getComparedFactor(Action.SELL);
 					if (factor > comparedFactor) {
-					    if (m > 0) { // It is going up
+					    if (m > 0) { // It is going down
 		    				if (sellCommision > percentileMax) {
 		    					double minSell = CloudProperties.minSell(this.symbol);
 		    					if (sellCommision < minSell) {
