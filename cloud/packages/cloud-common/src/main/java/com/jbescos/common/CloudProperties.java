@@ -104,7 +104,7 @@ public class CloudProperties {
 		BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
 		String value = properties.getProperty("bot.white.list");
 		BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
-		BOT_NEVER_BUY_LIST_SYMBOLS = Arrays.asList(properties.getProperty("bot.never.buy").split(","));
+		BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(properties.getProperty("bot.never.buy").split(","));
 		BOT_SELL_REDUCER = Double.parseDouble(properties.getProperty("bot.sell.reducer"));
 		BOT_BUY_REDUCER = Double.parseDouble(properties.getProperty("bot.buy.reducer"));
 		BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.buy.factor"));
