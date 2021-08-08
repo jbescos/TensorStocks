@@ -100,13 +100,30 @@ public class SymbolStats implements BuySellAnalisys {
 	    return false;
 	}
 	
+	private boolean isMax() {
+	    double first = newest.getPrice();
+	    if (middle != null) {
+	        double second = middle.getPrice();
+	        if (oldest != null) {
+	            double third = oldest.getPrice();
+	            return second > first && second > third;
+	        }
+	    }
+	    return false;
+	}
+	
+	
 	private Action evaluate(double price, double m) {
 		Action action = Action.NOTHING;
 	    double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
 		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
 		if (fixedBuySell != null) {
 			if (price >= fixedBuySell.getFixedSell()) {
-			     action = Action.SELL;
+				if (isMax()) {
+					action = Action.SELL;
+				} else {
+					LOGGER.info(symbol + " discarded to buy because it is not a max");
+				}
 			} else if (price <= fixedBuySell.getFixedBuy()) {
 			    if (isMin()) {
 			        double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
