@@ -34,11 +34,6 @@ public class SymbolStats implements BuySellAnalisys {
 		} else {
 			this.avg = newest.getAvg();
 		}
-		if (newest.getPrice() > newest.getAvg2()) {
-			mode = Mode.BULLISH;
-		} else {
-			mode = Mode.BEARISH;
-		}
 		double m = 0;
 		if (values.size() > 1) {
 		    middle = values.get(values.size() - 2);
@@ -47,6 +42,7 @@ public class SymbolStats implements BuySellAnalisys {
 			    oldest = values.get(values.size() - 3);
 			}
 		}
+		this.mode = getMode();
 		this.hasPreviousTransactions = previousTransactions != null && !previousTransactions.isEmpty();
 		this.minProfitableSellPrice = Utils.minSellProfitable(previousTransactions);
 		this.action = evaluate(newest.getPrice(), m);
@@ -56,6 +52,15 @@ public class SymbolStats implements BuySellAnalisys {
 		this(symbol, values, Collections.emptyList());
 	}
 
+	private Mode getMode() {
+		if (middle != null) {
+			if (newest.getAvg() > middle.getAvg() && newest.getAvg2() > middle.getAvg2()) {
+				return Mode.BULLISH;
+			}
+		}
+		return Mode.BEARISH;
+	}
+	
 	public CsvRow getMin() {
 		return min;
 	}
