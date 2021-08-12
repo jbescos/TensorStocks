@@ -137,7 +137,9 @@ public class ChartGenerator {
 				if (days.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();
 							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-						rows.addAll(CsvUtil.readCsvAccountRows(true, ",", reader));
+						// Exclude currencies with little value
+						List<CsvAccountRow> rowsInDay = CsvUtil.readCsvAccountRows(true, ",", reader).stream().filter(row -> row.getPrice() > 0.1).collect(Collectors.toList());
+						rows.addAll(rowsInDay);
 					}
 				}
 			}
