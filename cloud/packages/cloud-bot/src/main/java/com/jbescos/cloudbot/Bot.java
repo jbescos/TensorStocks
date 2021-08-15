@@ -6,8 +6,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import com.jbescos.common.BuySellAnalisys;
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker;
+import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
@@ -27,14 +27,14 @@ public class Bot {
 	public Bot(Map<String, Double> wallet, boolean skip) {
 		this.wallet = wallet;
 		this.skip = skip;
-		// Min transaciton is 1/10 of initial money
+		// Min transaction is 1/10 of initial money
 		this.minTransaction = wallet.get(Utils.USDT) * 0.1;
 	}
 
-	public void execute(List<BuySellAnalisys> stats) {
+	public void execute(List<Broker> stats) {
 		didAction = false;
 		if (!skip) {
-			for (BuySellAnalisys stat : stats) {
+			for (Broker stat : stats) {
 				if (stat.getAction() == Action.BUY) {
 					buy(stat.getSymbol(), stat);
 				} else if (stat.getAction() == Action.SELL) {
@@ -52,9 +52,9 @@ public class Bot {
 		return wallet;
 	}
 
-	private double usdtSnappshot(List<BuySellAnalisys> stats) {
+	private double usdtSnappshot(List<Broker> stats) {
 		double snapshot = wallet.get(Utils.USDT);
-		for (BuySellAnalisys stat : stats) {
+		for (Broker stat : stats) {
 			Double amount = wallet.get(stat.getSymbol());
 			if (amount != null) {
 				snapshot = snapshot + (amount * stat.getNewest().getPrice());
@@ -63,7 +63,7 @@ public class Bot {
 		return snapshot;
 	}
 
-	private void buy(String symbol, BuySellAnalisys stat) {
+	private void buy(String symbol, Broker stat) {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double usdt = wallet.get(Utils.USDT);
@@ -85,7 +85,7 @@ public class Bot {
 		}
 	}
 
-	private void sell(String symbol, BuySellAnalisys stat) {
+	private void sell(String symbol, Broker stat) {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double unitsOfSymbol = wallet.get(symbol);

@@ -1,6 +1,6 @@
 package com.jbescos.common;
 
-public interface BuySellAnalisys {
+public interface Broker {
 
 	Action getAction();
 	

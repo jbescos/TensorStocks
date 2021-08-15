@@ -13,7 +13,7 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.IRow;
 

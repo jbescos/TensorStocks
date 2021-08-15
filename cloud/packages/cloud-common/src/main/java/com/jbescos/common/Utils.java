@@ -22,7 +22,7 @@ import java.util.Properties;
 import java.util.logging.Logger;
 
 import com.jbescos.common.Account.Balances;
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker.Action;
 
 public class Utils {
 
@@ -235,4 +235,11 @@ public class Utils {
 		calendar.set(Calendar.MINUTE, minute - (minute % 10));
 		return calendar.getTime();
 	}
+	
+	public static double calculateFactor(CsvRow min, CsvRow max) {
+		double factor =  1 - (min.getPrice() / max.getPrice());
+//		LOGGER.info("MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
+		return factor;
+	}
+
 }

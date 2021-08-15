@@ -9,8 +9,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.jbescos.common.BuySellAnalisys;
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker;
+import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
@@ -26,8 +26,8 @@ public class BotBinance {
 		this.wallet = api.wallet();
 	}
 	
-	public void execute(List<BuySellAnalisys> stats) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		for (BuySellAnalisys stat : stats) {
+	public void execute(List<Broker> stats) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		for (Broker stat : stats) {
 			LOGGER.info("Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
 				buy(stat.getSymbol(), stat);
@@ -37,7 +37,7 @@ public class BotBinance {
 		}
 	}
 	
-	private void buy(String symbol, BuySellAnalisys stat) throws FileNotFoundException, IOException {
+	private void buy(String symbol, Broker stat) throws FileNotFoundException, IOException {
 		wallet.putIfAbsent(Utils.USDT, 0.0);
 		double usdt = wallet.get(Utils.USDT);
 		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
@@ -57,7 +57,7 @@ public class BotBinance {
 		}
 	}
 	
-	private void sell(String symbol, BuySellAnalisys stat) throws FileNotFoundException, IOException {
+	private void sell(String symbol, Broker stat) throws FileNotFoundException, IOException {
 		try {
 			String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 			wallet.putIfAbsent(walletSymbol, 0.0);

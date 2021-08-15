@@ -19,20 +19,22 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
-import com.jbescos.common.BuySellAnalisys;
+import com.jbescos.common.Broker;
+import com.jbescos.common.Broker.Action;
+import com.jbescos.common.CautelousBroker;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.SymbolStats;
+import com.jbescos.common.GreedyBroker;
+import com.jbescos.common.PanicBroker;
 import com.jbescos.common.Utils;
-import com.jbescos.common.BuySellAnalisys.Action;
 
 public class BotUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<BuySellAnalisys> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
+	public static List<Broker> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		// Get 1 day more and compare dates later
 		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS + 1, "data/", ".csv");
@@ -87,8 +89,8 @@ public class BotUtils {
 		return fromCsvRows(rows, transactions);
 	}
 
-	public static List<BuySellAnalisys> fromCsvRows(List<CsvRow> csv, List<CsvTransactionRow> transactions) {
-		Map<String, BuySellAnalisys> minMax = new LinkedHashMap<>();
+	public static List<Broker> fromCsvRows(List<CsvRow> csv, List<CsvTransactionRow> transactions) {
+		Map<String, Broker> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
@@ -98,10 +100,26 @@ public class BotUtils {
 			if (symbolTransactions != null) {
 				symbolTransactions = filterLastBuys(symbolTransactions);
 			}
-			minMax.put(entry.getKey(), new SymbolStats(entry.getKey(), entry.getValue(), symbolTransactions));
+			minMax.put(entry.getKey(), buySellInstance(entry.getKey(), entry.getValue(), symbolTransactions));
 		}
 		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
 				.collect(Collectors.toList());
+	}
+	
+	private static Broker buySellInstance(String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
+		double minProfitableSellPrice = Utils.minSellProfitable(symbolTransactions);
+		boolean hasPreviousTransactions = symbolTransactions != null && !symbolTransactions.isEmpty();
+		CsvRow newest = rows.get(rows.size() - 1);
+		if (rows.size() < 2 || PanicBroker.isPanic(newest, minProfitableSellPrice)) {
+			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+		} else {
+			CsvRow oldest = rows.get(0);
+			if (newest.getPrice() > newest.getAvg() && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
+				return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+			} else {
+				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+			}
+		}
 	}
 
 	private static List<CsvTransactionRow> filterLastBuys(List<CsvTransactionRow> symbolTransactions) {

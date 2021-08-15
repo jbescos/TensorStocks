@@ -1,14 +1,13 @@
 package com.jbescos.common;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
 import com.jbescos.common.CloudProperties.FixedBuySell;
 
-public class SymbolStats implements BuySellAnalisys {
+public class CautelousBroker implements Broker {
 
-	private static final Logger LOGGER = Logger.getLogger(SymbolStats.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(CautelousBroker.class.getName());
 	private final String symbol;
 	// The higher the better
 	private final double factor;
@@ -23,11 +22,11 @@ public class SymbolStats implements BuySellAnalisys {
 	private final double minProfitableSellPrice;
 	private final boolean hasPreviousTransactions;
 
-	public SymbolStats(String symbol, List<CsvRow> values, List<CsvTransactionRow> previousTransactions) {
+	public CautelousBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions) {
 		this.symbol = symbol;
 		this.min = getMinMax(values, true);
 		this.max = getMinMax(values, false);
-		this.factor = calculateFactor(min, max);
+		this.factor = Utils.calculateFactor(min, max);
 		this.newest = values.get(values.size() - 1);
 		if (newest.getAvg() == null) {
 			throw new IllegalArgumentException("Row does not contain AVG. It needs it to work: " + newest);
@@ -43,13 +42,13 @@ public class SymbolStats implements BuySellAnalisys {
 			}
 		}
 		this.mode = getMode();
-		this.hasPreviousTransactions = previousTransactions != null && !previousTransactions.isEmpty();
-		this.minProfitableSellPrice = Utils.minSellProfitable(previousTransactions);
+		this.hasPreviousTransactions = hasPreviousTransactions;
+		this.minProfitableSellPrice = minProfitableSellPrice;
 		this.action = evaluate(newest.getPrice(), m);
 	}
 	
-	public SymbolStats(String symbol, List<CsvRow> values) {
-		this(symbol, values, Collections.emptyList());
+	public CautelousBroker(String symbol, List<CsvRow> values) {
+		this(symbol, values,0, false);
 	}
 
 	private Mode getMode() {
@@ -215,12 +214,6 @@ public class SymbolStats implements BuySellAnalisys {
 			}
 		}
 		return 0;
-	}
-	
-	private double calculateFactor(CsvRow min, CsvRow max) {
-		double factor =  1 - (min.getPrice() / max.getPrice());
-//		LOGGER.info("MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
-		return factor;
 	}
 
 	private CsvRow getMinMax(List<CsvRow> values, boolean min) {

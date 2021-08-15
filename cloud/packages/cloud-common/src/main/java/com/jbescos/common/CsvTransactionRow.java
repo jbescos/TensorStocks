@@ -2,7 +2,7 @@ package com.jbescos.common;
 
 import java.util.Date;
 
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker.Action;
 
 public class CsvTransactionRow implements IRow {
 

@@ -14,8 +14,8 @@ import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BucketStorage;
-import com.jbescos.common.BuySellAnalisys;
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker;
+import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
@@ -42,7 +42,7 @@ public class BotFunction implements HttpFunction {
 			Map<String, String> apiResponse = api.orderSymbol(symbol, side, quantity);
 			response.getWriter().write(apiResponse.toString());
 		} else {
-			List<BuySellAnalisys> stats = BotUtils.loadStatistics(client, true).stream()
+			List<Broker> stats = BotUtils.loadStatistics(client, true).stream()
 					.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
 			BotBinance bot = new BotBinance(api);
 			bot.execute(stats);

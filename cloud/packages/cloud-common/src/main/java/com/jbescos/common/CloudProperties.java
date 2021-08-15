@@ -58,6 +58,7 @@ public class CloudProperties {
 	public static final boolean BOT_SELL_IGNORE_FACTOR_REDUCER;
 	public static final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
 	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
+	public static final double BOT_PANIC_RATIO;
 	public static final Map<String, FixedBuySell> FIXED_BUY_SELL;
 
 	static {
@@ -124,6 +125,7 @@ public class CloudProperties {
 		BOT_SELL_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.sell.ignore.factor.reducer"));
 		BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.buy.ignore.factor.reducer"));
 		BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
+		BOT_PANIC_RATIO = Double.parseDouble(properties.getProperty("bot.panic.ratio"));
 		FIXED_BUY_SELL = fixedBuySell(properties);
 	}
 

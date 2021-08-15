@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -29,8 +28,7 @@ import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
-import com.jbescos.common.BuySellAnalisys;
-import com.jbescos.common.BuySellAnalisys.Action;
+import com.jbescos.common.Broker;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
@@ -71,7 +69,7 @@ public class BotTest {
 	@Test
 	public void realData() throws IOException {
 		Date from = new Date();
-		Date to = Utils.fromString(Utils.FORMAT, "2021-05-08");
+		Date to = Utils.fromString(Utils.FORMAT, "2021-05-20");
 		int daysBetween = (int) ChronoUnit.DAYS.between(to.toInstant(), from.toInstant());
 		List<String> days = Utils.daysBack(from, daysBetween, "/", ".csv"); // Starts the 2021-05-08
 		List<CsvRow> rows = new ArrayList<>();
@@ -93,7 +91,7 @@ public class BotTest {
 		grouped.entrySet().parallelStream().forEach(entry -> {
 			CsvRow first = entry.getValue().get(0);
 			Map<String, Double> wallet = new HashMap<>();
-			wallet.put("USDT", first.getPrice());
+			wallet.put(Utils.USDT, first.getPrice());
 			Date start = new Date(first.getDate().getTime() + DAY_MILLIS);
 			check(entry.getValue(), wallet, start);
 			if (TEST_REVERSE) {
@@ -145,7 +143,7 @@ public class BotTest {
 			}
 			Date fromTx = new Date(now.getTime() - DAYS_BACK_TRANSACTIONS_MILLIS);
 			List<CsvTransactionRow> transactions = trader.getTransactions().stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-			List<BuySellAnalisys> stats = BotUtils.fromCsvRows(segment, transactions);
+			List<Broker> stats = BotUtils.fromCsvRows(segment, transactions);
 			trader.execute(stats);
 			holder.execute(stats);
 			now = new Date(now.getTime() + (1000 * 60 * 30));
@@ -197,34 +195,6 @@ public class BotTest {
 		double result = quoteOrderQtyBD / executedQtyBD;
 		String resultStr = Utils.format(result);
 		assertEquals("24.74174423", resultStr);
-	}
-
-	@Test
-	public void minSell() {
-		// Good moment to sell
-		final String SYMBOL_LIMIMTED = "TESTUSDT";
-		List<CsvRow> rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_LIMIMTED, 1.0),
-				new CsvRow(new Date(50000), SYMBOL_LIMIMTED, 100.0),
-				new CsvRow(new Date(100000), SYMBOL_LIMIMTED, 99.0));
-		setAvgs(rows);
-		BuySellAnalisys stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
-		assertEquals(Action.NOTHING, stats.getAction());
-		final String SYMBOL_NOT_LIMIMTED = "unlimitedSymbol";
-		rows = Arrays.asList(new CsvRow(new Date(0), SYMBOL_NOT_LIMIMTED, 1.0),
-				new CsvRow(new Date(50000), SYMBOL_NOT_LIMIMTED, 100.0),
-				new CsvRow(new Date(100000), SYMBOL_NOT_LIMIMTED, 99.0));
-		setAvgs(rows);
-		stats = BotUtils.fromCsvRows(rows, Collections.emptyList()).get(0);
-		assertEquals(Action.SELL, stats.getAction());
-	}
-
-	private Map<String, Double> createWallet(double amount, List<String> cryptos) {
-		Map<String, Double> wallet = new HashMap<>();
-		wallet.put(Utils.USDT, amount);
-		for (String crypto : cryptos) {
-			wallet.put(crypto, amount);
-		}
-		return wallet;
 	}
 
 	private static class TestResult {
