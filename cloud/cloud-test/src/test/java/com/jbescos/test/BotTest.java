@@ -45,7 +45,7 @@ public class BotTest {
 	private static final long DAY_MILLIS = 3600 * 1000 * 24;
 	private static final long DAYS_BACK_MILLIS = CloudProperties.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
 	private static final long DAYS_BACK_TRANSACTIONS_MILLIS = CloudProperties.BOT_DAYS_BACK_TRANSACTIONS * DAY_MILLIS;
-	private static final List<TestResult> results = new ArrayList<>();
+	private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
 
 	@AfterClass
 	public static void afterClass() {
@@ -80,7 +80,7 @@ public class BotTest {
 		}
 		Map<String, List<CsvRow>> grouped = rows.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		rows = null;
-		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
+		grouped.entrySet().parallelStream().forEach(entry -> {
 			CsvRow first = entry.getValue().get(0);
 			Map<String, Double> wallet = new HashMap<>();
 			wallet.put("USDT", first.getPrice());
@@ -92,7 +92,7 @@ public class BotTest {
 				wallet.put("USDT", entry.getValue().get(0).getPrice());
 				check(entry.getValue(), wallet, start);
 			}
-		}
+		});
 	}
 	
 	private void reverse(List<CsvRow> rows) {
@@ -119,7 +119,7 @@ public class BotTest {
 		}
 	}
 
-	private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) throws IOException {
+	private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) {
 		Bot trader = new Bot(wallet, false);
 		Bot holder = new Bot(new HashMap<>(wallet), true);
 		while (true) {
@@ -146,7 +146,7 @@ public class BotTest {
 		results.add(result);
 	}
 
-	private void chart(List<CsvRow> rows, Bot trader, TestResult result) throws IOException {
+	private void chart(List<CsvRow> rows, Bot trader, TestResult result) {
 		CsvRow last = rows.get(rows.size() - 1);
 		String subfix = result.success ? "_success" : "_failure";
 		File chartFile = new File("./target/" + last.getSymbol() + subfix + ".png");
@@ -159,7 +159,7 @@ public class BotTest {
 			ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart);
 			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
-		}
+		} catch (IOException e) {}
 		File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");
 		if (barChartFile.exists()) {
 			barChartFile.delete();
@@ -172,7 +172,7 @@ public class BotTest {
 			IChart<IRow> chart = new BarChart(walletUsdt);
 			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
-		}
+		} catch (IOException e) {}
 	}
 
 	@Test
