@@ -46,16 +46,26 @@ public class BotTest {
 	private static final long DAYS_BACK_MILLIS = CloudProperties.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
 	private static final long DAYS_BACK_TRANSACTIONS_MILLIS = CloudProperties.BOT_DAYS_BACK_TRANSACTIONS * DAY_MILLIS;
 	private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
+	private static final int TOP = 60;
 
 	@AfterClass
 	public static void afterClass() {
-		Collections.sort(results, (a, b) -> Double.compare(a.multiplier, b.multiplier));
+		Collections.sort(results, (a, b) -> Double.compare(b.multiplier, a.multiplier));
 		double total = 0;
 		for (TestResult result : results) {
 			total = total + result.multiplier;
 		}
 		LOGGER.info(results.toString());
 		LOGGER.info("Total multiplier: " + (total / results.size()));
+		int top = results.size() < TOP ? results.size() : TOP;
+		StringBuilder topInfo = new StringBuilder("TOP " + top + ":\nbot.white.list=");
+		for (int i = 0; i < top; i++) {
+			if (i != 0) {
+				topInfo.append(",");
+			}
+			topInfo.append(results.get(i).symbol);
+		}
+		LOGGER.info(topInfo.toString());
 	}
 
 	@Test

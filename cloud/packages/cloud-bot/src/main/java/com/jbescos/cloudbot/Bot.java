@@ -22,11 +22,13 @@ public class Bot {
 	private boolean didAction;
 	private final List<CsvTransactionRow> transactions = new ArrayList<>();
 	private final List<CsvRow> walletHistorical = new ArrayList<>();
+	private final double minTransaction;
 
 	public Bot(Map<String, Double> wallet, boolean skip) {
 		this.wallet = wallet;
 		this.skip = skip;
-		wallet.putIfAbsent(Utils.USDT, 0.0);
+		// Min transaciton is 1/10 of initial money
+		this.minTransaction = wallet.get(Utils.USDT) * 0.1;
 	}
 
 	public void execute(List<BuySellAnalisys> stats) {
@@ -69,6 +71,9 @@ public class Bot {
 		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
             buy = buy * stat.getFactor();
         }
+		if (buy < minTransaction) {
+			buy = minTransaction;
+		}
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
 //			double unitsOfSymbol = buy / currentPrice;
@@ -88,8 +93,8 @@ public class Bot {
 		if (!CloudProperties.BOT_SELL_IGNORE_FACTOR_REDUCER) {
 		    sell = sell * stat.getFactor();
 		}
-		if (updateWallet(symbol, sell * -1)) {
-			double usdt = currentPrice * sell;
+		double usdt = currentPrice * sell;
+		if (usdt > minTransaction && updateWallet(symbol, sell * -1)) {
 			usdt = usdt - (usdt * CloudProperties.BOT_SELL_COMISSION);
 			updateWallet(Utils.USDT, usdt);
 			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.SELL, symbol, usdt, unitsOfSymbol, currentPrice);
