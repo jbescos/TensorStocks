@@ -39,11 +39,13 @@ public class BarChart implements IChart<IRow> {
 			if (walletPrice == null) {
 				walletPrice = 0.0;
 			}
+			String label = first.getLabel();
+			label = label.replaceAll(Action.SELL_PANIC.name(), Action.SELL.name());
 			if (first.getSide() == Action.BUY) {
-                dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
+                dataset.addValue(sum, "SUM_" + label, symbol);
             } else {
-                dataset.addValue(sum, "SUM_" + first.getLabel(), symbol);
-                dataset.addValue(walletPrice + sum, "SUM_WALLET_AND_" + first.getLabel(), symbol);
+                dataset.addValue(sum, "SUM_" + label, symbol);
+                dataset.addValue(walletPrice + sum, "SUM_WALLET_AND_" + label, symbol);
             }
 			dataset.addValue(walletPrice, "PENDING_WALLET", symbol);
 		}

@@ -1,6 +1,7 @@
 package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -148,7 +149,31 @@ public class UtilsTest {
 		assertEquals(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:40:00"), Utils.dateRoundedTo10Min(Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 00:49:12")));
 	}
 	
-	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
-		return new CsvTransactionRow(new Date(0), "", side, "any", usdt, quantity, usdt / quantity);
+	@Test
+	public void isPanicSellInDays() {
+	    Date dateLimit = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:00:01");
+	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-02 00:00:00", Action.SELL_PANIC, 1, 1)), dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, 1, 1)), dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(
+	            createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, 1, 1),
+	            createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, 1, 1))
+	            , dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(
+	            createCsvTransactionRow("2021-04-30 00:00:00", Action.BUY, 1, 1),
+                createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, 1, 1),
+                createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, 1, 1))
+                , dateLimit));
+	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(
+                createCsvTransactionRow("2021-05-05 00:00:00", Action.BUY, 1, 1),
+                createCsvTransactionRow("2021-05-05 00:00:01", Action.SELL_PANIC, 1, 1))
+                , dateLimit));
 	}
+	
+	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
+		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
+	}
+	
+    private CsvTransactionRow createCsvTransactionRow(String date, Action side, double usdt, double quantity) {
+        return new CsvTransactionRow(Utils.fromString(Utils.FORMAT_SECOND, date), "", side, "any", usdt, quantity, usdt / quantity);
+    }
 }

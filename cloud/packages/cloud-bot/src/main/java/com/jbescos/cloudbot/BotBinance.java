@@ -31,7 +31,7 @@ public class BotBinance {
 			LOGGER.info("Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
 				buy(stat.getSymbol(), stat);
-			} else if (stat.getAction() == Action.SELL) {
+			} else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 				sell(stat.getSymbol(), stat);
 			}
 		}
@@ -50,7 +50,7 @@ public class BotBinance {
 		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
 		if (updateWallet(Utils.USDT, buy * -1)) {
 			try {
-				api.orderUSDT(symbol, Action.BUY.name(), Utils.format(buy));
+				api.orderUSDT(symbol, stat.getAction(), Utils.format(buy));
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
 			}
@@ -73,7 +73,7 @@ public class BotBinance {
 				if ((usdtOfSymbol - usdtSell) < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {
 					// Sell everything
 					LOGGER.info("Selling everything " + unitsOfSymbol + " " + symbol + " because it costs " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
-					api.orderSymbol(symbol, Action.SELL.name(), Utils.format(unitsOfSymbol)); // Do not use the normal format because for example in SHIB it fails
+					api.orderSymbol(symbol, stat.getAction(), Utils.format(unitsOfSymbol)); // Do not use the normal format because for example in SHIB it fails
 					sellFlag = false;
 				} else if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
 					usdtSell = CloudProperties.BINANCE_MIN_TRANSACTION;
@@ -82,7 +82,7 @@ public class BotBinance {
 				if (sellFlag) {
 					LOGGER.info("Trying to sell " + sell + " of " + unitsOfSymbol + " " + symbol + ". Stats = " + stat);
 					if (updateWallet(walletSymbol, sell * -1)) {
-						api.orderUSDT(symbol, Action.SELL.name(), Utils.format(usdtSell));
+						api.orderUSDT(symbol, stat.getAction(), Utils.format(usdtSell));
 						updateWallet(Utils.USDT, usdtSell);
 					}
 				}

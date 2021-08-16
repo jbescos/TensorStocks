@@ -144,8 +144,10 @@ public class BotTest {
 			Date fromTx = new Date(now.getTime() - DAYS_BACK_TRANSACTIONS_MILLIS);
 			List<CsvTransactionRow> transactions = trader.getTransactions().stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
 			List<Broker> stats = BotUtils.fromCsvRows(segment, transactions);
-			trader.execute(stats);
-			holder.execute(stats);
+			if (!stats.isEmpty()) {
+    			trader.execute(stats);
+    			holder.execute(stats);
+			}
 			now = new Date(now.getTime() + (1000 * 60 * 30));
 		}
 		CsvRow first = rows.get(0);
@@ -163,9 +165,9 @@ public class BotTest {
 		}
 		try (FileOutputStream output = new FileOutputStream(chartFile)) {
 			IChart<IRow> chart = new XYChart();
+			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.writeChart(rows, output, chart);
 			ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart);
-			ChartGenerator.writeChart(trader.getTransactions(), output, chart);
 			ChartGenerator.save(output, chart);
 		} catch (IOException e) {}
 		File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");

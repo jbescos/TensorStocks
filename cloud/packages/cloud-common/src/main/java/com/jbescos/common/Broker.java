@@ -11,6 +11,28 @@ public interface Broker {
 	double getFactor();
 	
 	public static enum Action {
-		BUY, SELL, NOTHING;
+		BUY {
+            @Override
+            public String side() {
+                return "BUY";
+            }
+        }, SELL {
+            @Override
+            public String side() {
+                return "SELL";
+            }
+        }, SELL_PANIC {
+            @Override
+            public String side() {
+                return "SELL";
+            }
+        }, NOTHING {
+            @Override
+            public String side() {
+                throw new IllegalStateException("Cannot operate with Action.NOTHING");
+            }
+        };
+	    
+	    public abstract String side();
 	}
 }

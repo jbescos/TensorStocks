@@ -11,8 +11,8 @@ public class GreedyBroker implements Broker {
 	private double factor = 0;
 	private Action action = Action.NOTHING;
 	private CsvRow secondNewest;
-	private static final double MIN_FACTOR_TO_BUY = 0.01;
-	private static final double MIN_PROFIT_TO_SELL = 0.05;
+	private static final double MIN_FACTOR_TO_BUY = CloudProperties.BOT_GREEDY_MIN_FACTOR_BUY;
+	private static final double MIN_PROFIT_TO_SELL = CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL;
 
 	public GreedyBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions) {
 		this.symbol = symbol;
@@ -31,10 +31,10 @@ public class GreedyBroker implements Broker {
 			} else {
 				this.factor = Utils.calculateFactor(newest, secondNewest);
 				// BUY
-				if (factor > MIN_FACTOR_TO_BUY) {
+				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && factor > MIN_FACTOR_TO_BUY) {
 					action = Action.BUY;
 				} else {
-					LOGGER.info(symbol + " buy discarded because min profit to sell is set to " + MIN_FACTOR_TO_BUY + " and the current one is " + factor);
+					LOGGER.info(symbol + " buy discarded because min profit to sell is set to " + MIN_FACTOR_TO_BUY + " and the current one is " + factor + " or is in the bot.never.buy");
 				}
 			}
 		}

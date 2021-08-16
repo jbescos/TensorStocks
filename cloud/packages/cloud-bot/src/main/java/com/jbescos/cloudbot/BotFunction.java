@@ -39,7 +39,7 @@ public class BotFunction implements HttpFunction {
 			LOGGER.info("Actively invoked to sell or buy");
 			String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 			String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
-			Map<String, String> apiResponse = api.orderSymbol(symbol, side, quantity);
+			Map<String, String> apiResponse = api.orderSymbol(symbol, Action.valueOf(side), quantity);
 			response.getWriter().write(apiResponse.toString());
 		} else {
 			List<Broker> stats = BotUtils.loadStatistics(client, true).stream()

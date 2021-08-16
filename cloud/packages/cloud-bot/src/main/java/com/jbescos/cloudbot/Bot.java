@@ -37,7 +37,7 @@ public class Bot {
 			for (Broker stat : stats) {
 				if (stat.getAction() == Action.BUY) {
 					buy(stat.getSymbol(), stat);
-				} else if (stat.getAction() == Action.SELL) {
+				} else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 					sell(stat.getSymbol(), stat);
 				}
 			}
@@ -78,7 +78,7 @@ public class Bot {
 			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
 //			double unitsOfSymbol = buy / currentPrice;
 			updateWallet(symbol, unitsOfSymbol);
-			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.BUY, symbol, buy, unitsOfSymbol, currentPrice);
+			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, buy, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);
 			didAction = true;
 //			LOGGER.info(stat + "" + transaction);
@@ -97,7 +97,7 @@ public class Bot {
 		if (usdt > minTransaction && updateWallet(symbol, sell * -1)) {
 			usdt = usdt - (usdt * CloudProperties.BOT_SELL_COMISSION);
 			updateWallet(Utils.USDT, usdt);
-			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), Action.SELL, symbol, usdt, unitsOfSymbol, currentPrice);
+			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, usdt, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);
 			didAction = true;
 //			LOGGER.info(stat + "" + transaction);

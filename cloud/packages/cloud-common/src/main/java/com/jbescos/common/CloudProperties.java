@@ -57,8 +57,13 @@ public class CloudProperties {
 	public static final double EWMA_2_CONSTANT;
 	public static final boolean BOT_SELL_IGNORE_FACTOR_REDUCER;
 	public static final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
+	public static final boolean PANIC_BROKER_ENABLE;
+	public static final boolean GREEDY_BROKER_ENABLE;
 	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
 	public static final double BOT_PANIC_RATIO;
+	public static final int BOT_PANIC_DAYS;
+	public static final double BOT_GREEDY_MIN_FACTOR_BUY;
+	public static final double BOT_GREEDY_MIN_PROFIT_SELL;
 	public static final Map<String, FixedBuySell> FIXED_BUY_SELL;
 
 	static {
@@ -126,6 +131,11 @@ public class CloudProperties {
 		BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.buy.ignore.factor.reducer"));
 		BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
 		BOT_PANIC_RATIO = Double.parseDouble(properties.getProperty("bot.panic.ratio"));
+		BOT_PANIC_DAYS = Integer.parseInt(properties.getProperty("bot.panic.days"));
+		BOT_GREEDY_MIN_FACTOR_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.factor.buy"));
+		BOT_GREEDY_MIN_PROFIT_SELL = Double.parseDouble(properties.getProperty("bot.greedy.min.profit.sell"));
+		PANIC_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.panic.enable"));
+		GREEDY_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.greedy.enable"));
 		FIXED_BUY_SELL = fixedBuySell(properties);
 	}
 

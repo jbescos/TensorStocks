@@ -95,12 +95,17 @@ public class BotUtils {
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
 		LOGGER.info("There is data for: " + grouped.keySet());
+		Date deadLine = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_PANIC_DAYS);
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
-			if (symbolTransactions != null) {
-				symbolTransactions = filterLastBuys(symbolTransactions);
+			if (!Utils.isPanicSellInDays(symbolTransactions, deadLine)) {
+    			if (symbolTransactions != null) {
+    				symbolTransactions = filterLastBuys(symbolTransactions);
+    			}
+    			minMax.put(entry.getKey(), buySellInstance(entry.getKey(), entry.getValue(), symbolTransactions));
+			} else {
+			    LOGGER.info(entry.getKey() + " skipped because there was a SELL_PANIC recently");
 			}
-			minMax.put(entry.getKey(), buySellInstance(entry.getKey(), entry.getValue(), symbolTransactions));
 		}
 		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
 				.collect(Collectors.toList());
@@ -110,11 +115,15 @@ public class BotUtils {
 		double minProfitableSellPrice = Utils.minSellProfitable(symbolTransactions);
 		boolean hasPreviousTransactions = symbolTransactions != null && !symbolTransactions.isEmpty();
 		CsvRow newest = rows.get(rows.size() - 1);
-		if (rows.size() < 2 || PanicBroker.isPanic(newest, minProfitableSellPrice)) {
+		if (rows.size() < 2) {
 			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
 		} else {
 			CsvRow oldest = rows.get(0);
-			if (newest.getPrice() > newest.getAvg() && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
+			if (CloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(newest, minProfitableSellPrice)) {
+				// FIXME
+//			    return new PanicBroker(symbol, newest, minProfitableSellPrice);
+				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+			} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg() && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
 				return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
 			} else {
 				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);

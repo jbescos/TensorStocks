@@ -24,6 +24,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.jbescos.common.Account.Balances;
+import com.jbescos.common.Broker.Action;
 
 public class SecureBinanceAPI {
 
@@ -133,33 +134,33 @@ public class SecureBinanceAPI {
 	}
 	
 	// quoteOrderQty in USDT
-	public Map<String, String> orderUSDT(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
+	public Map<String, String> orderUSDT(String symbol, Action action, String quoteOrderQty) throws FileNotFoundException, IOException {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
-		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
+		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info("Prepared USDT order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info("Completed USDT order: " + response);
-		saveTransaction(now, response);
+		saveTransaction(now, response, action);
 		return response;
 	}
 	
 	// quantity in units of symbol
-	public Map<String, String> orderSymbol(String symbol, String side, String quantity) throws FileNotFoundException, IOException {
+	public Map<String, String> orderSymbol(String symbol, Action action, String quantity) throws FileNotFoundException, IOException {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		ExchangeInfo exchange = new BinanceAPI(client).exchangeInfo(symbol);
 		Map<String, Object> filter = exchange.getFilter(symbol, ExchangeInfo.LOT_SIZE);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, filter.get("minQty").toString(), filter.get("maxQty").toString(), filter.get("stepSize").toString());
-		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
+		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info("Prepared Symbol order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info("Completed Symbol order: " + response);
-		saveTransaction(now, response);
+		saveTransaction(now, response, action);
 		return response;
 	}
 	
-	private void saveTransaction(Date now, Map<String, String> response) throws FileNotFoundException, IOException {
+	private void saveTransaction(Date now, Map<String, String> response, Action action) throws FileNotFoundException, IOException {
 		// Units of symbol
 		String executedQty = response.get("executedQty");
 		// USDT
@@ -170,7 +171,7 @@ public class SecureBinanceAPI {
 		double result = quoteOrderQtyBD/executedQtyBD;
 		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
 		StringBuilder data = new StringBuilder();
-		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(response.get("side")).append(",").append(response.get("symbol")).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
+		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(action.toString()).append(",").append(response.get("symbol")).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
 		storage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 	}
 	

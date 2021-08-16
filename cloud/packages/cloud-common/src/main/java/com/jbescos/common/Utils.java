@@ -143,6 +143,22 @@ public class Utils {
 		}
 	}
 	
+	public static boolean isPanicSellInDays(List<CsvTransactionRow> previousTransactions, Date deadLine) {
+	    if (previousTransactions == null || previousTransactions.isEmpty()) {
+            return false;
+        } else {
+            for (int i = previousTransactions.size() - 1; i >= 0; i--) {
+                CsvTransactionRow tx = previousTransactions.get(i);
+                if (deadLine.getTime() > tx.getDate().getTime()) {
+                    return false;
+                } else if (tx.getSide() == Action.SELL_PANIC) {
+                    return true;
+                }
+            }
+        }
+	    return false;
+	}
+	
 	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Account account) {
 		List<Map<String, String>> rows = new ArrayList<>();
 		double totalUsdt = 0.0;
