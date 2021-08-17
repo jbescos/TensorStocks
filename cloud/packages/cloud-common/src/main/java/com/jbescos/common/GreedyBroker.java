@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -14,17 +15,23 @@ public class GreedyBroker implements Broker {
 	private static final double MIN_FACTOR_TO_BUY = CloudProperties.BOT_GREEDY_MIN_FACTOR_BUY;
 	private static final double MIN_PROFIT_TO_SELL = CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL;
 
-	public GreedyBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions) {
+	public GreedyBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, List<CsvTransactionRow> symbolTransactions) {
 		this.symbol = symbol;
 		this.newest = values.get(values.size() - 1);
 		if (values.size() > 1) {
 			this.secondNewest = values.get(values.size() - 2);
-			if (newest.getPrice() > secondNewest.getPrice()) {
+			if (hasPreviousTransactions) {
 				this.factor = Utils.calculateFactor(secondNewest, newest);
 				// SELL
 				minProfitableSellPrice = minProfitableSellPrice + (minProfitableSellPrice * MIN_PROFIT_TO_SELL);
 				if (newest.getPrice() > minProfitableSellPrice) {
-					action = Action.SELL;
+				    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
+	                CsvTransactionRow tx = symbolTransactions.get(0);
+	                if (tx.getDate().getTime() < expirationHoldDate.getTime()) {
+	                    action = Action.SELL;
+	                } else {
+	                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " and it will hold till " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
+	                }
 				} else {
 					LOGGER.info(symbol + " sell discarded because price is lower than min profitable " + Utils.format(minProfitableSellPrice));
 				}
@@ -57,7 +64,7 @@ public class GreedyBroker implements Broker {
 
 	@Override
 	public double getFactor() {
-		return factor;
+		return CloudProperties.BOT_GREEDY_DEFAULT_FACTOR_SELL;
 	}
 
 }
