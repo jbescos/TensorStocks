@@ -23,17 +23,18 @@ public class GreedyBroker implements Broker {
 			if (hasPreviousTransactions) {
 				this.factor = Utils.calculateFactor(secondNewest, newest);
 				// SELL
-				minProfitableSellPrice = minProfitableSellPrice + (minProfitableSellPrice * MIN_PROFIT_TO_SELL);
-				if (newest.getPrice() > minProfitableSellPrice) {
+				double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * MIN_PROFIT_TO_SELL);
+				if (newest.getPrice() > acceptedPrice) {
 				    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
 	                CsvTransactionRow tx = symbolTransactions.get(0);
-	                if (tx.getDate().getTime() < expirationHoldDate.getTime()) {
+	                acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
+	                if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
 	                    action = Action.SELL;
 	                } else {
 	                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " and it will hold till " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
 	                }
 				} else {
-					LOGGER.info(symbol + " sell discarded because price is lower than min profitable " + Utils.format(minProfitableSellPrice));
+					LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
 				}
 			} else {
 				this.factor = Utils.calculateFactor(newest, secondNewest);

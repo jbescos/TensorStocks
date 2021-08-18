@@ -66,6 +66,7 @@ public class CloudProperties {
 	public static final double BOT_GREEDY_MIN_PROFIT_SELL;
 	public static final double BOT_GREEDY_DEFAULT_FACTOR_SELL;
 	public static final int BOT_GREEDY_DAYS_TO_HOLD;
+	public static final double BOT_GREEDY_IMMEDIATELY_SELL;
 	public static final Map<String, FixedBuySell> FIXED_BUY_SELL;
 
 	static {
@@ -140,6 +141,7 @@ public class CloudProperties {
 		GREEDY_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.greedy.enable"));
 		BOT_GREEDY_DEFAULT_FACTOR_SELL = Double.parseDouble(properties.getProperty("bot.greedy.default.factor.to.sell"));
 		BOT_GREEDY_DAYS_TO_HOLD = Integer.parseInt(properties.getProperty("bot.greedy.days.to.hold"));
+		BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(properties.getProperty("bot.greedy.immediately.sell"));
 		FIXED_BUY_SELL = fixedBuySell(properties);
 	}
 
