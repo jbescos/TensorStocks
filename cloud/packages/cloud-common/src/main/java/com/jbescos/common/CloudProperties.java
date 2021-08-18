@@ -62,7 +62,7 @@ public class CloudProperties {
 	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
 	public static final double BOT_PANIC_RATIO;
 	public static final int BOT_PANIC_DAYS;
-	public static final double BOT_GREEDY_MIN_FACTOR_BUY;
+	public static final double BOT_GREEDY_AVG_FACTOR_BUY;
 	public static final double BOT_GREEDY_MIN_PROFIT_SELL;
 	public static final double BOT_GREEDY_DEFAULT_FACTOR_SELL;
 	public static final int BOT_GREEDY_DAYS_TO_HOLD;
@@ -131,69 +131,69 @@ public class CloudProperties {
 		EWMA_CONSTANT = Double.parseDouble(properties.getProperty("ewma.constant"));
 		EWMA_2_CONSTANT = Double.parseDouble(properties.getProperty("ewma.2.constant"));
 		BOT_SELL_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.sell.ignore.factor.reducer"));
-		BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.buy.ignore.factor.reducer"));
-		BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
-		BOT_PANIC_RATIO = Double.parseDouble(properties.getProperty("bot.panic.ratio"));
-		BOT_PANIC_DAYS = Integer.parseInt(properties.getProperty("bot.panic.days"));
-		BOT_GREEDY_MIN_FACTOR_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.factor.buy"));
-		BOT_GREEDY_MIN_PROFIT_SELL = Double.parseDouble(properties.getProperty("bot.greedy.min.profit.sell"));
-		PANIC_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.panic.enable"));
-		GREEDY_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.greedy.enable"));
-		BOT_GREEDY_DEFAULT_FACTOR_SELL = Double.parseDouble(properties.getProperty("bot.greedy.default.factor.to.sell"));
-		BOT_GREEDY_DAYS_TO_HOLD = Integer.parseInt(properties.getProperty("bot.greedy.days.to.hold"));
-		BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(properties.getProperty("bot.greedy.immediately.sell"));
-		FIXED_BUY_SELL = fixedBuySell(properties);
-	}
+        BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(properties.getProperty("bot.buy.ignore.factor.reducer"));
+        BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
+        BOT_PANIC_RATIO = Double.parseDouble(properties.getProperty("bot.panic.ratio"));
+        BOT_PANIC_DAYS = Integer.parseInt(properties.getProperty("bot.panic.days"));
+        BOT_GREEDY_AVG_FACTOR_BUY = Double.parseDouble(properties.getProperty("bot.greedy.avg.factor.buy"));
+        BOT_GREEDY_MIN_PROFIT_SELL = Double.parseDouble(properties.getProperty("bot.greedy.min.profit.sell"));
+        PANIC_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.panic.enable"));
+        GREEDY_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.greedy.enable"));
+        BOT_GREEDY_DEFAULT_FACTOR_SELL = Double.parseDouble(properties.getProperty("bot.greedy.default.factor.to.sell"));
+        BOT_GREEDY_DAYS_TO_HOLD = Integer.parseInt(properties.getProperty("bot.greedy.days.to.hold"));
+        BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(properties.getProperty("bot.greedy.immediately.sell"));
+        FIXED_BUY_SELL = fixedBuySell(properties);
+    }
 
-	private static Map<String, Double> createMinSell(Properties properties) {
-		Map<String, Double> minSell = new HashMap<>();
-		Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
-		while (enums.hasMoreElements()) {
-			String key = enums.nextElement();
-			if (key.startsWith("bot.min.sell")) {
-				double value = Double.parseDouble(properties.getProperty(key));
-				String symbol = key.split("\\.")[3];
-				minSell.put(symbol, value);
-			}
-		}
-		return Collections.unmodifiableMap(minSell);
+    private static Map<String, Double> createMinSell(Properties properties) {
+        Map<String, Double> minSell = new HashMap<>();
+        Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+        while (enums.hasMoreElements()) {
+            String key = enums.nextElement();
+            if (key.startsWith("bot.min.sell")) {
+                double value = Double.parseDouble(properties.getProperty(key));
+                String symbol = key.split("\\.")[3];
+                minSell.put(symbol, value);
+            }
+        }
+        return Collections.unmodifiableMap(minSell);
 	}
 	
-	private static Map<String, FixedBuySell> fixedBuySell(Properties properties) {
-		Map<String, FixedBuySell> fixedBuySell = new HashMap<>();
-		Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
-		while (enums.hasMoreElements()) {
-			String key = enums.nextElement();
-			if (key.startsWith("bot.fixed")) {
-				String symbol = key.split("\\.")[3];
-				if (!fixedBuySell.containsKey(symbol)) {
-					double fixedSell = Double.parseDouble(properties.getProperty("bot.fixed.sell." + symbol));
-					double fixedBuy = Double.parseDouble(properties.getProperty("bot.fixed.buy." + symbol));
-					FixedBuySell content = new FixedBuySell(fixedSell, fixedBuy);
-					fixedBuySell.put(symbol, content);
-				}
-			}
-		}
-		return Collections.unmodifiableMap(fixedBuySell);
-	}
+    private static Map<String, FixedBuySell> fixedBuySell(Properties properties) {
+        Map<String, FixedBuySell> fixedBuySell = new HashMap<>();
+        Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+        while (enums.hasMoreElements()) {
+            String key = enums.nextElement();
+            if (key.startsWith("bot.fixed")) {
+                String symbol = key.split("\\.")[3];
+                if (!fixedBuySell.containsKey(symbol)) {
+                    double fixedSell = Double.parseDouble(properties.getProperty("bot.fixed.sell." + symbol));
+                    double fixedBuy = Double.parseDouble(properties.getProperty("bot.fixed.buy." + symbol));
+                    FixedBuySell content = new FixedBuySell(fixedSell, fixedBuy);
+                    fixedBuySell.put(symbol, content);
+                }
+            }
+        }
+        return Collections.unmodifiableMap(fixedBuySell);
+    }
 
-	public static double minSell(String symbol) {
-		Double value = MIN_SELL.get(symbol);
-		return value == null ? 0.0 : value;
-	}
-	
-	public static class FixedBuySell {
-		private final double fixedSell;
-		private final double fixedBuy;
-		public FixedBuySell(double fixedSell, double fixedBuy) {
-			this.fixedSell = fixedSell;
-			this.fixedBuy = fixedBuy;
-		}
-		public double getFixedSell() {
-			return fixedSell;
-		}
-		public double getFixedBuy() {
-			return fixedBuy;
-		}
-	}
+    public static double minSell(String symbol) {
+        Double value = MIN_SELL.get(symbol);
+        return value == null ? 0.0 : value;
+    }
+    
+    public static class FixedBuySell {
+        private final double fixedSell;
+        private final double fixedBuy;
+        public FixedBuySell(double fixedSell, double fixedBuy) {
+            this.fixedSell = fixedSell;
+            this.fixedBuy = fixedBuy;
+        }
+        public double getFixedSell() {
+            return fixedSell;
+        }
+        public double getFixedBuy() {
+            return fixedBuy;
+        }
+    }
 }

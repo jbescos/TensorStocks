@@ -28,6 +28,7 @@ public class Utils {
 
     private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
     public static final long MINUTES_30_MILLIS = 30 * 60 * 1000;
+    public static final long MILLIS_IN_DAY = 1000 * 60 * 60 * 24;
 	public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
@@ -66,6 +67,18 @@ public class Utils {
 		c.setTime(currentTime);
 		c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
 		return c.getTime();
+	}
+	
+	public static long getDaysInBetween(Date d1, Date d2) {
+	    long difference = d1.getTime() - d2.getTime();
+	    if (difference < 0) {
+	        difference = difference * -1;
+	    }
+	    return millisToDay(difference);
+	}
+	
+	private static long millisToDay(long millis) {
+	    return millis / MILLIS_IN_DAY;
 	}
 	
 	public static Date fromString(DateFormat format, String date) {

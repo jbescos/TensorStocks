@@ -169,6 +169,20 @@ public class UtilsTest {
                 , dateLimit));
 	}
 	
+	@Test
+	public void getDaysInBetween() {
+	    Date d1 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:00:01");
+	    Date d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:00:01");
+	    Date d3 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-03 00:00:02");
+	    Date d4 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 12:00:01");
+	    long days = Utils.getDaysInBetween(d1, d2);
+	    assertEquals(1, days);
+	    days = Utils.getDaysInBetween(d1, d3);
+        assertEquals(2, days);
+        days = Utils.getDaysInBetween(d1, d4);
+        assertEquals(0, days);
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}

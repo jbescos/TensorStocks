@@ -9,45 +9,42 @@ public class GreedyBroker implements Broker {
 	private static final Logger LOGGER = Logger.getLogger(GreedyBroker.class.getName());
 	private final String symbol;
 	private final CsvRow newest;
-	private double factor = 0;
+	private final double minProfitableSellPrice;
 	private Action action = Action.NOTHING;
-	private CsvRow secondNewest;
-	private static final double MIN_FACTOR_TO_BUY = CloudProperties.BOT_GREEDY_MIN_FACTOR_BUY;
-	private static final double MIN_PROFIT_TO_SELL = CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL;
 
 	public GreedyBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, List<CsvTransactionRow> symbolTransactions) {
 		this.symbol = symbol;
 		this.newest = values.get(values.size() - 1);
-		if (values.size() > 1) {
-			this.secondNewest = values.get(values.size() - 2);
-			if (hasPreviousTransactions) {
-				this.factor = Utils.calculateFactor(secondNewest, newest);
-				// SELL
-				double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * MIN_PROFIT_TO_SELL);
-				if (newest.getPrice() > acceptedPrice) {
-				    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
-	                CsvTransactionRow tx = symbolTransactions.get(0);
-	                acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
-	                if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
-	                    action = Action.SELL;
-	                } else {
-	                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " and it will hold till " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
-	                }
-				} else {
-					LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
-				}
+		this.minProfitableSellPrice = minProfitableSellPrice;
+		if (hasPreviousTransactions) {
+			// SELL
+			double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL);
+			if (newest.getPrice() > acceptedPrice) {
+			    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
+                CsvTransactionRow tx = symbolTransactions.get(0);
+                acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
+                if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
+                    action = Action.SELL;
+                } else {
+                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " and it will hold during the next " + Utils.getDaysInBetween(expirationHoldDate, expirationHoldDate) + " days");
+                }
 			} else {
-				this.factor = Utils.calculateFactor(newest, secondNewest);
-				// BUY
-				if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && factor > MIN_FACTOR_TO_BUY) {
-					action = Action.BUY;
-				} else {
-					LOGGER.info(symbol + " buy discarded because min profit to sell is set to " + MIN_FACTOR_TO_BUY + " and the current one is " + factor + " or is in the bot.never.buy");
-				}
+				LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
+			}
+		} else {
+			// BUY
+			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && isCloseToAVG()) {
+				action = Action.BUY;
+			} else {
+				LOGGER.info(symbol + " current price is not close to AVG or is in the bot.never.buy");
 			}
 		}
 	}
 
+	private boolean isCloseToAVG() {
+	    return (newest.getAvg() / newest.getPrice()) >= CloudProperties.BOT_GREEDY_AVG_FACTOR_BUY;
+	}
+	
 	@Override
 	public Action getAction() {
 		return action;
@@ -67,5 +64,12 @@ public class GreedyBroker implements Broker {
 	public double getFactor() {
 		return CloudProperties.BOT_GREEDY_DEFAULT_FACTOR_SELL;
 	}
+	
+	   @Override
+	    public String toString() {
+	        StringBuilder builder = new StringBuilder("symbol=").append(symbol);
+	        builder.append(", newest=").append(newest).append(", avg=").append(newest.getAvg()).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
+	        return builder.toString();
+	    }
 
 }
