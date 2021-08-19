@@ -123,7 +123,7 @@ public class BotUtils {
 				// FIXME
 //			    return new PanicBroker(symbol, newest, minProfitableSellPrice);
 				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
-			} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg() && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
+			} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
 				return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
 			} else {
 				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);

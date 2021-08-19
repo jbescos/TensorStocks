@@ -18,14 +18,13 @@ public class CautelousBroker implements Broker {
 	private CsvRow middle;
 	private CsvRow oldest;
 	private final Action action;
-	private final Mode mode;
 	private final double minProfitableSellPrice;
 	private final boolean hasPreviousTransactions;
 
 	public CautelousBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions) {
 		this.symbol = symbol;
-		this.min = getMinMax(values, true);
-		this.max = getMinMax(values, false);
+		this.min = Utils.getMinMax(values, true);
+		this.max = Utils.getMinMax(values, false);
 		this.factor = Utils.calculateFactor(min, max);
 		this.newest = values.get(values.size() - 1);
 		if (newest.getAvg() == null) {
@@ -41,7 +40,6 @@ public class CautelousBroker implements Broker {
 			    oldest = values.get(values.size() - 3);
 			}
 		}
-		this.mode = getMode();
 		this.hasPreviousTransactions = hasPreviousTransactions;
 		this.minProfitableSellPrice = minProfitableSellPrice;
 		this.action = evaluate(newest.getPrice(), m);
@@ -49,15 +47,6 @@ public class CautelousBroker implements Broker {
 	
 	public CautelousBroker(String symbol, List<CsvRow> values) {
 		this(symbol, values,0, false);
-	}
-
-	private Mode getMode() {
-		if (middle != null) {
-			if (newest.getAvg() > middle.getAvg() && newest.getAvg2() > middle.getAvg2()) {
-				return Mode.BULLISH;
-			}
-		}
-		return Mode.BEARISH;
 	}
 	
 	public CsvRow getMin() {
@@ -150,7 +139,7 @@ public class CautelousBroker implements Broker {
 				double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
 				if (buyCommision < avg) {
 					if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-						double comparedFactor = getComparedFactor(Action.BUY);
+						double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
 						if (factor > comparedFactor) {
 							if (m < 0) { // It is going up
 								double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
@@ -163,15 +152,14 @@ public class CautelousBroker implements Broker {
 								LOGGER.info(symbol + " buy discarded because price is still going down");
 							}
 						} else {
-							LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
-									 + ". Min " + min + " Max " + max);
+							LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
 						}
 					} else {
 						LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
 					}
 				} else if (sellCommision > avg) {
 					double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
-					double comparedFactor = getComparedFactor(Action.SELL);
+					double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_SELL;
 					if (factor > comparedFactor) {
 					    if (m > 0) { // It is going down
 		    				if (sellCommision > percentileMax) {
@@ -190,40 +178,12 @@ public class CautelousBroker implements Broker {
 					        LOGGER.info(symbol + " sell discarded because price is still going up");
 					    }
 					} else {
-						LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + " for " + mode
-								 + ". Min " + min + " Max " + max);
+						LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
 					}
 				}
 			}
 		}
 		return action;
-	}
-	
-	private double getComparedFactor(Action action) {
-		if (action == Action.SELL) {
-			if (mode == Mode.BULLISH) {
-				return CloudProperties.BOT_MIN_MAX_RELATION_SELL_BULLISH;
-			} else {
-				return CloudProperties.BOT_MIN_MAX_RELATION_SELL_BEARISH;
-			}
-		} else if (action == Action.BUY) {
-			if (mode == Mode.BULLISH) {
-				return CloudProperties.BOT_MIN_MAX_RELATION_BUY_BULLISH;
-			} else {
-				return CloudProperties.BOT_MIN_MAX_RELATION_BUY_BEARISH;
-			}
-		}
-		return 0;
-	}
-
-	private CsvRow getMinMax(List<CsvRow> values, boolean min) {
-		CsvRow result = values.get(0);
-		for (CsvRow row : values) {
-			if ((min && row.getPrice() < result.getPrice()) || (!min && row.getPrice() > result.getPrice())) {
-				result = row;
-			}
-		}
-		return result;
 	}
 
 	@Override
@@ -237,12 +197,5 @@ public class CautelousBroker implements Broker {
 		builder.append(", newest=").append(newest).append(", avg=").append(avg).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
 		return builder.toString();
 	}
-	
-	private static enum Mode {
-		BULLISH, BEARISH;
-	}
 
-	private static enum Style {
-		PESSIMISTIC, OPTIMISTIC;
-	}
 }

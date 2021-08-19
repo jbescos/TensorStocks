@@ -46,10 +46,8 @@ public class CloudProperties {
 	public static final double BOT_PERCENTILE_SELL_FACTOR;
 	public static final double BOT_BUY_COMISSION;
 	public static final double BOT_SELL_COMISSION;
-	public static final double BOT_MIN_MAX_RELATION_SELL_BEARISH;
-	public static final double BOT_MIN_MAX_RELATION_SELL_BULLISH;
-	public static final double BOT_MIN_MAX_RELATION_BUY_BEARISH;
-	public static final double BOT_MIN_MAX_RELATION_BUY_BULLISH;
+	public static final double BOT_MIN_MAX_RELATION_SELL;
+	public static final double BOT_MIN_MAX_RELATION_BUY;
 	public static final int BOT_DAYS_BACK_STATISTICS;
 	public static final int BOT_DAYS_BACK_TRANSACTIONS;
 	private static final Map<String, Double> MIN_SELL;
@@ -62,11 +60,12 @@ public class CloudProperties {
 	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
 	public static final double BOT_PANIC_RATIO;
 	public static final int BOT_PANIC_DAYS;
-	public static final double BOT_GREEDY_AVG_FACTOR_BUY;
+	public static final double BOT_GREEDY_MIN_FACTOR_BUY;
 	public static final double BOT_GREEDY_MIN_PROFIT_SELL;
 	public static final double BOT_GREEDY_DEFAULT_FACTOR_SELL;
 	public static final int BOT_GREEDY_DAYS_TO_HOLD;
 	public static final double BOT_GREEDY_IMMEDIATELY_SELL;
+	public static final double BOT_GREEDY_MIN_MAX_RELATION_BUY;
 	public static final Map<String, FixedBuySell> FIXED_BUY_SELL;
 
 	static {
@@ -120,10 +119,8 @@ public class CloudProperties {
 		BOT_PERCENTILE_SELL_FACTOR = Double.parseDouble(properties.getProperty("bot.percentile.sell.factor"));
 		BOT_BUY_COMISSION = Double.parseDouble(properties.getProperty("bot.buy.comission"));
 		BOT_SELL_COMISSION = Double.parseDouble(properties.getProperty("bot.sell.comission"));
-		BOT_MIN_MAX_RELATION_SELL_BEARISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.sell.bearish"));
-		BOT_MIN_MAX_RELATION_SELL_BULLISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.sell.bullish"));
-		BOT_MIN_MAX_RELATION_BUY_BEARISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.buy.bearish"));
-		BOT_MIN_MAX_RELATION_BUY_BULLISH = Double.parseDouble(properties.getProperty("bot.min.max.relation.buy.bullish"));
+		BOT_MIN_MAX_RELATION_SELL = Double.parseDouble(properties.getProperty("bot.min.max.relation.sell"));
+		BOT_MIN_MAX_RELATION_BUY = Double.parseDouble(properties.getProperty("bot.min.max.relation.buy"));
 		BOT_DAYS_BACK_STATISTICS = Integer.parseInt(properties.getProperty("bot.days.back.statistics"));
 		BOT_DAYS_BACK_TRANSACTIONS = Integer.parseInt(properties.getProperty("bot.days.back.transactions"));
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(properties.getProperty("binance.min.transaction"));
@@ -135,13 +132,14 @@ public class CloudProperties {
         BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
         BOT_PANIC_RATIO = Double.parseDouble(properties.getProperty("bot.panic.ratio"));
         BOT_PANIC_DAYS = Integer.parseInt(properties.getProperty("bot.panic.days"));
-        BOT_GREEDY_AVG_FACTOR_BUY = Double.parseDouble(properties.getProperty("bot.greedy.avg.factor.buy"));
+        BOT_GREEDY_MIN_FACTOR_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.factor.buy"));
         BOT_GREEDY_MIN_PROFIT_SELL = Double.parseDouble(properties.getProperty("bot.greedy.min.profit.sell"));
         PANIC_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.panic.enable"));
         GREEDY_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.greedy.enable"));
         BOT_GREEDY_DEFAULT_FACTOR_SELL = Double.parseDouble(properties.getProperty("bot.greedy.default.factor.to.sell"));
         BOT_GREEDY_DAYS_TO_HOLD = Integer.parseInt(properties.getProperty("bot.greedy.days.to.hold"));
         BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(properties.getProperty("bot.greedy.immediately.sell"));
+        BOT_GREEDY_MIN_MAX_RELATION_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.max.relation.buy"));
         FIXED_BUY_SELL = fixedBuySell(properties);
     }
 

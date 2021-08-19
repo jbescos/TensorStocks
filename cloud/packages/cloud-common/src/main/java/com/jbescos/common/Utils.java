@@ -68,19 +68,7 @@ public class Utils {
 		c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
 		return c.getTime();
 	}
-	
-	public static long getDaysInBetween(Date d1, Date d2) {
-	    long difference = d1.getTime() - d2.getTime();
-	    if (difference < 0) {
-	        difference = difference * -1;
-	    }
-	    return millisToDay(difference);
-	}
-	
-	private static long millisToDay(long millis) {
-	    return millis / MILLIS_IN_DAY;
-	}
-	
+
 	public static Date fromString(DateFormat format, String date) {
 		try {
 			return format.parse(date);
@@ -269,6 +257,16 @@ public class Utils {
 		double factor =  1 - (min.getPrice() / max.getPrice());
 //		LOGGER.info("MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
 		return factor;
+	}
+
+	public static CsvRow getMinMax(List<CsvRow> values, boolean min) {
+		CsvRow result = values.get(0);
+		for (CsvRow row : values) {
+			if ((min && row.getPrice() < result.getPrice()) || (!min && row.getPrice() > result.getPrice())) {
+				result = row;
+			}
+		}
+		return result;
 	}
 
 }
