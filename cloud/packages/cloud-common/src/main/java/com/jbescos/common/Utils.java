@@ -268,5 +268,19 @@ public class Utils {
 		}
 		return result;
 	}
+	
+	/**
+	 * Return true if current value is higher than percentile, otherwise false;
+	 * @param percentile
+	 * @param currentValue
+	 * @param min
+	 * @param max
+	 * @return
+	 */
+	public static boolean inPercentile(double percentile, double currentValue, double min, double max) {
+	    double normalizedCurrentValue = currentValue - min;
+	    double normalizedMax = max - min;
+	    return (normalizedCurrentValue / normalizedMax) > percentile;
+	}
 
 }

@@ -169,6 +169,19 @@ public class UtilsTest {
                 , dateLimit));
 	}
 	
+	@Test
+	public void inPercentile() {
+	    assertTrue(Utils.inPercentile(0.9, 0.95, 0, 1));
+	    assertFalse(Utils.inPercentile(0.9, 0.89, 0, 1));
+	    assertTrue(Utils.inPercentile(0.9, 1.95, 1, 2));
+	    assertFalse(Utils.inPercentile(0.9, 1.89, 1, 2));
+	    
+	    assertTrue(Utils.inPercentile(0.1, 0.11, 0, 1));
+        assertFalse(Utils.inPercentile(0.1, 0.09, 0, 1));
+        assertTrue(Utils.inPercentile(0.1, 1.11, 1, 2));
+        assertFalse(Utils.inPercentile(0.1, 1.09, 1, 2));
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}

@@ -60,7 +60,7 @@ public class CloudProperties {
 	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
 	public static final double BOT_PANIC_RATIO;
 	public static final int BOT_PANIC_DAYS;
-	public static final double BOT_GREEDY_MIN_FACTOR_BUY;
+	public static final double BOT_GREEDY_MIN_PERCENTILE_BUY;
 	public static final double BOT_GREEDY_MIN_PROFIT_SELL;
 	public static final double BOT_GREEDY_DEFAULT_FACTOR_SELL;
 	public static final int BOT_GREEDY_DAYS_TO_HOLD;
@@ -132,7 +132,7 @@ public class CloudProperties {
         BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(properties.getProperty("bot.sell.benefit.compared.transactions"));
         BOT_PANIC_RATIO = Double.parseDouble(properties.getProperty("bot.panic.ratio"));
         BOT_PANIC_DAYS = Integer.parseInt(properties.getProperty("bot.panic.days"));
-        BOT_GREEDY_MIN_FACTOR_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.factor.buy"));
+        BOT_GREEDY_MIN_PERCENTILE_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.percentile.buy"));
         BOT_GREEDY_MIN_PROFIT_SELL = Double.parseDouble(properties.getProperty("bot.greedy.min.profit.sell"));
         PANIC_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.panic.enable"));
         GREEDY_BROKER_ENABLE = Boolean.valueOf(properties.getProperty("bot.greedy.enable"));

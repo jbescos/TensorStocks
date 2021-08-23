@@ -39,7 +39,7 @@ public class GreedyBroker implements Broker {
 			}
 		} else {
 			// BUY
-			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && factor > CloudProperties.BOT_GREEDY_MIN_MAX_RELATION_BUY && isCloseToMin()) {
+			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && factor > CloudProperties.BOT_GREEDY_MIN_MAX_RELATION_BUY && inPercentileMin()) {
 				action = Action.BUY;
 			} else {
 				LOGGER.info(symbol + " is not good for buying");
@@ -47,13 +47,8 @@ public class GreedyBroker implements Broker {
 		}
 	}
 
-	private boolean isCloseToMin() {
-		double diffMin = newest.getPrice() - min.getPrice();
-		double diffMax = max.getPrice() - newest.getPrice();
-		if (diffMin < diffMax) {
-			return (min.getPrice() / newest.getPrice()) >= CloudProperties.BOT_GREEDY_MIN_FACTOR_BUY;
-		}
-	    return false;
+	private boolean inPercentileMin() {
+	    return Utils.inPercentile(CloudProperties.BOT_GREEDY_MIN_PERCENTILE_BUY, newest.getPrice(), min.getPrice(), max.getPrice()) == false;
 	}
 	
 	@Override
