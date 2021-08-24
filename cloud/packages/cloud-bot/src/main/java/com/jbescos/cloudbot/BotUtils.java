@@ -23,10 +23,12 @@ import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CautelousBroker;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CloudProperties.FixedBuySell;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.GreedyBroker;
+import com.jbescos.common.LimitsBroker;
 import com.jbescos.common.PanicBroker;
 import com.jbescos.common.Utils;
 
@@ -111,10 +113,22 @@ public class BotUtils {
 				.collect(Collectors.toList());
 	}
 	
+	private static double benefit(double minProfitableSellPrice, double currentPrice) {
+	    if (currentPrice > minProfitableSellPrice) {
+	        return 1 - (minProfitableSellPrice/currentPrice);
+	    } else {
+	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
+	    }
+	}
+	
 	private static Broker buySellInstance(String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
 		double minProfitableSellPrice = Utils.minSellProfitable(symbolTransactions);
 		boolean hasPreviousTransactions = symbolTransactions != null && !symbolTransactions.isEmpty();
 		CsvRow newest = rows.get(rows.size() - 1);
+		if (hasPreviousTransactions) {
+		    LOGGER.info(symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
+		}
+		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
 		if (rows.size() < 2) {
 			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
 		} else {
@@ -123,6 +137,8 @@ public class BotUtils {
 				// FIXME
 //			    return new PanicBroker(symbol, newest, minProfitableSellPrice);
 				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+			} else if (fixedBuySell != null) {
+			    return new LimitsBroker(symbol, rows, fixedBuySell);
 			} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
 				return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
 			} else {

@@ -32,7 +32,7 @@ public class GreedyBroker implements Broker {
                 if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
                     action = Action.SELL;
                 } else {
-                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher tha moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
+                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
                 }
 			} else {
 				LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
