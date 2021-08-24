@@ -14,6 +14,8 @@ public class GreedyBroker implements Broker {
 	private final CsvRow min;
 	private final CsvRow max;
 	private Action action = Action.NOTHING;
+    private CsvRow middle;
+    private CsvRow oldest;
 
 	public GreedyBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, List<CsvTransactionRow> symbolTransactions) {
 		this.symbol = symbol;
@@ -22,30 +24,68 @@ public class GreedyBroker implements Broker {
 		this.max = Utils.getMinMax(values, false);
 		this.factor = Utils.calculateFactor(min, max);
 		this.minProfitableSellPrice = minProfitableSellPrice;
+		if (values.size() > 1) {
+            middle = values.get(values.size() - 2);
+            if (values.size() > 2) {
+                oldest = values.get(values.size() - 3);
+            }
+        }
 		if (hasPreviousTransactions) {
 			// SELL
 			double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL);
 			if (newest.getPrice() > acceptedPrice) {
-			    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
-                CsvTransactionRow tx = symbolTransactions.get(0);
-                acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
-                if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
-                    action = Action.SELL;
-                } else {
-                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
-                }
+			    if (isMax()) {
+    			    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
+                    CsvTransactionRow tx = symbolTransactions.get(0);
+                    acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
+                    if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
+                        action = Action.SELL;
+                    } else {
+                        LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
+                    }
+			    } else {
+			        LOGGER.info(symbol + " discarded to buy because it is not a max");
+			    }
 			} else {
 				LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
 			}
 		} else {
 			// BUY
 			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && factor > CloudProperties.BOT_GREEDY_MIN_MAX_RELATION_BUY && inPercentileMin()) {
-				action = Action.BUY;
+			    if (isMin()) {
+			        action = Action.BUY;
+			    } else {
+			        LOGGER.info(symbol + " discarded to buy because it is not a min");
+			    }
 			} else {
 				LOGGER.info(symbol + " is not good for buying");
 			}
 		}
 	}
+
+    private boolean isMin() {
+        double first = newest.getPrice();
+        if (middle != null) {
+            double second = middle.getPrice();
+            if (oldest != null) {
+                double third = oldest.getPrice();
+                return second < first && second < third;
+            }
+        }
+        return false;
+    }
+    
+    private boolean isMax() {
+        double first = newest.getPrice();
+        if (middle != null) {
+            double second = middle.getPrice();
+            if (oldest != null) {
+                double third = oldest.getPrice();
+                return second > first && second > third;
+            }
+        }
+        return false;
+    }
 
 	private boolean inPercentileMin() {
 	    return Utils.inPercentile(CloudProperties.BOT_GREEDY_MIN_PERCENTILE_BUY, newest.getPrice(), min.getPrice(), max.getPrice()) == false;
