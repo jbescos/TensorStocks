@@ -34,18 +34,18 @@ public class GreedyBroker implements Broker {
 			// SELL
 			double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL);
 			if (newest.getPrice() > acceptedPrice) {
-			    if (isMax()) {
-    			    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
-                    CsvTransactionRow tx = symbolTransactions.get(0);
-                    acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
-                    if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
+			    Date expirationHoldDate = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_GREEDY_DAYS_TO_HOLD);
+                CsvTransactionRow tx = symbolTransactions.get(0);
+                acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
+                if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
+                    if (isMax()) {
                         action = Action.SELL;
                     } else {
-                        LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
+                        LOGGER.info(symbol + " discarded to sell because it is not a max");
                     }
-			    } else {
-			        LOGGER.info(symbol + " discarded to buy because it is not a max");
-			    }
+                } else {
+                    LOGGER.info(symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
+                }
 			} else {
 				LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
 			}
