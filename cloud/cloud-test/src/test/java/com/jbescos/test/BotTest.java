@@ -163,9 +163,6 @@ public class BotTest {
         CsvRow last = rows.get(rows.size() - 1);
         String subfix = result.success ? "_success" : "_failure";
         File chartFile = new File("./target/" + last.getSymbol() + subfix + ".png");
-        if (chartFile.exists()) {
-            chartFile.delete();
-        }
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
             IChart<IRow> chart = new XYChart();
             ChartGenerator.writeChart(trader.getTransactions(), output, chart);
@@ -174,9 +171,6 @@ public class BotTest {
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
         File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");
-        if (barChartFile.exists()) {
-            barChartFile.delete();
-        }
         try (FileOutputStream output = new FileOutputStream(barChartFile)) {
             Map<String, Double> walletUsdt = new HashMap<>();
             for (Entry<String, Double> entry : trader.getWallet().entrySet()) {
@@ -184,6 +178,25 @@ public class BotTest {
             }
             IChart<IRow> chart = new BarChart(walletUsdt);
             ChartGenerator.writeChart(trader.getTransactions(), output, chart);
+            ChartGenerator.save(output, chart);
+        } catch (IOException e) {}
+        File volumeChartFile = new File("./target/" + last.getSymbol() + subfix + "_volume.png");
+        try (FileOutputStream output = new FileOutputStream(volumeChartFile)) {
+            IChart<IRow> chart = new XYChart();
+            List<CsvRow> buyVolumens = new ArrayList<>();
+            List<CsvRow> sellVolumens = new ArrayList<>();
+            for (CsvRow row : rows) {
+                String volumeBuyStr = row.getKline().getTakerBuyBaseAssetVolume();
+                double volumeBuy = "".equals(volumeBuyStr) ? 0 : Double.parseDouble(volumeBuyStr);
+                String volumeTotalStr = row.getKline().getVolume();
+                double volumeTotal = "".equals(volumeTotalStr) ? 0 : Double.parseDouble(volumeTotalStr);
+                CsvRow buyVol = new CsvRow(row.getDate(), "BUY_VOLUME", volumeBuy);
+                CsvRow sellVol = new CsvRow(row.getDate(), "SELL_VOLUME", volumeTotal - volumeBuy);
+                buyVolumens.add(buyVol);
+                sellVolumens.add(sellVol);
+            }
+            ChartGenerator.writeChart(buyVolumens, output, chart);
+            ChartGenerator.writeChart(sellVolumens, output, chart);
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
     }
