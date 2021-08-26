@@ -31,14 +31,10 @@ public class LimitsBroker implements Broker {
                 LOGGER.info(symbol + " discarded to buy because it is not a max");
             }
         } else if (price <= fixedBuySell.getFixedBuy()) {
-            if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-                if (isMin()) {
-                    action = Action.BUY;
-                } else {
-                    LOGGER.info(symbol + " discarded to buy because it is not a min");
-                }
+            if (isMin()) {
+                action = Action.BUY;
             } else {
-                LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
+                LOGGER.info(symbol + " discarded to buy because it is not a min");
             }
         } else {
             LOGGER.info(symbol + " discarded to buy because " + Utils.format(price) + " is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));

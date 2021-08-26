@@ -38,23 +38,27 @@ public class BotBinance {
 	}
 	
 	private void buy(String symbol, Broker stat) throws FileNotFoundException, IOException {
-		wallet.putIfAbsent(Utils.USDT, 0.0);
-		double usdt = wallet.get(Utils.USDT);
-		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
-		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
-		    buy = buy * stat.getFactor();
-		}
-		if (buy < CloudProperties.BINANCE_MIN_TRANSACTION) {
-			buy = CloudProperties.BINANCE_MIN_TRANSACTION;
-		}
-		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
-		if (updateWallet(Utils.USDT, buy * -1)) {
-			try {
-				api.orderUSDT(symbol, stat.getAction(), Utils.format(buy));
-			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
-			}
-		}
+	    if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+    		wallet.putIfAbsent(Utils.USDT, 0.0);
+    		double usdt = wallet.get(Utils.USDT);
+    		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
+    		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+    		    buy = buy * stat.getFactor();
+    		}
+    		if (buy < CloudProperties.BINANCE_MIN_TRANSACTION) {
+    			buy = CloudProperties.BINANCE_MIN_TRANSACTION;
+    		}
+    		LOGGER.info("Trying to buy " + buy + " of " + usdt + " USDT. Stats = " + stat);
+    		if (updateWallet(Utils.USDT, buy * -1)) {
+    			try {
+    				api.orderUSDT(symbol, stat.getAction(), Utils.format(buy));
+    			} catch (Exception e) {
+    				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
+    			}
+    		}
+	    } else {
+	        LOGGER.info(symbol + " discarded to buy because it is in bot.never.buy");
+	    }
 	}
 	
 	private void sell(String symbol, Broker stat) throws FileNotFoundException, IOException {

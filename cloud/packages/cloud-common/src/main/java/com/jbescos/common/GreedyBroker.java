@@ -51,7 +51,7 @@ public class GreedyBroker implements Broker {
 			}
 		} else {
 			// BUY
-			if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && factor > CloudProperties.BOT_GREEDY_MIN_MAX_RELATION_BUY && inPercentileMin()) {
+			if (factor > CloudProperties.BOT_GREEDY_MIN_MAX_RELATION_BUY && inPercentileMin()) {
 			    if (isMin()) {
 			        action = Action.BUY;
 			    } else {

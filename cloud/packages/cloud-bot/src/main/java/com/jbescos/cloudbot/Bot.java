@@ -64,25 +64,27 @@ public class Bot {
 	}
 
 	private void buy(String symbol, Broker stat) {
-		double currentPrice = stat.getNewest().getPrice();
-		wallet.putIfAbsent(symbol, 0.0);
-		double usdt = wallet.get(Utils.USDT);
-		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
-		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
-            buy = buy * stat.getFactor();
-        }
-		if (buy < minTransaction) {
-			buy = minTransaction;
-		}
-		if (updateWallet(Utils.USDT, buy * -1)) {
-			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
-//			double unitsOfSymbol = buy / currentPrice;
-			updateWallet(symbol, unitsOfSymbol);
-			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, buy, unitsOfSymbol, currentPrice);
-			transactions.add(transaction);
-			didAction = true;
-//			LOGGER.info(stat + "" + transaction);
-		}
+	    if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+    		double currentPrice = stat.getNewest().getPrice();
+    		wallet.putIfAbsent(symbol, 0.0);
+    		double usdt = wallet.get(Utils.USDT);
+    		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
+    		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+                buy = buy * stat.getFactor();
+            }
+    		if (buy < minTransaction) {
+    			buy = minTransaction;
+    		}
+    		if (updateWallet(Utils.USDT, buy * -1)) {
+    			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
+    			updateWallet(symbol, unitsOfSymbol);
+    			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, buy, unitsOfSymbol, currentPrice);
+    			transactions.add(transaction);
+    			didAction = true;
+    		}
+	    } else {
+	        LOGGER.info(symbol + " discarded to buy because it is in bot.never.buy");
+	    }
 	}
 
 	private void sell(String symbol, Broker stat) {

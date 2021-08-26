@@ -84,24 +84,20 @@ public class CautelousBroker implements Broker {
         } else {
             double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
             if (buyCommision < avg) {
-                if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-                    double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
-                    if (factor > comparedFactor) {
-                        if (m < 0) { // It is going up
-                            double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
-                            if (buyCommision < percentileMin) {
-                                action = Action.BUY;
-                            } else {
-                                LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
-                            }
+                double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
+                if (factor > comparedFactor) {
+                    if (m < 0) { // It is going up
+                        double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
+                        if (buyCommision < percentileMin) {
+                            action = Action.BUY;
                         } else {
-                            LOGGER.info(symbol + " buy discarded because price is still going down");
+                            LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                         }
                     } else {
-                        LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
+                        LOGGER.info(symbol + " buy discarded because price is still going down");
                     }
                 } else {
-                    LOGGER.info(symbol + " discarded to be bought because it is in the list of bot.never.buy");
+                    LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
                 }
             } else if (sellCommision > avg) {
                 double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
