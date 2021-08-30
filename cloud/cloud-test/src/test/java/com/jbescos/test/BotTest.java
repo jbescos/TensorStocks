@@ -186,14 +186,16 @@ public class BotTest {
             List<CsvRow> buyVolumens = new ArrayList<>();
             List<CsvRow> sellVolumens = new ArrayList<>();
             for (CsvRow row : rows) {
-                String volumeBuyStr = row.getKline().getTakerBuyBaseAssetVolume();
-                double volumeBuy = "".equals(volumeBuyStr) ? 0 : Double.parseDouble(volumeBuyStr);
-                String volumeTotalStr = row.getKline().getVolume();
-                double volumeTotal = "".equals(volumeTotalStr) ? 0 : Double.parseDouble(volumeTotalStr);
-                CsvRow buyVol = new CsvRow(row.getDate(), "BUY_VOLUME", volumeBuy);
-                CsvRow sellVol = new CsvRow(row.getDate(), "SELL_VOLUME", volumeTotal - volumeBuy);
-                buyVolumens.add(buyVol);
-                sellVolumens.add(sellVol);
+            	if (row.getKline() != null) {
+	                String volumeBuyStr = row.getKline().getTakerBuyBaseAssetVolume();
+	                double volumeBuy = "".equals(volumeBuyStr) ? 0 : Double.parseDouble(volumeBuyStr);
+	                String volumeTotalStr = row.getKline().getVolume();
+	                double volumeTotal = "".equals(volumeTotalStr) ? 0 : Double.parseDouble(volumeTotalStr);
+	                CsvRow buyVol = new CsvRow(row.getDate(), "BUY_VOLUME", volumeBuy);
+	                CsvRow sellVol = new CsvRow(row.getDate(), "SELL_VOLUME", volumeTotal - volumeBuy);
+	                buyVolumens.add(buyVol);
+	                sellVolumens.add(sellVol);
+            	}
             }
             ChartGenerator.writeChart(buyVolumens, output, chart);
             ChartGenerator.writeChart(sellVolumens, output, chart);
