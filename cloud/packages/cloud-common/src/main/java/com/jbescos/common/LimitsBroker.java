@@ -47,7 +47,7 @@ public class LimitsBroker implements Broker {
             double second = middle.getPrice();
             if (oldest != null) {
                 double third = oldest.getPrice();
-                return second < first && second < third;
+                return second <= first && second < third;
             }
         }
         return false;
@@ -59,7 +59,7 @@ public class LimitsBroker implements Broker {
             double second = middle.getPrice();
             if (oldest != null) {
                 double third = oldest.getPrice();
-                return second > first && second > third;
+                return second >= first && second > third;
             }
         }
         return false;
