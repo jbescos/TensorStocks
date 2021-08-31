@@ -13,7 +13,6 @@ public class CautelousBroker implements Broker {
     private final CsvRow min;
     private final CsvRow max;
     private final CsvRow newest;
-    private CsvRow middle;
     private final Action action;
     private final double minProfitableSellPrice;
     private final boolean hasPreviousTransactions;
@@ -29,18 +28,13 @@ public class CautelousBroker implements Broker {
         } else {
             this.avg = newest.getAvg();
         }
-        double m = 0;
-        if (values.size() > 1) {
-            middle = values.get(values.size() - 2);
-            m = middle.getPrice() - newest.getPrice();
-        }
         this.hasPreviousTransactions = hasPreviousTransactions;
         this.minProfitableSellPrice = minProfitableSellPrice;
-        this.action = evaluate(newest.getPrice(), m);
+        this.action = evaluate(newest.getPrice(), values);
     }
     
     public CautelousBroker(String symbol, List<CsvRow> values) {
-        this(symbol, values,0, false);
+        this(symbol, values, 0, false);
     }
     
     public CsvRow getMin() {
@@ -75,7 +69,7 @@ public class CautelousBroker implements Broker {
         return newest;
     }
 
-    private Action evaluate(double price, double m) {
+    private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
         double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
         if (hasPreviousTransactions && ( 1 - (minProfitableSellPrice / price)) > CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
@@ -86,7 +80,7 @@ public class CautelousBroker implements Broker {
             if (buyCommision < avg) {
                 double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
                 if (factor > comparedFactor) {
-                    if (m < 0) { // It is going up
+                    if (Utils.isMin(values)) { // It is going up
                         double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
                         if (buyCommision < percentileMin) {
                             action = Action.BUY;
@@ -94,7 +88,7 @@ public class CautelousBroker implements Broker {
                             LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                         }
                     } else {
-                        LOGGER.info(symbol + " buy discarded because price is still going down");
+                        LOGGER.info(symbol + " buy discarded because it is not min");
                     }
                 } else {
                     LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
@@ -103,7 +97,7 @@ public class CautelousBroker implements Broker {
                 double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
                 double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_SELL;
                 if (factor > comparedFactor) {
-                    if (m > 0) { // It is going down
+                    if (Utils.isMax(values)) { // It is going down
                         if (sellCommision > percentileMax) {
                             double minSell = CloudProperties.minSell(this.symbol);
                             if (sellCommision < minSell) {
@@ -117,7 +111,7 @@ public class CautelousBroker implements Broker {
                             LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
                         }
                     } else {
-                        LOGGER.info(symbol + " sell discarded because price is still going up");
+                        LOGGER.info(symbol + " sell discarded because it is not max");
                     }
                 } else {
                     LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);

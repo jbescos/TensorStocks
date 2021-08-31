@@ -282,5 +282,25 @@ public class Utils {
 	    double normalizedMax = max - min;
 	    return (normalizedCurrentValue / normalizedMax) > percentile;
 	}
+	
+	public static boolean isMax(List<? extends IRow> rows) {
+		if (rows.size() > 2) {
+			double newest = rows.get(rows.size() - 1).getPrice();
+			double middle = rows.get(rows.size() - 2).getPrice();
+			double oldest = rows.get(rows.size() - 3).getPrice();
+			return middle >= newest && middle > oldest;
+		}
+        return false;
+	}
+	
+	public static boolean isMin(List<? extends IRow> rows) {
+		if (rows.size() > 2) {
+			double newest = rows.get(rows.size() - 1).getPrice();
+			double middle = rows.get(rows.size() - 2).getPrice();
+			double oldest = rows.get(rows.size() - 3).getPrice();
+			return middle <= newest && middle < oldest && newest <= oldest;
+		}
+        return false;
+	}
 
 }

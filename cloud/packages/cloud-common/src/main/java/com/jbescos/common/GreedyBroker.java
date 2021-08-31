@@ -14,8 +14,6 @@ public class GreedyBroker implements Broker {
 	private final CsvRow min;
 	private final CsvRow max;
 	private Action action = Action.NOTHING;
-    private CsvRow middle;
-    private CsvRow oldest;
 
 	public GreedyBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, List<CsvTransactionRow> symbolTransactions) {
 		this.symbol = symbol;
@@ -24,12 +22,6 @@ public class GreedyBroker implements Broker {
 		this.max = Utils.getMinMax(values, false);
 		this.factor = Utils.calculateFactor(min, max);
 		this.minProfitableSellPrice = minProfitableSellPrice;
-		if (values.size() > 1) {
-            middle = values.get(values.size() - 2);
-            if (values.size() > 2) {
-                oldest = values.get(values.size() - 3);
-            }
-        }
 		if (hasPreviousTransactions) {
 			// SELL
 			double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_MIN_PROFIT_SELL);
@@ -38,7 +30,7 @@ public class GreedyBroker implements Broker {
                 CsvTransactionRow tx = symbolTransactions.get(0);
                 acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
                 if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
-                    if (isMax() || ( 1 - (minProfitableSellPrice / newest.getPrice())) > CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
+                    if (Utils.isMax(values) || ( 1 - (minProfitableSellPrice / newest.getPrice())) > CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
                         action = Action.SELL;
                     } else {
                         LOGGER.info(symbol + " discarded to sell because it is not a max");
@@ -52,7 +44,7 @@ public class GreedyBroker implements Broker {
 		} else {
 			// BUY
 			if (factor > CloudProperties.BOT_GREEDY_MIN_MAX_RELATION_BUY && inPercentileMin()) {
-			    if (isMin()) {
+			    if (Utils.isMin(values)) {
 			        action = Action.BUY;
 			    } else {
 			        LOGGER.info(symbol + " discarded to buy because it is not a min");
@@ -62,30 +54,6 @@ public class GreedyBroker implements Broker {
 			}
 		}
 	}
-
-    private boolean isMin() {
-        double first = newest.getPrice();
-        if (middle != null) {
-            double second = middle.getPrice();
-            if (oldest != null) {
-                double third = oldest.getPrice();
-                return second < first && second < third;
-            }
-        }
-        return false;
-    }
-    
-    private boolean isMax() {
-        double first = newest.getPrice();
-        if (middle != null) {
-            double second = middle.getPrice();
-            if (oldest != null) {
-                double third = oldest.getPrice();
-                return second > first && second > third;
-            }
-        }
-        return false;
-    }
 
 	private boolean inPercentileMin() {
 	    return Utils.inPercentile(CloudProperties.BOT_GREEDY_MIN_PERCENTILE_BUY, newest.getPrice(), min.getPrice(), max.getPrice()) == false;
