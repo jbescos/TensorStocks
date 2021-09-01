@@ -36,7 +36,7 @@ public class CsvUpdater {
 	private static final long MILLIS_24H = 3600 * 1000 * 24;
 
 	public static void main(String args[]) throws IOException {
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources", "2021-07-11.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources", "2021-05-08.csv");
 		LOGGER.info("Finished");
 	}
 	
@@ -105,18 +105,24 @@ public class CsvUpdater {
 						LOGGER.info("Read " + rowsInFile.size() + " rows in " + fullPath);
 						Collections.sort(rowsInFile, (r1, r2) -> r1.getDate().compareTo(r2.getDate()));
 						Map<String, List<CsvRow>> groupedSymbol = rowsInFile.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-						addKlines(api, groupedSymbol, startTime, endTime);
+//						addKlines(api, groupedSymbol, startTime, endTime);
 						for (List<CsvRow> values : groupedSymbol.values()) {
 							CsvRow last = lastPrices.get(values.get(0).getSymbol());
-							Double previousResult = last == null ? null : last.getAvg();
-							Double previousLongThermResult = last == null ? null : last.getAvg2();
 							for (CsvRow row : values) {
-								previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
-								previousLongThermResult = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), previousLongThermResult);
-								row.setAvg(previousResult);
-								row.setAvg2(previousLongThermResult);
+								double avg;
+								double avg2;
+								if (last == null) {
+									last = row;
+									avg = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), null);
+									avg2 = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), null);
+								} else {
+									avg = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), last.getAvg());
+									avg2 = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), last.getAvg2());
+								}
+								row.setAvg(avg);
+								row.setAvg2(avg2);
+								last = row;
 							}
-							last = values.get(values.size() - 1);
 							lastPrices.put(last.getSymbol(), last);
 						}
 					}
