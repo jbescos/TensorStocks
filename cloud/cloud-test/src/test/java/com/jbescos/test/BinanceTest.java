@@ -2,7 +2,7 @@ package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -17,6 +17,7 @@ import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BinanceAPI.Interval;
 import com.jbescos.common.ExchangeInfo;
 import com.jbescos.common.Kline;
+import com.jbescos.common.Utils;
 
 public class BinanceTest {
 
@@ -32,6 +33,7 @@ public class BinanceTest {
         String symbol = "SHIBUSDT";
         Client client = ClientBuilder.newClient();
         ExchangeInfo info = new BinanceAPI(client).exchangeInfo(symbol);
+        LOGGER.info("Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(info.getServerTime())));
         Map<String, Object> filter = info.getFilter(symbol, ExchangeInfo.LOT_SIZE);
         assertEquals("1.00", filter.get("minQty").toString());
         assertEquals("10000000000.00", filter.get("maxQty").toString());
@@ -42,14 +44,28 @@ public class BinanceTest {
     @Test
     @Ignore
     public void klines() {
-    	Calendar now = Calendar.getInstance();
-    	now.set(Calendar.HOUR_OF_DAY, now.get(Calendar.HOUR_OF_DAY) - 1);
-    	now.set(Calendar.MINUTE, 0);
-    	long startTime = now.getTime().getTime();
+    	Date now = new Date();
+    	Date mins15Earlier = new Date(now.getTime() - ((1000 * 60 * 15) + 80000 ));
+    	Interval interval = Interval.getInterval(mins15Earlier.getTime(), now.getTime());
+    	assertEquals(Interval.MINUTES_15, interval);
+    	long from = interval.from(mins15Earlier.getTime());
+    	long to = interval.to(from);
     	String symbol = "BTCUSDT";
     	Client client = ClientBuilder.newClient();
-    	List<Kline> klines = new BinanceAPI(client).klines(Interval.MINUTES_30, symbol, null, startTime, null);
+    	List<Kline> klines = new BinanceAPI(client).klines(interval, symbol, null, from, to);
     	LOGGER.info(klines.toString());
+    	Kline kline = klines.get(0);
+    	LOGGER.info("Asking for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
+    			" and received from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getOpenTime()))
+    			+ " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getCloseTime())));
     	client.close();
+    }
+
+    @Test
+    @Ignore
+    public void serverTime() {
+    	Client client = ClientBuilder.newClient();
+    	long time = new BinanceAPI(client).time();
+    	LOGGER.info("Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(time)));
     }
 }

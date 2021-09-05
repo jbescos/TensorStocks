@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.channels.Channels;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -37,7 +36,7 @@ public class BucketStorage {
 	    this.binanceAPI = binanceAPI;
 	}
 	
-	public Map<String, CsvRow> previousRowsUpdatedKline() throws IOException{
+	public Map<String, CsvRow> previousRowsUpdatedKline(long serverTime) throws IOException{
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
 		Blob retrieve = storage.get(CloudProperties.BUCKET, Utils.LAST_PRICE);
@@ -45,21 +44,32 @@ public class BucketStorage {
 			LOGGER.warning(Utils.CSV_ROW_HEADER + " was not found");
 			// TODO It is better to get it from the last records of the date.csv
 		} else {
+			String klineLogMessage = null;
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 				for (CsvRow row : csv) {
 					previousRows.put(row.getSymbol(), row);
-					long roundedDate = Utils.dateRoundedTo10Min(row.getDate()).getTime();
-	                List<Kline> klines = binanceAPI.klines(Interval.MINUTES_30, row.getSymbol(), null, roundedDate, roundedDate + Utils.MINUTES_30_MILLIS);
+					Interval interval = Interval.getInterval(row.getDate().getTime(), serverTime);
+					long from = interval.from(row.getDate().getTime());
+			    	long to = interval.to(from);
+	                List<Kline> klines = binanceAPI.klines(interval, row.getSymbol(), null, from, to);
 	                if (!klines.isEmpty()) {
-	                    LOGGER.info(row.getSymbol() + ". Found " + klines + " from " + Utils.fromDate(Utils.FORMAT_SECOND, row.getDate()));
 	                    Kline kline = klines.get(0);
 	                    row.setKline(kline);
+	                    if (klineLogMessage == null) {
+		                    klineLogMessage = "Klines obtained for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
+		                			" and received from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getOpenTime()))
+		                			+ " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getCloseTime()));
+	                    }
 	                } else {
-	                    LOGGER.warning(row.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, row.getDate()));
+	                	// Ignore it
+//	                    LOGGER.warning(row.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)));
 	                }
 				}
+			}
+			if (klineLogMessage != null) {
+				LOGGER.info(klineLogMessage);
 			}
 		}
 		return previousRows;

@@ -20,7 +20,6 @@ import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.ExchangeInfo;
 import com.jbescos.common.Price;
 import com.jbescos.common.PublisherMgr;
 import com.jbescos.common.SecureBinanceAPI;
@@ -38,9 +37,10 @@ public class StorageFunction implements HttpFunction {
 		Client client = ClientBuilder.newClient();
 		BinanceAPI binanceAPI = new BinanceAPI(client);
 		BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
-		Map<String, CsvRow> previousRows = storage.previousRowsUpdatedKline();
-		ExchangeInfo exchangeInfo = binanceAPI.exchangeInfo("BTCUSDT");
-		Date now = new Date(exchangeInfo.getServerTime());
+		long time = binanceAPI.time();
+		Date now = new Date(time);
+		LOGGER.info("Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
+		Map<String, CsvRow> previousRows = storage.previousRowsUpdatedKline(time);
 		String message = Utils.fromDate(Utils.FORMAT_SECOND, now);
 		try (PublisherMgr publisher = PublisherMgr.create()) {
 		    // Update current prices

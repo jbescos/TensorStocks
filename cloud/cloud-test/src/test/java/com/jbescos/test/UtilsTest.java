@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.junit.Test;
 
+import com.jbescos.common.BinanceAPI.Interval;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvTransactionRow;
@@ -180,6 +181,37 @@ public class UtilsTest {
         assertFalse(Utils.inPercentile(0.1, 0.09, 0, 1));
         assertTrue(Utils.inPercentile(0.1, 1.11, 1, 2));
         assertFalse(Utils.inPercentile(0.1, 1.09, 1, 2));
+	}
+	
+	@Test
+	public void intervals() {
+		Date d1 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:00:01");
+		Date d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:00:01");
+		assertEquals(Interval.MINUTES_1, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:01:01");
+		assertEquals(Interval.MINUTES_1, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:03:01");
+		assertEquals(Interval.MINUTES_3, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:05:01");
+		assertEquals(Interval.MINUTES_5, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:15:01");
+		assertEquals(Interval.MINUTES_15, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:30:01");
+		assertEquals(Interval.MINUTES_30, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 01:00:01");
+		assertEquals(Interval.HOUR_1, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:31:01");
+		assertEquals(Interval.MINUTES_30, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:41:01");
+		assertEquals(Interval.MINUTES_30, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01");
+		assertEquals(Interval.HOUR_1, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:45:01");
+		assertEquals(Interval.HOUR_1, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:45:00");
+		assertEquals(Interval.MINUTES_30, Interval.getInterval(d1.getTime(), d2.getTime()));
+		d2 = Utils.fromString(Utils.FORMAT_SECOND, "2030-05-01 00:00:01");
+		assertEquals(Interval.MONTH_1, Interval.getInterval(d1.getTime(), d2.getTime()));
 	}
 	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {

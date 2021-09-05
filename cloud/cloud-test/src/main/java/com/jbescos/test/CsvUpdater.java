@@ -51,8 +51,11 @@ public class CsvUpdater {
 	}
 	
 	private static void addKlines(BinanceAPI api, Map<String, List<CsvRow>> groupedSymbol, Date startTime, Date endTime) {
+		Interval interval = Interval.getInterval(startTime.getTime(), endTime.getTime());
+		long from = interval.from(startTime.getTime());
+    	long to = interval.to(from);
 		for (Entry<String, List<CsvRow>> symbolRows : groupedSymbol.entrySet()) {
-			List<Kline> klines = api.klines(Interval.MINUTES_30, symbolRows.getKey(), 1000, startTime.getTime(), endTime.getTime());
+			List<Kline> klines = api.klines(interval, symbolRows.getKey(), 1000, from, to);
 			for (CsvRow row : symbolRows.getValue()) {
 				Kline kline = getKline(row, klines);
 				row.setKline(kline);

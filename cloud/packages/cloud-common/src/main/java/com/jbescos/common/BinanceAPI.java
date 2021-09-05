@@ -20,6 +20,10 @@ public final class BinanceAPI {
 		this.client = client;
 	}
 	
+	public long time() {
+		return get("/api/v3/time", new GenericType<ServerTime>() {}).getServerTime();
+	}
+	
 	public ExchangeInfo exchangeInfo(String symbol) {
 	    String[] query = null;
 	    if (symbol != null) {
@@ -90,12 +94,56 @@ public final class BinanceAPI {
     }
     
     public static enum Interval {
-    	MINUTES_30("30m");
+    	MINUTES_1("1m", 1000 * 60),
+    	MINUTES_3("3m", MINUTES_1.millis * 3),
+    	MINUTES_5("5m", MINUTES_1.millis * 5),
+    	MINUTES_15("15m", MINUTES_1.millis * 15),
+    	MINUTES_30("30m", MINUTES_1.millis * 30),
+    	HOUR_1("1h", MINUTES_1.millis * 60),
+    	HOUR_2("2h", HOUR_1.millis * 2),
+    	HOUR_4("4h", HOUR_1.millis * 4),
+    	HOUR_6("6h", HOUR_1.millis * 6),
+    	HOUR_8("8h", HOUR_1.millis * 8),
+    	HOUR_12("12h", HOUR_1.millis * 12),
+    	DAY_1("1d", HOUR_1.millis * 24),
+    	DAY_3("3d", DAY_1.millis * 3),
+    	WEEK_1("1w", DAY_1.millis * 7),
+    	MONTH_1("1M", DAY_1.millis * 30);
     	
     	private final String value;
+    	private final long millis;
     	
-    	private Interval(String value) {
+    	private Interval(String value, long millis) {
     		this.value = value;
+    		this.millis = millis;
+    	}
+    	
+    	public static Interval getInterval(long d1, long d2) {
+    		long difference = d2 - d1;
+    		Interval[] intervals = Interval.values();
+    		for (int i = 0; i < intervals.length; i++) {
+    			Interval interval = intervals[i];
+    			if (difference <= interval.millis) {
+    				return interval;
+    			} else {
+    				int j = i + 1;
+    				if (j < intervals.length) {
+    					Interval next = intervals[j];
+    					if ((difference - interval.millis) < (next.millis - difference)) {
+    						return interval;
+    					}
+    				}
+    			}
+    		}
+    		return MONTH_1;
+    	}
+    	
+    	public long from(long d1) {
+    		return d1 - (d1 % millis);
+    	}
+    	
+    	public long to(long d1) {
+    		return d1 + millis - 1;
     	}
     }
 
