@@ -50,14 +50,18 @@ public class BotTest {
     public static void afterClass() {
         Collections.sort(results, (a, b) -> Double.compare(b.multiplier, a.multiplier));
         double total = 0;
+        double transactionsValue = 0;
         int transactions = 0;
         for (TestResult result : results) {
             total = total + result.multiplier;
             transactions = transactions + result.transactions;
+            transactionsValue = transactionsValue + result.transactionValue;
         }
         LOGGER.info(results.toString());
-        LOGGER.info("Total multiplier: " + (total / results.size()));
+        double totalMultiplier = total / results.size();
+        LOGGER.info("Total multiplier: " + totalMultiplier);
         LOGGER.info("Total transactions: " + transactions);
+        LOGGER.info("Total multiplier per transaction: " + Utils.format(totalMultiplier / transactions));
         int top = results.size() < TOP ? results.size() : TOP;
         StringBuilder topInfo = new StringBuilder("TOP " + top + ":\nbot.white.list=");
         for (int i = 0; i < top; i++) {
@@ -225,6 +229,7 @@ public class BotTest {
         private final double multiplier;
         private final int transactions;
         private final boolean success;
+        private final double transactionValue;
 
         public TestResult(String symbol, double trader, double holder, int transactions) {
             this.symbol = symbol;
@@ -234,12 +239,13 @@ public class BotTest {
             this.multiplier = trader / holder;
             this.transactions = transactions;
             this.success = absoluteBenefit >= 0;
+            this.transactionValue = multiplier / transactions;
         }
 
         @Override
         public String toString() {
             return "\n TestResult [symbol=" + symbol + ", trader=" + trader + ", holder=" + holder + ", absoluteBenefit="
-                    + absoluteBenefit + ", multiplier=" + multiplier + ", transactions=" + transactions + ", success="
+                    + absoluteBenefit + ", multiplier=" + multiplier + ", transactions=" + transactions + ", transactionValue=" + Utils.format(transactionValue) + ", success="
                     + success + "]";
         }
 
