@@ -109,7 +109,16 @@ public class CautelousBroker implements Broker {
                             } else if (sellCommision < minProfitableSellPrice) {
                                 LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
                             } else {
-                                action = Action.SELL;
+                                if (!hasPreviousTransactions) {
+                                    action = Action.SELL;
+                                } else {
+                                    double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_MIN_PROFIT_SELL);
+                                    if (newest.getPrice() > acceptedPrice) {
+                                        action = Action.SELL;
+                                    } else {
+                                        LOGGER.info(symbol + " sell discarded because current price is lower than benefit " + CloudProperties.BOT_MIN_PROFIT_SELL);
+                                    }
+                                }
                             }
                         } else {
                             LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
