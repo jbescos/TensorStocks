@@ -44,7 +44,7 @@ public class BotTest {
     private static final long DAYS_BACK_MILLIS = CloudProperties.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
     private static final long DAYS_BACK_TRANSACTIONS_MILLIS = CloudProperties.BOT_DAYS_BACK_TRANSACTIONS * DAY_MILLIS;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
-    private static final int TOP = 60;
+    private static final int TOP = 40;
 
     @AfterClass
     public static void afterClass() {

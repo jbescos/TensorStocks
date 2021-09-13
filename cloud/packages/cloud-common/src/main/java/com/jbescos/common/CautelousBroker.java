@@ -97,38 +97,26 @@ public class CautelousBroker implements Broker {
                 } else {
                 	LOGGER.info(symbol + " buy discarded because current price is higher than what was bought before");
                 }
-            } else if (sellCommision > avg) {
-                double percentileMax = max.getPrice() - ((max.getPrice() - avg) * CloudProperties.BOT_PERCENTILE_SELL_FACTOR);
-                double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_SELL;
-                if (factor > comparedFactor) {
-                    if (Utils.isMax(values)) { // It is going down
-                        if (sellCommision > percentileMax) {
-                            double minSell = CloudProperties.minSell(this.symbol);
-                            if (sellCommision < minSell) {
-                                LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
-                            } else if (sellCommision < minProfitableSellPrice) {
-                                LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
-                            } else {
-                                if (!hasPreviousTransactions) {
-                                    action = Action.SELL;
-                                } else {
-                                    double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_MIN_PROFIT_SELL);
-                                    if (newest.getPrice() > acceptedPrice) {
-                                        action = Action.SELL;
-                                    } else {
-                                        LOGGER.info(symbol + " sell discarded because current price is lower than benefit " + CloudProperties.BOT_MIN_PROFIT_SELL);
-                                    }
-                                }
-                            }
-                        } else {
-                            LOGGER.info(symbol + " discarded because the sell price " + Utils.format(sellCommision) + " is lower than the acceptable value of " + Utils.format(percentileMax));
-                        }
+            } else if (hasPreviousTransactions) {
+                if (Utils.isMax(values)) { // It is going down
+                    double minSell = CloudProperties.minSell(this.symbol);
+                    if (sellCommision < minSell) {
+                        LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
+                    } else if (sellCommision < minProfitableSellPrice) {
+                        LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
                     } else {
-                        LOGGER.info(symbol + " sell discarded because it is not max");
+                        double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_MIN_PROFIT_SELL);
+                        if (newest.getPrice() > acceptedPrice) {
+                            action = Action.SELL;
+                        } else {
+                            LOGGER.info(symbol + " sell discarded because current price is lower than benefit " + CloudProperties.BOT_MIN_PROFIT_SELL);
+                        }
                     }
                 } else {
-                    LOGGER.info(symbol + " discarded to sell because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
+                    LOGGER.info(symbol + " sell discarded because it is not max");
                 }
+            } else {
+                LOGGER.info(symbol + " discarded to sell/buy");
             }
         }
         return action;
