@@ -58,6 +58,7 @@ public class CloudProperties {
 	public static final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
 	public static final double BOT_PANIC_RATIO;
 	public static final double BOT_MIN_PROFIT_SELL;
+	public static final double BOT_PROFIT_DAYS_SUBSTRACTOR;
 	public static final int BOT_PANIC_DAYS;
 	public static final double BOT_GREEDY_MIN_PERCENTILE_BUY;
 	public static final double BOT_GREEDY_MIN_PROFIT_SELL;
@@ -138,6 +139,7 @@ public class CloudProperties {
         BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(properties.getProperty("bot.greedy.immediately.sell"));
         BOT_GREEDY_MIN_MAX_RELATION_BUY = Double.parseDouble(properties.getProperty("bot.greedy.min.max.relation.buy"));
         BOT_MIN_PROFIT_SELL = Double.parseDouble(properties.getProperty("bot.min.profit.sell"));
+        BOT_PROFIT_DAYS_SUBSTRACTOR = Double.parseDouble(properties.getProperty("bot.profit.days.substractor"));
         FIXED_BUY_SELL = fixedBuySell(properties);
     }
 

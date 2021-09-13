@@ -125,24 +125,26 @@ public class BotUtils {
 		double minProfitableSellPrice = Utils.minSellProfitable(symbolTransactions);
 		boolean hasPreviousTransactions = symbolTransactions != null && !symbolTransactions.isEmpty();
 		CsvRow newest = rows.get(rows.size() - 1);
+		Date lastPurchase = null;
 		if (hasPreviousTransactions) {
+		    lastPurchase = symbolTransactions.get(0).getDate();
 		    LOGGER.info(symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
 		if (rows.size() < 2) {
-			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
 		} else {
 			CsvRow oldest = rows.get(0);
 			if (CloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(newest, minProfitableSellPrice)) {
 				// FIXME
 //			    return new PanicBroker(symbol, newest, minProfitableSellPrice);
-				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
 			} else if (fixedBuySell != null) {
 			    return new LimitsBroker(symbol, rows, fixedBuySell);
 			} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
 				return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
 			} else {
-				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions);
+				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
 			}
 		}
 	}

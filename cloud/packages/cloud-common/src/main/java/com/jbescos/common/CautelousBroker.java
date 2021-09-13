@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -16,8 +17,9 @@ public class CautelousBroker implements Broker {
     private final Action action;
     private final double minProfitableSellPrice;
     private final boolean hasPreviousTransactions;
+    private final Date lastPurchase;
 
-    public CautelousBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions) {
+    public CautelousBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, Date lastPurchase) {
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
         this.max = Utils.getMinMax(values, false);
@@ -30,11 +32,12 @@ public class CautelousBroker implements Broker {
         }
         this.hasPreviousTransactions = hasPreviousTransactions;
         this.minProfitableSellPrice = minProfitableSellPrice;
+        this.lastPurchase = lastPurchase;
         this.action = evaluate(newest.getPrice(), values);
     }
     
     public CautelousBroker(String symbol, List<CsvRow> values) {
-        this(symbol, values, 0, false);
+        this(symbol, values, 0, false, null);
     }
     
     public CsvRow getMin() {
@@ -105,11 +108,12 @@ public class CautelousBroker implements Broker {
                     } else if (sellCommision < minProfitableSellPrice) {
                         LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
                     } else {
-                        double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * CloudProperties.BOT_MIN_PROFIT_SELL);
+                        double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), CloudProperties.BOT_MIN_PROFIT_SELL, CloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS);
+                        double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * expectedBenefit);
                         if (newest.getPrice() > acceptedPrice) {
                             action = Action.SELL;
                         } else {
-                            LOGGER.info(symbol + " sell discarded because current price is lower than benefit " + CloudProperties.BOT_MIN_PROFIT_SELL);
+                            LOGGER.info(symbol + " sell discarded because current price is lower than expected benefit " + expectedBenefit + " calculated from last purchase " + Utils.fromDate(Utils.FORMAT_SECOND, lastPurchase));
                         }
                     }
                 } else {
