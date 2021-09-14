@@ -14,10 +14,12 @@ import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
+import com.google.cloud.storage.Storage.BlobListOption;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
@@ -35,6 +37,7 @@ import com.jbescos.common.Utils;
 public class BotUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
+	private static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 
 	public static List<Broker> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
@@ -59,17 +62,17 @@ public class BotUtils {
 					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
-		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, "transactions/transactions_",
+		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, TRANSACTIONS_PREFIX,
 				".csv");
-		for (String day : days) {
-			Blob blob = storage.get(CloudProperties.BUCKET, day);
-			if (blob != null) {
-				try (ReadChannel readChannel = blob.reader();
-						BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-					List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
-					transactions.addAll(csv);
-				}
-			}
+		Page<Blob> transactionFiles = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(TRANSACTIONS_PREFIX));
+		for (Blob transactionFile : transactionFiles.iterateAll()) {
+		    if (days.contains(transactionFile.getName())) {
+		        try (ReadChannel readChannel = transactionFile.reader();
+                        BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+                    List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
+                    transactions.addAll(csv);
+                }
+		    }
 		}
 		LOGGER.info("Transactions loaded: " + transactions.size());
 		if (requestLatestPrices) {
@@ -131,21 +134,15 @@ public class BotUtils {
 		    LOGGER.info(symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
-		if (rows.size() < 2) {
-			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
+		CsvRow oldest = rows.get(0);
+	    if (fixedBuySell != null) {
+		    return new LimitsBroker(symbol, rows, fixedBuySell);
+	    } else if (CloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(newest, minProfitableSellPrice)) {
+			return new PanicBroker(symbol, newest, minProfitableSellPrice);
+		} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
+			return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
 		} else {
-			CsvRow oldest = rows.get(0);
-			if (CloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(newest, minProfitableSellPrice)) {
-				// FIXME
-//			    return new PanicBroker(symbol, newest, minProfitableSellPrice);
-				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
-			} else if (fixedBuySell != null) {
-			    return new LimitsBroker(symbol, rows, fixedBuySell);
-			} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
-				return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
-			} else {
-				return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
-			}
+			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
 		}
 	}
 

@@ -53,4 +53,10 @@ public class LimitsBroker implements Broker {
         return 0.3;
     }
 
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("symbol=").append(symbol);
+        builder.append(", newest=").append(newest).append(", action=").append(action.name()).append("\n");
+        return builder.toString();
+    }
 }
