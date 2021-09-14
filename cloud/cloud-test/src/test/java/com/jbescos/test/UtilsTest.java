@@ -26,6 +26,13 @@ public class UtilsTest {
 		assertEquals(Arrays.asList("2019-12-30.csv", "2019-12-31.csv", "2020-01-01.csv", "2020-01-02.csv"), days);
 	}
 	
+    @Test
+    public void monthsBack() {
+        Date from = Utils.fromString(Utils.FORMAT, "2020-01-02");
+        List<String> days = Utils.monthsBack(from, 4, "", ".csv");
+        assertEquals(Arrays.asList("2019-10.csv", "2019-11.csv", "2019-12.csv", "2020-01.csv"), days);
+    }
+	
 	@Test
 	public void minSell() {
 		double value = CloudProperties.minSell("does not exist");

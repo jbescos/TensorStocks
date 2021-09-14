@@ -41,8 +41,9 @@ public class BotTest {
     private static final boolean TEST_REVERSE = false;
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
     private static final long DAY_MILLIS = 3600 * 1000 * 24;
+    private static final long MONTH_MILLIS = DAY_MILLIS * 30;
     private static final long DAYS_BACK_MILLIS = CloudProperties.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
-    private static final long DAYS_BACK_TRANSACTIONS_MILLIS = CloudProperties.BOT_DAYS_BACK_TRANSACTIONS * DAY_MILLIS;
+    private static final long TRANSACTIONS_BACK_MILLIS = CloudProperties.BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
     private static final int TOP = 40;
 
@@ -148,7 +149,7 @@ public class BotTest {
             if (segment.isEmpty()) {
                 break;
             }
-            Date fromTx = new Date(now.getTime() - DAYS_BACK_TRANSACTIONS_MILLIS);
+            Date fromTx = new Date(now.getTime() - TRANSACTIONS_BACK_MILLIS);
             List<CsvTransactionRow> transactions = trader.getTransactions().stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
             List<Broker> stats = BotUtils.fromCsvRows(segment, transactions);
             if (!stats.isEmpty()) {

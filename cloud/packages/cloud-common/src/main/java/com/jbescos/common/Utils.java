@@ -29,6 +29,7 @@ public class Utils {
     private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
     public static final long MINUTES_30_MILLIS = 30 * 60 * 1000;
     public static final long MILLIS_IN_DAY = 1000 * 60 * 60 * 24;
+    public static final DateFormat FORMAT_MONTH = new SimpleDateFormat("yyyy-MM");
 	public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
@@ -37,6 +38,7 @@ public class Utils {
 	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,VOLUME_BUY,VOLUME_TOTAL,OPEN_PRICE,CLOSE_PRICE" + NEW_LINE;
 	public static final String LAST_PRICE = "data/last_price.csv";
 	public static final String EMPTY_STR = "";
+	public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 	
 
 	public static Properties fromClasspath(String properties) throws IOException {
@@ -49,19 +51,27 @@ public class Utils {
 		}
 		return null;
 	}
-	
-	public static List<String> daysBack(Date currentTime, int daysBack, String prefix, String subfix) {
-		List<String> days = new ArrayList<>(daysBack);
-		Calendar c = Calendar.getInstance();
-		c.setTime(currentTime);
-		c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
-		for (int i = 0; i < daysBack; i++) {
-			c.add(Calendar.DAY_OF_YEAR, 1);
-			days.add(prefix + fromDate(FORMAT, c.getTime()) + subfix);
-		}
-		return days;
+
+	private static List<String> dateBack(Date currentTime, int unitBack, String prefix, String subfix, int dateType, DateFormat dateFormat) {
+	    List<String> days = new ArrayList<>(unitBack);
+        Calendar c = Calendar.getInstance();
+        c.setTime(currentTime);
+        c.add(dateType, unitBack * -1);
+        for (int i = 0; i < unitBack; i++) {
+            c.add(dateType, 1);
+            days.add(prefix + fromDate(dateFormat, c.getTime()) + subfix);
+        }
+        return days;
 	}
-	
+
+	public static List<String> daysBack(Date currentTime, int daysBack, String prefix, String subfix) {
+		return dateBack(currentTime, daysBack, prefix, subfix, Calendar.DAY_OF_YEAR, FORMAT);
+	}
+
+	public static List<String> monthsBack(Date currentTime, int monthsBack, String prefix, String subfix) {
+	    return dateBack(currentTime, monthsBack, prefix, subfix, Calendar.MONTH, FORMAT_MONTH);
+	}
+
 	public static Date getDateOfDaysBack(Date currentTime, int daysBack) {
 		Calendar c = Calendar.getInstance();
 		c.setTime(currentTime);
@@ -97,6 +107,10 @@ public class Utils {
 	public static String today() {
 		return fromDate(FORMAT, new Date());
 	}
+	
+    public static String thisMonth() {
+        return fromDate(FORMAT_MONTH, new Date());
+    }
 	
 	public static String format(double amount) {
 		DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);

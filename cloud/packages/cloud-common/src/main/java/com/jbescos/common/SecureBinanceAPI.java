@@ -172,7 +172,7 @@ public class SecureBinanceAPI {
 		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
 		StringBuilder data = new StringBuilder();
 		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(action.toString()).append(",").append(response.get("symbol")).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
-		storage.updateFile("transactions/transactions_" + Utils.today() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
+		storage.updateFile(Utils.TRANSACTIONS_PREFIX + Utils.thisMonth() + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
 	}
 	
 	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {

@@ -37,7 +37,6 @@ import com.jbescos.common.Utils;
 public class BotUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
-	private static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 
 	public static List<Broker> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
@@ -62,11 +61,10 @@ public class BotUtils {
 					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
-		days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_TRANSACTIONS, TRANSACTIONS_PREFIX,
-				".csv");
-		Page<Blob> transactionFiles = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(TRANSACTIONS_PREFIX));
+		List<String> months = Utils.monthsBack(new Date(), CloudProperties.BOT_MONTHS_BACK_TRANSACTIONS, Utils.TRANSACTIONS_PREFIX, ".csv");
+		Page<Blob> transactionFiles = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(Utils.TRANSACTIONS_PREFIX));
 		for (Blob transactionFile : transactionFiles.iterateAll()) {
-		    if (days.contains(transactionFile.getName())) {
+		    if (months.contains(transactionFile.getName())) {
 		        try (ReadChannel readChannel = transactionFile.reader();
                         BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
                     List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
@@ -74,7 +72,7 @@ public class BotUtils {
                 }
 		    }
 		}
-		LOGGER.info("Transactions loaded: " + transactions.size());
+		LOGGER.info("Transactions loaded: " + transactions.size() + " from " + months);
 		if (requestLatestPrices) {
 			List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
 					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
