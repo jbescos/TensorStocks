@@ -75,53 +75,48 @@ public class CautelousBroker implements Broker {
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
         double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
-        if (hasPreviousTransactions && ( 1 - (minProfitableSellPrice / price)) > CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
-            action = Action.SELL;
-            LOGGER.info(symbol + " is going to be sold because current price " + Utils.format(price) + " is more than " + CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS + " times higher than minProfitableSellPrice " + Utils.format(minProfitableSellPrice));
-        } else {
-            double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
-            if (buyCommision < avg) {
-                double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
-                if (!hasPreviousTransactions || (hasPreviousTransactions && buyCommision < minProfitableSellPrice)) {
-                	if (factor > comparedFactor) {
-                        if (Utils.isMin(values)) { // It is going up
-                            double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
-                            if (buyCommision < percentileMin) {
-                                action = Action.BUY;
-                            } else {
-                                LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
-                            }
+        if (buyCommision < avg) {
+            double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
+            if (!hasPreviousTransactions || (hasPreviousTransactions && buyCommision < minProfitableSellPrice)) {
+                if (factor > comparedFactor) {
+                    if (Utils.isMin(values)) { // It is going up
+                        double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
+                        if (buyCommision < percentileMin) {
+                            action = Action.BUY;
                         } else {
-                            LOGGER.info(symbol + " buy discarded because it is not min");
+                            LOGGER.info(symbol + " discarded because the buy price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                         }
                     } else {
-                        LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
+                        LOGGER.info(symbol + " buy discarded because it is not min");
                     }
                 } else {
-                	LOGGER.info(symbol + " buy discarded because current price is higher than what was bought before");
-                }
-            } else if (hasPreviousTransactions) {
-                if (Utils.isMax(values)) { // It is going down
-                    double minSell = CloudProperties.minSell(this.symbol);
-                    if (sellCommision < minSell) {
-                        LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
-                    } else if (sellCommision < minProfitableSellPrice) {
-                        LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
-                    } else {
-                        double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), CloudProperties.BOT_MIN_PROFIT_SELL, CloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS);
-                        double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * expectedBenefit);
-                        if (newest.getPrice() > acceptedPrice) {
-                            action = Action.SELL;
-                        } else {
-                            LOGGER.info(symbol + " sell discarded because current price is lower than expected benefit " + expectedBenefit + " calculated from last purchase " + Utils.fromDate(Utils.FORMAT_SECOND, lastPurchase));
-                        }
-                    }
-                } else {
-                    LOGGER.info(symbol + " sell discarded because it is not max");
+                    LOGGER.info(symbol + " discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
                 }
             } else {
-                LOGGER.info(symbol + " discarded to sell/buy");
+                LOGGER.info(symbol + " buy discarded because current price is higher than what was bought before");
             }
+        } else if (hasPreviousTransactions) {
+            if (Utils.isMax(values)) { // It is going down
+                double minSell = CloudProperties.minSell(this.symbol);
+                double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
+                if (sellCommision < minSell) {
+                    LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
+                } else if (sellCommision < minProfitableSellPrice) {
+                    LOGGER.info(Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable");
+                } else {
+                    double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), CloudProperties.BOT_MIN_PROFIT_SELL, CloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS);
+                    double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * expectedBenefit);
+                    if (newest.getPrice() > acceptedPrice) {
+                        action = Action.SELL;
+                    } else {
+                        LOGGER.info(symbol + " sell discarded because current price is lower than expected benefit " + expectedBenefit + " calculated from last purchase " + Utils.fromDate(Utils.FORMAT_SECOND, lastPurchase));
+                    }
+                }
+            } else {
+                LOGGER.info(symbol + " sell discarded because it is not max");
+            }
+        } else {
+            LOGGER.info(symbol + " discarded because it is not good for buying and there is nothing to sell");
         }
         return action;
     }
