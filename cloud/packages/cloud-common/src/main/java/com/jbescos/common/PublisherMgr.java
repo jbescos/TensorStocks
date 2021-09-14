@@ -29,13 +29,13 @@ public class PublisherMgr implements AutoCloseable {
         for (String message : messages) {
             ByteString data = ByteString.copyFromUtf8(message);
             PubsubMessage pubsubMessage = PubsubMessage.newBuilder().setData(data).build();
-            LOGGER.info("Message sent: " + message);
+            LOGGER.info(() -> "Message sent: " + message);
             ApiFuture<String> future = publisher.publish(pubsubMessage);
             responses.add(future);
         }
         for (ApiFuture<String> future : responses) {
             String response = future.get(10, TimeUnit.SECONDS);
-            LOGGER.info("Response: " + response);
+            LOGGER.info(() -> "Response: " + response);
         }
     }
 

@@ -26,7 +26,7 @@ public class TraderWorker implements MessageWorker<Message> {
 		this.symbol = symbol.toUpperCase();
 		this.cryptoSymbol = this.symbol.replace(Constants.USDT, "");
 		this.wallet = wallet;
-		LOGGER.info("TraderWorker instanced for " + symbol);
+		LOGGER.info(() -> "TraderWorker instanced for " + symbol);
 	}
 	
 	@Override
@@ -56,26 +56,26 @@ public class TraderWorker implements MessageWorker<Message> {
 					BigDecimal withCommission = currentLimit.price.multiply(Constants.COMMISSION_APPLIED);
 //					BigDecimal withCommission = currentLimit.price;
 					if (withCommission.compareTo(previousLimit.price) < 0) {
-						LOGGER.info("Trying to buy -> Previous " + previousLimit + ", Current " + currentLimit + ", withCommission " + withCommission);
+						LOGGER.info(() -> "Trying to buy -> Previous " + previousLimit + ", Current " + currentLimit + ", withCommission " + withCommission);
 						BigDecimal usdtFromWallet =  wallet.get(Constants.USDT).multiply(Constants.AMOUNT_REDUCER);
 						BigDecimal cryptosToBuy = usdtFromWallet.divide(withCommission, 8, RoundingMode.HALF_EVEN);
 						if (usdtFromWallet.compareTo(Constants.MIN_BINANCE_USDT) > 0) {
 							wallet.compute(cryptoSymbol, (key, value) -> value == null ? cryptosToBuy : value.add(cryptosToBuy));
 							wallet.compute(Constants.USDT, (key, value) -> value.subtract(usdtFromWallet));
-							LOGGER.info(" BUYING " + cryptosToBuy + " " + cryptoSymbol + " and spending " + usdtFromWallet + " USDT. " + currentLimit + " " + previousLimit);
+							LOGGER.info(() -> " BUYING " + cryptosToBuy + " " + cryptoSymbol + " and spending " + usdtFromWallet + " USDT. " + currentLimit + " " + previousLimit);
 							printWallet(currentLimit);
 						}
 					}
 				} else if (previousLimit.minMax == MinMax.MIN && currentLimit.minMax == MinMax.MAX) {
 					if (currentLimit.price.compareTo(previousLimit.price) > 0) {
-						LOGGER.info("Trying to sell -> Previous " + previousLimit + ", Current " + currentLimit);
+						LOGGER.info(() -> "Trying to sell -> Previous " + previousLimit + ", Current " + currentLimit);
 						// FIXME Use compute instead of get
 						BigDecimal cryptosFromWallet = wallet.get(cryptoSymbol).multiply(Constants.AMOUNT_REDUCER);
 						BigDecimal usdtToSell = cryptosFromWallet.multiply(currentLimit.price);
 						if (usdtToSell.compareTo(Constants.MIN_BINANCE_USDT) > 0) {
 							wallet.compute(cryptoSymbol, (key, value) -> value.subtract(cryptosFromWallet));
 							wallet.compute(Constants.USDT, (key, value) -> value == null ? value : value.add(usdtToSell));
-							LOGGER.info(" SELLING " + cryptosFromWallet + " " + cryptoSymbol + " and getting " + usdtToSell + " USDT. " + currentLimit + " " + previousLimit);
+							LOGGER.info(() -> " SELLING " + cryptosFromWallet + " " + cryptoSymbol + " and getting " + usdtToSell + " USDT. " + currentLimit + " " + previousLimit);
 							printWallet(currentLimit);
 						}
 					}
@@ -91,7 +91,7 @@ public class TraderWorker implements MessageWorker<Message> {
 		for (Entry<String, BigDecimal> entry : wallet.entrySet()) {
 			builder.append("\n").append(entry.getKey()).append(": ").append(entry.getValue());
 		}
-		LOGGER.info("Wallet: " + wallet);
+		LOGGER.info(() -> "Wallet: " + wallet);
 	}
 	
 	private MinMaxObject evaluate(Message message) {
@@ -101,14 +101,14 @@ public class TraderWorker implements MessageWorker<Message> {
 				if (previousLimit == null || (previousLimit != null && first.sellingPrice.compareTo(previousLimit.price) > 0)) {
 					// Note the price is the first because it is the current value, not the middle
 					MinMaxObject max = new MinMaxObject(MinMax.MAX, new BigDecimal(message.b));
-//					LOGGER.info("Found " + max + ". The real MAX was " + middle.sellingPrice);
+//					LOGGER.info(() -> "Found " + max + ". The real MAX was " + middle.sellingPrice);
 					return max;
 				}
 			} else if (middle.buyingPrice.compareTo(first.buyingPrice) < 0 && middle.buyingPrice.compareTo(last.buyingPrice) < 0) {
 				if (previousLimit == null || (previousLimit != null && first.buyingPrice.compareTo(previousLimit.price) < 0)) {
 					// Note the price is the first because it is the current value, not the middle
 					MinMaxObject min = new MinMaxObject(MinMax.MIN, new BigDecimal(message.a));
-//					LOGGER.info("Found " + min + ". The real MIN was " + middle.buyingPrice);
+//					LOGGER.info(() -> "Found " + min + ". The real MIN was " + middle.buyingPrice);
 					return min;
 				}
 			}

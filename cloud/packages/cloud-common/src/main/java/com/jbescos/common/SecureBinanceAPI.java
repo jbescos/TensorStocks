@@ -138,9 +138,9 @@ public class SecureBinanceAPI {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
-		LOGGER.info("Prepared USDT order: " + Arrays.asList(args).toString());
+		LOGGER.info(() -> "Prepared USDT order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
-		LOGGER.info("Completed USDT order: " + response);
+		LOGGER.info(() -> "Completed USDT order: " + response);
 		saveTransaction(now, response, action);
 		return response;
 	}
@@ -153,9 +153,9 @@ public class SecureBinanceAPI {
 		Map<String, Object> filter = exchange.getFilter(symbol, ExchangeInfo.LOT_SIZE);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, filter.get("minQty").toString(), filter.get("maxQty").toString(), filter.get("stepSize").toString());
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
-		LOGGER.info("Prepared Symbol order: " + Arrays.asList(args).toString());
+		LOGGER.info(() -> "Prepared Symbol order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
-		LOGGER.info("Completed Symbol order: " + response);
+		LOGGER.info(() -> "Completed Symbol order: " + response);
 		saveTransaction(now, response, action);
 		return response;
 	}
@@ -179,9 +179,9 @@ public class SecureBinanceAPI {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
-		LOGGER.info("TEST. Prepared order: " + Arrays.asList(args).toString());
+		LOGGER.info(() -> "TEST. Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order/test", new GenericType<Map<String, String>>() {}, args);
-		LOGGER.info("TEST. Completed order: " + response);
+		LOGGER.info(() -> "TEST. Completed order: " + response);
 		return response;
 	}
 

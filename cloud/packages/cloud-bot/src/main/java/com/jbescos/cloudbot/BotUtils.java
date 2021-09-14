@@ -57,7 +57,7 @@ public class BotUtils {
 			}
 		}
 		if (!rows.isEmpty()) {
-			LOGGER.info("Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to "
+			LOGGER.info(() -> "Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to "
 					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
@@ -72,7 +72,7 @@ public class BotUtils {
                 }
 		    }
 		}
-		LOGGER.info("Transactions loaded: " + transactions.size() + " from " + months);
+		LOGGER.info(() -> "Transactions loaded: " + transactions.size() + " from " + months);
 		if (requestLatestPrices) {
 			List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
 					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
@@ -97,7 +97,7 @@ public class BotUtils {
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
-		LOGGER.info("There is data for: " + grouped.keySet());
+		LOGGER.info(() -> "There is data for: " + grouped.keySet());
 		Date deadLine = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_PANIC_DAYS);
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
@@ -107,7 +107,7 @@ public class BotUtils {
     			}
     			minMax.put(entry.getKey(), buySellInstance(entry.getKey(), entry.getValue(), symbolTransactions));
 			} else {
-			    LOGGER.info(entry.getKey() + " skipped because there was a SELL_PANIC recently");
+			    LOGGER.info(() -> entry.getKey() + " skipped because there was a SELL_PANIC recently");
 			}
 		}
 		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
@@ -129,7 +129,7 @@ public class BotUtils {
 		Date lastPurchase = null;
 		if (hasPreviousTransactions) {
 		    lastPurchase = symbolTransactions.get(0).getDate();
-		    LOGGER.info(symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
+		    LOGGER.info(() -> symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
 		CsvRow oldest = rows.get(0);

@@ -142,10 +142,10 @@ public class BinanceRestAPI {
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] { "symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty,
 				"newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime()) };
-		LOGGER.info("Prepared order: " + Arrays.asList(args).toString());
+		LOGGER.info(() -> "Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {
 		}, args);
-		LOGGER.info("Completed order: " + response);
+		LOGGER.info(() -> "Completed order: " + response);
 		String executedQty = response.get("executedQty");
 		BigDecimal quoteOrderQtyBD = new BigDecimal(quoteOrderQty);
 		BigDecimal executedQtyBD = new BigDecimal(executedQty);
@@ -159,10 +159,10 @@ public class BinanceRestAPI {
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] { "symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty,
 				"newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime()) };
-		LOGGER.info("TEST. Prepared order: " + Arrays.asList(args).toString());
+		LOGGER.info(() -> "TEST. Prepared order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order/test", new GenericType<Map<String, String>>() {
 		}, args);
-		LOGGER.info("TEST. Completed order: " + response);
+		LOGGER.info(() -> "TEST. Completed order: " + response);
 		return response;
 	}
 

@@ -11,7 +11,7 @@ public class PanicBroker implements Broker {
 	public PanicBroker(String symbol, CsvRow newest, double minProfitableSellPrice) {
 		this.symbol = symbol;
 		this.newest = newest;
-		LOGGER.warning(symbol + " selling because of panic. Current price is " + Utils.format(newest.getPrice()) + " USDT and the min profitable is " +  Utils.format(minProfitableSellPrice) + " USDT");
+		LOGGER.warning(() -> symbol + " selling because of panic. Current price is " + Utils.format(newest.getPrice()) + " USDT and the min profitable is " +  Utils.format(minProfitableSellPrice) + " USDT");
 	}
 
 	@Override

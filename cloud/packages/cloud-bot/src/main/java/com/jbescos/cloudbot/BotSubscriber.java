@@ -28,7 +28,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     @Override
     public void accept(PubSubMessage payload, Context context) throws Exception {
         String data = new String(Base64.getDecoder().decode(payload.data));
-        LOGGER.info("Received: " + data);
+        LOGGER.info(() -> "Received: " + data);
         Client client = ClientBuilder.newClient();
         BinanceAPI binanceAPI = new BinanceAPI(client);
         BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);

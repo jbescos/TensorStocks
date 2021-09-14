@@ -25,7 +25,7 @@ public class CsvWorker implements MessageWorker<Message> {
 	
 	public CsvWorker(String symbol) {
 		CSV = new File(symbol + ".csv");
-		LOGGER.info("CsvWorker instanced for " + symbol);
+		LOGGER.info(() -> "CsvWorker instanced for " + symbol);
 	}
 	
 	@Override
@@ -50,7 +50,7 @@ public class CsvWorker implements MessageWorker<Message> {
 					bw.write(builder.toString());
 					bw.flush();
 					builder.delete(0, builder.length());
-					LOGGER.info(CSV.getAbsolutePath() + " updated");
+					LOGGER.info(() -> CSV.getAbsolutePath() + " updated");
 				} catch (IOException e) {
 					LOGGER.log(Level.SEVERE, "Cannot write in " + CSV.getAbsolutePath(), e);
 				}

@@ -45,7 +45,7 @@ public class WebSocket {
 						subscriptions.append("\"").append(symbol.toLowerCase()).append(subscription + "\"");
 					}
 					String jsonFormat = "{\"method\": \"SUBSCRIBE\",\"params\":[" + subscriptions.toString() + "],\"id\": 1}";
-					LOGGER.info(jsonFormat);
+					LOGGER.info(() -> jsonFormat);
 					session.getBasicRemote().sendText(jsonFormat);
 				} catch (IOException e) {
 					LOGGER.log(Level.SEVERE, "Unexpected error", e);

@@ -33,7 +33,7 @@ public class BinanceTest {
         String symbol = "SHIBUSDT";
         Client client = ClientBuilder.newClient();
         ExchangeInfo info = new BinanceAPI(client).exchangeInfo(symbol);
-        LOGGER.info("Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(info.getServerTime())));
+        LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(info.getServerTime())));
         Map<String, Object> filter = info.getFilter(symbol, ExchangeInfo.LOT_SIZE);
         assertEquals("1.00", filter.get("minQty").toString());
         assertEquals("10000000000.00", filter.get("maxQty").toString());
@@ -53,9 +53,9 @@ public class BinanceTest {
     	String symbol = "BTCUSDT";
     	Client client = ClientBuilder.newClient();
     	List<Kline> klines = new BinanceAPI(client).klines(interval, symbol, null, from, to);
-    	LOGGER.info(klines.toString());
+    	LOGGER.info(() -> klines.toString());
     	Kline kline = klines.get(0);
-    	LOGGER.info("Asking for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
+    	LOGGER.info(() -> "Asking for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
     			" and received from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getOpenTime()))
     			+ " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getCloseTime())));
     	client.close();
@@ -66,6 +66,6 @@ public class BinanceTest {
     public void serverTime() {
     	Client client = ClientBuilder.newClient();
     	long time = new BinanceAPI(client).time();
-    	LOGGER.info("Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(time)));
+    	LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(time)));
     }
 }

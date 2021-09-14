@@ -278,7 +278,7 @@ public class Utils {
 	
 	public static double calculateFactor(CsvRow min, CsvRow max) {
 		double factor =  1 - (min.getPrice() / max.getPrice());
-//		LOGGER.info("MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
+//		LOGGER.info(() -> "MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
 		return factor;
 	}
 

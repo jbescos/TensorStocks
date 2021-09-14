@@ -83,7 +83,7 @@ public class Bot {
     			didAction = true;
     		}
 	    } else {
-	        LOGGER.info(symbol + " discarded to buy because it is in bot.never.buy");
+	        LOGGER.info(() -> symbol + " discarded to buy because it is in bot.never.buy");
 	    }
 	}
 

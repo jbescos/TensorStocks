@@ -28,7 +28,7 @@ public class BotBinance {
 	
 	public void execute(List<Broker> stats) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		for (Broker stat : stats) {
-			LOGGER.info("Processing " + stat);
+			LOGGER.info(() -> "Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
 				buy(stat.getSymbol(), stat);
 			} else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
@@ -57,7 +57,7 @@ public class BotBinance {
     			}
     		}
 	    } else {
-	        LOGGER.info(symbol + " discarded to buy because it is in bot.never.buy");
+	        LOGGER.info(() -> symbol + " discarded to buy because it is in bot.never.buy");
 	    }
 	}
 	
@@ -76,7 +76,7 @@ public class BotBinance {
 				boolean sellFlag = true;
 				if ((usdtOfSymbol - usdtSell) < (CloudProperties.BINANCE_MIN_TRANSACTION * 2)) {
 					// Sell everything
-					LOGGER.info("Selling everything " + unitsOfSymbol + " " + symbol + " because it costs " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
+					LOGGER.info(() -> "Selling everything " + unitsOfSymbol + " " + symbol + " because it costs " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
 					api.orderSymbol(symbol, stat.getAction(), Utils.format(unitsOfSymbol)); // Do not use the normal format because for example in SHIB it fails
 					sellFlag = false;
 				} else if (usdtSell < CloudProperties.BINANCE_MIN_TRANSACTION) {
@@ -91,7 +91,7 @@ public class BotBinance {
 					}
 				}
 			} else {
-				LOGGER.info("Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + CloudProperties.BINANCE_MIN_TRANSACTION);
+				LOGGER.info(() -> "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + CloudProperties.BINANCE_MIN_TRANSACTION);
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
@@ -105,7 +105,7 @@ public class BotBinance {
 			wallet.put(symbol, accumulated);
 			return true;
 		} else {
-			LOGGER.info("There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
+			LOGGER.info(() -> "There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
 		}
 		return false;
 	}

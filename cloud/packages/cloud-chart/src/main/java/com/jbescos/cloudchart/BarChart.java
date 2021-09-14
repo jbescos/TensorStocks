@@ -32,7 +32,7 @@ public class BarChart implements IChart<IRow> {
 		if (!data.isEmpty()) {
 			List<CsvTransactionRow> transactions = (List<CsvTransactionRow>) data;
 			CsvTransactionRow first = transactions.get(0);
-			LOGGER.info("History of transactions: " + transactions);
+			LOGGER.info(() -> "History of transactions: " + transactions);
 			String symbol = first.getSymbol();
 			double sum = sum(transactions);
 			Double walletPrice = wallet.get(symbol);

@@ -46,7 +46,7 @@ public class ChartGenerator {
 		Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
 		List<String> keys = new ArrayList<>(grouped.keySet());
 		Utils.sortForChart(keys);
-		LOGGER.info("Chart display order " + keys);
+		LOGGER.info(() -> "Chart display order " + keys);
 		for (String key : keys) {
 			chart.add(key, grouped.get(key));
 		}
@@ -78,7 +78,7 @@ public class ChartGenerator {
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				List<CsvAccountRow> account = CsvUtil.readCsvAccountRows(true, ",", reader);
-				LOGGER.info("Loaded from wallet " + account.size() + " from " + todaysWalletCsv);
+				LOGGER.info(() -> "Loaded from wallet " + account.size() + " from " + todaysWalletCsv);
 				Map<Date, List<CsvAccountRow>> byDate = account.stream().collect(Collectors.groupingBy(CsvAccountRow::getDate));
 				Date max = Collections.max(byDate.keySet());
 				Map<String, List<CsvAccountRow>> grouped = byDate.get(max).stream().collect(Collectors.groupingBy(IRow::getLabel));

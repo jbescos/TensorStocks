@@ -37,7 +37,7 @@ public class CsvUpdater {
 
 	public static void main(String args[]) throws IOException {
 		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources", "2021-05-08.csv");
-		LOGGER.info("Finished");
+		LOGGER.info(() -> "Finished");
 	}
 	
 	private static Kline getKline(CsvRow row, List<Kline> klines) {
@@ -65,7 +65,7 @@ public class CsvUpdater {
 	
 	private static void updateLastPricesFromPreviousDay(Map<String, CsvRow> lastPrices, Date startTime, String rootFolder) throws FileNotFoundException, IOException {
 		String csvBefore = Utils.daysBack(startTime, 2, "", ".csv").get(0);
-		LOGGER.info("Trying to load lastPrices from the CSV " + csvBefore);
+		LOGGER.info(() -> "Trying to load lastPrices from the CSV " + csvBefore);
 		String fullPath = rootFolder + "/" + csvBefore;
 		File file = new File(fullPath);
 		if (file.exists()) {
@@ -94,7 +94,7 @@ public class CsvUpdater {
 		for (String file : files) {
 			if (startCsvFound || startIn.equals(file)) {
 				startCsvFound = true;
-				LOGGER.info("Processing " + file);
+				LOGGER.info(() -> "Processing " + file);
 				try {
 					Date startTime = Utils.fromString(Utils.FORMAT, file.replace(".csv", ""));
 					Date endTime = new Date(startTime.getTime() + MILLIS_24H);
@@ -134,7 +134,7 @@ public class CsvUpdater {
 					try (OutputStream output = new FileOutputStream(f)) {
 						CsvUtil.writeCsvRows(rowsInFile, ',', output);
 					}
-					LOGGER.info(f + " has been created ");
+					LOGGER.info(() -> f + " has been created ");
 				} catch (IllegalArgumentException e) {
 					LOGGER.warning(file + " is discarded");
 				}

@@ -31,13 +31,13 @@ public class KlineWorker implements MessageWorker<KlineEvent> {
 	@Override
 	public void process(KlineEvent message, long now) {
 		try {
-//			LOGGER.info("Received: " + message);
+//			LOGGER.info(() -> "Received: " + message);
 			BigDecimal volume = null;
 			BigDecimal buyVolume = null;
 			BigDecimal volumeTotal = new BigDecimal(message.k.v);
 			BigDecimal buyVolumeTotal = new BigDecimal(message.k.V);
 			if (startTime != message.k.t) {
-				LOGGER.info("New Kline: " + message);
+				LOGGER.info(() -> "New Kline: " + message);
 				startTime = message.k.t;
 				volume = volumeTotal;
 				buyVolume = buyVolumeTotal;

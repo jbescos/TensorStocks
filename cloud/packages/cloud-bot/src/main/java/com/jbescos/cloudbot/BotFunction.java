@@ -40,7 +40,7 @@ public class BotFunction implements HttpFunction {
 		String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
 		if (side != null) {
 			Action action = Action.valueOf(side) ;
-			LOGGER.info("Actively invoked " + side);
+			LOGGER.info(() -> "Actively invoked " + side);
 			if (Action.SELL_PANIC == action) {
 				Date now = new Date();
 				List<Broker> stats = new BinanceAPI(client).price().stream()

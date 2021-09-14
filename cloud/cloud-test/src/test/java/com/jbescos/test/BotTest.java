@@ -58,9 +58,9 @@ public class BotTest {
             transactions = transactions + result.transactions;
             transactionsValue = transactionsValue + result.transactionValue;
         }
-        LOGGER.info(results.toString());
+        LOGGER.info(() -> results.toString());
         double totalMultiplier = total / results.size();
-        LOGGER.info("Total multiplier: " + totalMultiplier);
+        LOGGER.info(() -> "Total multiplier: " + totalMultiplier);
         LOGGER.info("Total transactions: " + transactions);
         LOGGER.info("Total multiplier per transaction: " + Utils.format(totalMultiplier / transactions));
         int top = results.size() < TOP ? results.size() : TOP;
@@ -71,7 +71,7 @@ public class BotTest {
             }
             topInfo.append(results.get(i).symbol);
         }
-        LOGGER.info(topInfo.toString());
+        LOGGER.info(() -> topInfo.toString());
     }
 
     @Test
@@ -85,7 +85,7 @@ public class BotTest {
             String csvFile = day;
             InputStream csv = CsvUtilTest.class.getResourceAsStream(csvFile);
             if (csv != null) {
-                LOGGER.info("Loading " + csvFile);
+                LOGGER.info(() -> "Loading " + csvFile);
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv))) {
                     List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
                     dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
@@ -145,7 +145,7 @@ public class BotTest {
             List<CsvRow> segment = rows.stream()
                     .filter(row -> row.getDate().getTime() >= from.getTime() && row.getDate().getTime() < to.getTime())
                     .collect(Collectors.toList());
-//          LOGGER.info("Loading data from " + Utils.fromDate(Utils.FORMAT_SECOND, from) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, to) + ". " + segment.size() + " records");
+//          LOGGER.info(() -> "Loading data from " + Utils.fromDate(Utils.FORMAT_SECOND, from) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, to) + ". " + segment.size() + " records");
             if (segment.isEmpty()) {
                 break;
             }

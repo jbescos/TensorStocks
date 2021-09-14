@@ -39,7 +39,7 @@ public class StorageFunction implements HttpFunction {
 		BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
 		long time = binanceAPI.time();
 		Date now = new Date(time);
-		LOGGER.info("Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
+		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		Map<String, CsvRow> previousRows = storage.previousRowsUpdatedKline(time);
 		String message = Utils.fromDate(Utils.FORMAT_SECOND, now);
 		try (PublisherMgr publisher = PublisherMgr.create()) {
