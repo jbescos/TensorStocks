@@ -73,7 +73,7 @@ public class ChartGenerator {
 		public ProfitableBarChartCsv(List<String> symbols) throws IOException {
 			this.symbols = symbols;
 			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-			String todaysWalletCsv = AccountChartCsv.PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv";
+			String todaysWalletCsv = Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv";
 			Blob retrieve = storage.get(CloudProperties.BUCKET, todaysWalletCsv);
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
@@ -121,25 +121,26 @@ public class ChartGenerator {
 
 	static class AccountChartCsv implements IChartCsv {
 		
-		private static final String PREFIX = "wallet/account_";
 		private final Page<Blob> walletBlobs;
 
 		public AccountChartCsv () {
 			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-			walletBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(PREFIX));
+			walletBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(Utils.WALLET_PREFIX));
 		}
 
 		@Override
 		public List<IRow> read(int daysBack) throws IOException {
-			List<String> days = Utils.daysBack(new Date(), daysBack, PREFIX, ".csv");
+			Date now = new Date();
+			Date from = Utils.getDateOfDaysBack(now, daysBack);
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, Utils.WALLET_PREFIX, ".csv");
 			List<IRow> rows = new ArrayList<>();
 			for (Blob blob : walletBlobs.iterateAll()) {
-				if (days.contains(blob.getName())) {
+				if (months.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();
 							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 						// Exclude currencies with little value
-						List<CsvAccountRow> rowsInDay = CsvUtil.readCsvAccountRows(true, ",", reader).stream().filter(row -> row.getPrice() > 0.1).collect(Collectors.toList());
-						rows.addAll(rowsInDay);
+						List<CsvAccountRow> rowsInMonth = CsvUtil.readCsvAccountRows(true, ",", reader).stream().filter(row -> row.getDate().getTime() >= from.getTime()).filter(row -> row.getPrice() > Utils.MIN_WALLET_VALUE_TO_RECORD).collect(Collectors.toList());
+						rows.addAll(rowsInMonth);
 					}
 				}
 			}

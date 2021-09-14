@@ -58,7 +58,7 @@ public class StorageFunction implements HttpFunction {
             SecureBinanceAPI api = SecureBinanceAPI.create(client, storage);
             Account account = api.account();
             List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
-            storage.updateFile("wallet/account_" + fileName, CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+            storage.updateFile(Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
             client.close();
             response.setStatusCode(200);
             response.getWriter().write(downloadLink);

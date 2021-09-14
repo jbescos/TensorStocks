@@ -39,6 +39,8 @@ public class Utils {
 	public static final String LAST_PRICE = "data/last_price.csv";
 	public static final String EMPTY_STR = "";
 	public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
+	public static final String WALLET_PREFIX = "wallet/wallet_";
+	public static final double MIN_WALLET_VALUE_TO_RECORD = 0.1;
 	
 
 	public static Properties fromClasspath(String properties) throws IOException {
@@ -111,6 +113,10 @@ public class Utils {
     public static String thisMonth() {
         return fromDate(FORMAT_MONTH, new Date());
     }
+   
+    public static String thisMonth(Date date) {
+        return fromDate(FORMAT_MONTH, date);
+    }
 	
 	public static String format(double amount) {
 		DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
@@ -180,29 +186,32 @@ public class Utils {
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);
 		for (Balances balance : account.getBalances()) {
 			double value = Double.parseDouble(balance.getFree()) + Double.parseDouble(balance.getLocked());
-			Map<String, String> row = new LinkedHashMap<>();
-			row.put("DATE", dateStr);
-			row.put("SYMBOL", balance.getAsset());
-			row.put("SYMBOL_VALUE", Double.toString(value));
-			String symbol = balance.getAsset() + "USDT";
-			boolean isUsdtConvertible = false;
-			if (Utils.USDT.equals(balance.getAsset())) {
-				row.put(Utils.USDT, Double.toString(value));
-				totalUsdt = totalUsdt + value;
-				isUsdtConvertible = true;
-			} else {
-				for (Price price : prices) {
-					if(symbol.equals(price.getSymbol())) {
-						double usdt = (value * price.getPrice());
-						row.put(Utils.USDT, Double.toString(usdt));
-						totalUsdt = totalUsdt + usdt;
-						isUsdtConvertible = true;
-						break;
+			// Exclude currencies with little value
+			if (value > MIN_WALLET_VALUE_TO_RECORD) {
+				Map<String, String> row = new LinkedHashMap<>();
+				row.put("DATE", dateStr);
+				row.put("SYMBOL", balance.getAsset());
+				row.put("SYMBOL_VALUE", Double.toString(value));
+				String symbol = balance.getAsset() + "USDT";
+				boolean isUsdtConvertible = false;
+				if (Utils.USDT.equals(balance.getAsset())) {
+					row.put(Utils.USDT, Double.toString(value));
+					totalUsdt = totalUsdt + value;
+					isUsdtConvertible = true;
+				} else {
+					for (Price price : prices) {
+						if(symbol.equals(price.getSymbol())) {
+							double usdt = (value * price.getPrice());
+							row.put(Utils.USDT, Double.toString(usdt));
+							totalUsdt = totalUsdt + usdt;
+							isUsdtConvertible = true;
+							break;
+						}
 					}
 				}
-			}
-			if (isUsdtConvertible) {
-				rows.add(row);
+				if (isUsdtConvertible) {
+					rows.add(row);
+				}
 			}
 		}
 		Map<String, String> row = new LinkedHashMap<>();
