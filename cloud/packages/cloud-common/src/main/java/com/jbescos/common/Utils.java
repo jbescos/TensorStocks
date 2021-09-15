@@ -186,32 +186,33 @@ public class Utils {
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);
 		for (Balances balance : account.getBalances()) {
 			double value = Double.parseDouble(balance.getFree()) + Double.parseDouble(balance.getLocked());
-			// Exclude currencies with little value
-			if (value > MIN_WALLET_VALUE_TO_RECORD) {
-				Map<String, String> row = new LinkedHashMap<>();
-				row.put("DATE", dateStr);
-				row.put("SYMBOL", balance.getAsset());
-				row.put("SYMBOL_VALUE", Double.toString(value));
-				String symbol = balance.getAsset() + "USDT";
-				boolean isUsdtConvertible = false;
-				if (Utils.USDT.equals(balance.getAsset())) {
-					row.put(Utils.USDT, Double.toString(value));
-					totalUsdt = totalUsdt + value;
-					isUsdtConvertible = true;
-				} else {
-					for (Price price : prices) {
-						if(symbol.equals(price.getSymbol())) {
-							double usdt = (value * price.getPrice());
-							row.put(Utils.USDT, Double.toString(usdt));
-							totalUsdt = totalUsdt + usdt;
-							isUsdtConvertible = true;
-							break;
-						}
+			Map<String, String> row = new LinkedHashMap<>();
+			row.put("DATE", dateStr);
+			row.put("SYMBOL", balance.getAsset());
+			row.put("SYMBOL_VALUE", Utils.format(value));
+			String symbol = balance.getAsset() + "USDT";
+			boolean isUsdtConvertible = false;
+			if (Utils.USDT.equals(balance.getAsset())) {
+				row.put(Utils.USDT, Utils.format(value));
+				totalUsdt = totalUsdt + value;
+				isUsdtConvertible = true;
+			} else {
+				for (Price price : prices) {
+					if(symbol.equals(price.getSymbol())) {
+						double usdt = (value * price.getPrice());
+						row.put(Utils.USDT, Utils.format(usdt));
+						totalUsdt = totalUsdt + usdt;
+						isUsdtConvertible = true;
+						break;
 					}
 				}
-				if (isUsdtConvertible) {
-					rows.add(row);
-				}
+			}
+			if (isUsdtConvertible) {
+			    double val = Double.parseDouble(row.get(Utils.USDT));
+			    // Don't save very small values
+			    if (val > MIN_WALLET_VALUE_TO_RECORD) {
+			        rows.add(row);
+			    }
 			}
 		}
 		Map<String, String> row = new LinkedHashMap<>();

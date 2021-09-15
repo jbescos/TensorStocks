@@ -14,15 +14,12 @@ import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.Account;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
-import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Price;
 import com.jbescos.common.PublisherMgr;
-import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
 
 // Entry: com.jbescos.cloudstorage.StorageFunction
@@ -30,7 +27,6 @@ public class StorageFunction implements HttpFunction {
 
     private static final Logger LOGGER = Logger.getLogger(StorageFunction.class.getName());
 	private static final byte[] CSV_HEADER_TOTAL = Utils.CSV_ROW_HEADER.getBytes(Utils.UTF8);
-	private static final byte[] CSV_HEADER_ACCOUNT_TOTAL = "DATE,SYMBOL,SYMBOL_VALUE,USDT\r\n".getBytes(Utils.UTF8);
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
@@ -54,11 +50,6 @@ public class StorageFunction implements HttpFunction {
     		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
     		// Notify bot
     		publisher.publish(message);
-    		// Update wallet
-            SecureBinanceAPI api = SecureBinanceAPI.create(client, storage);
-            Account account = api.account();
-            List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
-            storage.updateFile(Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
             client.close();
             response.setStatusCode(200);
             response.getWriter().write(downloadLink);
