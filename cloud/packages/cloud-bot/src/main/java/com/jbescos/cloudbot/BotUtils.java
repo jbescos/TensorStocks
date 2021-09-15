@@ -18,8 +18,8 @@ import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.google.cloud.storage.Storage.BlobListOption;
+import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
@@ -38,18 +38,18 @@ public class BotUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<Broker> loadStatistics(Client client, boolean requestLatestPrices) throws IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+	public static List<Broker> loadStatistics(CloudProperties cloudProperties, Client client, boolean requestLatestPrices) throws IOException {
+		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 		// Get 1 day more and compare dates later
-		List<String> days = Utils.daysBack(new Date(), CloudProperties.BOT_DAYS_BACK_STATISTICS + 1, "data/", ".csv");
+		List<String> days = Utils.daysBack(new Date(), cloudProperties.BOT_DAYS_BACK_STATISTICS + 1, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
-		Date from = Utils.getDateOfDaysBack(now, CloudProperties.BOT_DAYS_BACK_STATISTICS);
+		Date from = Utils.getDateOfDaysBack(now, cloudProperties.BOT_DAYS_BACK_STATISTICS);
 		List<CsvRow> csvInDay = null;
 		for (String day : days) {
-			try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, day);
+			try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				csvInDay = CsvUtil.readCsvRows(true, ",", reader, CloudProperties.BOT_WHITE_LIST_SYMBOLS);
+				csvInDay = CsvUtil.readCsvRows(true, ",", reader, cloudProperties.BOT_WHITE_LIST_SYMBOLS);
 				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime())
 						.collect(Collectors.toList());
 				rows.addAll(csvInDay);
@@ -61,8 +61,8 @@ public class BotUtils {
 					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		List<CsvTransactionRow> transactions = new ArrayList<>();
-		List<String> months = Utils.monthsBack(new Date(), CloudProperties.BOT_MONTHS_BACK_TRANSACTIONS, Utils.TRANSACTIONS_PREFIX, ".csv");
-		Page<Blob> transactionFiles = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(Utils.TRANSACTIONS_PREFIX));
+		List<String> months = Utils.monthsBack(new Date(), cloudProperties.BOT_MONTHS_BACK_TRANSACTIONS, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+		Page<Blob> transactionFiles = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
 		for (Blob transactionFile : transactionFiles.iterateAll()) {
 		    if (months.contains(transactionFile.getName())) {
 		        try (ReadChannel readChannel = transactionFile.reader();
@@ -76,36 +76,36 @@ public class BotUtils {
 		if (requestLatestPrices) {
 			List<CsvRow> latestCsv = new BinanceAPI(client).price().stream()
 					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
-					.filter(row -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
+					.filter(row -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
 					.collect(Collectors.toList());
 			for (CsvRow last : latestCsv) {
 				for (CsvRow inDay : csvInDay) {
 					if (last.getSymbol().equals(inDay.getSymbol())) {
-						last.setAvg(Utils.ewma(CloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
-						last.setAvg2(Utils.ewma(CloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
+						last.setAvg(Utils.ewma(cloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
+						last.setAvg2(Utils.ewma(cloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
 						break;
 					}
 				}
 			}
 			rows.addAll(latestCsv);
 		}
-		return fromCsvRows(rows, transactions);
+		return fromCsvRows(cloudProperties, rows, transactions);
 	}
 
-	public static List<Broker> fromCsvRows(List<CsvRow> csv, List<CsvTransactionRow> transactions) {
+	public static List<Broker> fromCsvRows(CloudProperties cloudProperties, List<CsvRow> csv, List<CsvTransactionRow> transactions) {
 		Map<String, Broker> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
 		LOGGER.info(() -> "There is data for: " + grouped.keySet());
-		Date deadLine = Utils.getDateOfDaysBack(new Date(), CloudProperties.BOT_PANIC_DAYS);
+		Date deadLine = Utils.getDateOfDaysBack(new Date(), cloudProperties.BOT_PANIC_DAYS);
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
 			if (!Utils.isPanicSellInDays(symbolTransactions, deadLine)) {
     			if (symbolTransactions != null) {
     				symbolTransactions = filterLastBuys(symbolTransactions);
     			}
-    			minMax.put(entry.getKey(), buySellInstance(entry.getKey(), entry.getValue(), symbolTransactions));
+    			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions));
 			} else {
 			    LOGGER.info(() -> entry.getKey() + " skipped because there was a SELL_PANIC recently");
 			}
@@ -122,7 +122,7 @@ public class BotUtils {
 	    }
 	}
 	
-	private static Broker buySellInstance(String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
+	private static Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
 		double minProfitableSellPrice = Utils.minSellProfitable(symbolTransactions);
 		boolean hasPreviousTransactions = symbolTransactions != null && !symbolTransactions.isEmpty();
 		CsvRow newest = rows.get(rows.size() - 1);
@@ -131,16 +131,16 @@ public class BotUtils {
 		    lastPurchase = symbolTransactions.get(0).getDate();
 		    LOGGER.info(() -> symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
 		}
-		FixedBuySell fixedBuySell = CloudProperties.FIXED_BUY_SELL.get(symbol);
+		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
 		CsvRow oldest = rows.get(0);
 	    if (fixedBuySell != null) {
 		    return new LimitsBroker(symbol, rows, fixedBuySell);
-	    } else if (CloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(newest, minProfitableSellPrice)) {
+	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, minProfitableSellPrice)) {
 			return new PanicBroker(symbol, newest, minProfitableSellPrice);
-		} else if (CloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
-			return new GreedyBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
+		} else if (cloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
+			return new GreedyBroker(cloudProperties, symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
 		} else {
-			return new CautelousBroker(symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
+			return new CautelousBroker(cloudProperties, symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
 		}
 	}
 

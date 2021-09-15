@@ -16,14 +16,14 @@ import com.google.cloud.storage.StorageOptions;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
 import com.jbescos.common.Account;
 import com.jbescos.common.BinanceAPI;
-import com.jbescos.common.BucketStorage;
 import com.jbescos.common.Broker;
+import com.jbescos.common.Broker.Action;
+import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Price;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
-import com.jbescos.common.Broker.Action;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
 public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
@@ -33,23 +33,24 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 
     @Override
     public void accept(PubSubMessage payload, Context context) throws Exception {
-        String data = new String(Base64.getDecoder().decode(payload.data));
-        LOGGER.info(() -> "Received: " + data);
+        String userId = new String(Base64.getDecoder().decode(payload.data));
+        LOGGER.info(() -> "Received: " + userId);
+        CloudProperties cloudProperties = new CloudProperties(userId);
         Client client = ClientBuilder.newClient();
         BinanceAPI binanceAPI = new BinanceAPI(client);
         long time = binanceAPI.time();
         Date now = new Date(time);
-        BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
-        SecureBinanceAPI api = SecureBinanceAPI.create(client, storage);
-        List<Broker> stats = BotUtils.loadStatistics(client, false).stream()
+        BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
+        SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client, storage);
+        List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, false).stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-        BotBinance bot = new BotBinance(api);
+        BotBinance bot = new BotBinance(cloudProperties, api);
         bot.execute(stats);
         // Update wallet
         Account account = api.account();
         List<Price> prices = binanceAPI.price();
         List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
-        storage.updateFile(Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+        storage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
         client.close();
     }
 

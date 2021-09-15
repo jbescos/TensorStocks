@@ -40,10 +40,11 @@ public class BotTest {
 
     private static final boolean TEST_REVERSE = false;
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
+    private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
     private static final long DAY_MILLIS = 3600 * 1000 * 24;
     private static final long MONTH_MILLIS = DAY_MILLIS * 30;
-    private static final long DAYS_BACK_MILLIS = CloudProperties.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
-    private static final long TRANSACTIONS_BACK_MILLIS = CloudProperties.BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
+    private static final long DAYS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
+    private static final long TRANSACTIONS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
     private static final int TOP = 40;
 
@@ -88,7 +89,7 @@ public class BotTest {
                 LOGGER.info(() -> "Loading " + csvFile);
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv))) {
                     List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
-                    dailyRows = dailyRows.stream().filter(r -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
+                    dailyRows = dailyRows.stream().filter(r -> CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
                     rows.addAll(dailyRows);
                 }
                 LOGGER.info("Rows loaded so far " + rows.size());
@@ -128,16 +129,16 @@ public class BotTest {
         Double previousResult = null;
         Double previousResult2 = null;
         for (CsvRow row : rows) {
-            previousResult = Utils.ewma(CloudProperties.EWMA_CONSTANT, row.getPrice(), previousResult);
-            previousResult2 = Utils.ewma(CloudProperties.EWMA_2_CONSTANT, row.getPrice(), previousResult2);
+            previousResult = Utils.ewma(CLOUD_PROPERTIES.EWMA_CONSTANT, row.getPrice(), previousResult);
+            previousResult2 = Utils.ewma(CLOUD_PROPERTIES.EWMA_2_CONSTANT, row.getPrice(), previousResult2);
             row.setAvg(previousResult);
             row.setAvg2(previousResult2);
         }
     }
 
     private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) {
-        Bot trader = new Bot(wallet, false);
-        Bot holder = new Bot(new HashMap<>(wallet), true);
+        Bot trader = new Bot(CLOUD_PROPERTIES, wallet, false);
+        Bot holder = new Bot(CLOUD_PROPERTIES, new HashMap<>(wallet), true);
         while (true) {
             Date to = new Date(now.getTime());
             // Days back
@@ -151,7 +152,7 @@ public class BotTest {
             }
             Date fromTx = new Date(now.getTime() - TRANSACTIONS_BACK_MILLIS);
             List<CsvTransactionRow> transactions = trader.getTransactions().stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-            List<Broker> stats = BotUtils.fromCsvRows(segment, transactions);
+            List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, transactions);
             if (!stats.isEmpty()) {
                 trader.execute(stats);
                 holder.execute(stats);

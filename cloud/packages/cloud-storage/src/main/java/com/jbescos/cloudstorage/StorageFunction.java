@@ -1,10 +1,8 @@
 package com.jbescos.cloudstorage;
 
-import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
@@ -30,15 +28,15 @@ public class StorageFunction implements HttpFunction {
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
+		CloudProperties cloudProperties = new CloudProperties();
 		Client client = ClientBuilder.newClient();
 		BinanceAPI binanceAPI = new BinanceAPI(client);
-		BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
+		BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
 		long time = binanceAPI.time();
 		Date now = new Date(time);
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		Map<String, CsvRow> previousRows = storage.previousRowsUpdatedKline(time);
-		String message = Utils.fromDate(Utils.FORMAT_SECOND, now);
-		try (PublisherMgr publisher = PublisherMgr.create()) {
+		try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
 		    // Update current prices
     		List<Price> prices = binanceAPI.price();
             String fileName = Utils.FORMAT.format(now) + ".csv";
@@ -49,14 +47,14 @@ public class StorageFunction implements HttpFunction {
     		}
     		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
     		// Notify bot
-    		publisher.publish(message);
+    		LOGGER.info("Sending bot messages to " + cloudProperties.USERS_LIST);
+    		for (String userId : cloudProperties.USERS_LIST) {
+    			publisher.publish(userId);
+    		}
             client.close();
             response.setStatusCode(200);
             response.getWriter().write(downloadLink);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Cannot send message: " + message, e);
         }
-		
 	}
 
 }

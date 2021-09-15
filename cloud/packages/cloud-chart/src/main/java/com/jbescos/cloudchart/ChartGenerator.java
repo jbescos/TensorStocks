@@ -69,12 +69,14 @@ public class ChartGenerator {
 		private final List<String> symbols;
 		private final Map<String, Double> wallet = new LinkedHashMap<>();
 		private final Date now = new Date();
+		private final CloudProperties cloudProperties;
 		
-		public ProfitableBarChartCsv(List<String> symbols) throws IOException {
+		public ProfitableBarChartCsv(CloudProperties cloudProperties, List<String> symbols) throws IOException {
+			this.cloudProperties = cloudProperties;
 			this.symbols = symbols;
-			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-			String todaysWalletCsv = Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv";
-			Blob retrieve = storage.get(CloudProperties.BUCKET, todaysWalletCsv);
+			Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
+			String todaysWalletCsv = cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv";
+			Blob retrieve = storage.get(cloudProperties.BUCKET, todaysWalletCsv);
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				List<CsvAccountRow> account = CsvUtil.readCsvAccountRows(true, ",", reader);
@@ -89,14 +91,14 @@ public class ChartGenerator {
 					
 				}
 			}
-			transactionBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(Utils.TRANSACTIONS_PREFIX));
+			transactionBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
 		}
 		
 		@Override
 		public List<IRow> read(int daysBack) throws IOException {
 		    Date from = Utils.getDateOfDaysBack(now, daysBack);
 			List<IRow> total = new ArrayList<>();
-			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, Utils.TRANSACTIONS_PREFIX, ".csv");
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
 			for (Blob blob : transactionBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();
@@ -122,17 +124,19 @@ public class ChartGenerator {
 	static class AccountChartCsv implements IChartCsv {
 		
 		private final Page<Blob> walletBlobs;
+		private final CloudProperties cloudProperties;
 
-		public AccountChartCsv () {
-			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-			walletBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(Utils.WALLET_PREFIX));
+		public AccountChartCsv (CloudProperties cloudProperties) {
+			this.cloudProperties = cloudProperties;
+			Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
+			walletBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX));
 		}
 
 		@Override
 		public List<IRow> read(int daysBack) throws IOException {
 			Date now = new Date();
 			Date from = Utils.getDateOfDaysBack(now, daysBack);
-			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, Utils.WALLET_PREFIX, ".csv");
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX, ".csv");
 			List<IRow> rows = new ArrayList<>();
 			for (Blob blob : walletBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
@@ -163,12 +167,14 @@ public class ChartGenerator {
 		private final List<String> symbols;
 		private final Page<Blob> dataBlobs;
 		private final Page<Blob> transactionBlobs;
+		private final CloudProperties cloudProperties;
 
-		public SymbolChartCsv(List<String> symbols) {
+		public SymbolChartCsv(CloudProperties cloudProperties, List<String> symbols) {
+			this.cloudProperties = cloudProperties;
 			this.symbols = symbols;
-			Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
-			dataBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(DATA_PREFIX));
-			transactionBlobs = storage.list(CloudProperties.BUCKET, BlobListOption.prefix(Utils.TRANSACTIONS_PREFIX));
+			Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
+			dataBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(DATA_PREFIX));
+			transactionBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
 		}
 
 		@Override
@@ -207,7 +213,7 @@ public class ChartGenerator {
 				}
 			}
 			Date from = Utils.getDateOfDaysBack(now, daysBack);
-			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, Utils.TRANSACTIONS_PREFIX, ".csv");
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
 			for (Blob blob : transactionBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();

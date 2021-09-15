@@ -34,10 +34,10 @@ public class PanicBroker implements Broker {
 		return 0.99;
 	}
 
-	public static boolean isPanic(CsvRow newest, double minProfitableSellPrice) {
+	public static boolean isPanic(CloudProperties cloudProperties, CsvRow newest, double minProfitableSellPrice) {
 		if (newest.getPrice() < minProfitableSellPrice) {
 			double factor = 1 - (newest.getPrice() / minProfitableSellPrice);
-			return factor > CloudProperties.BOT_PANIC_RATIO;
+			return factor > cloudProperties.BOT_PANIC_RATIO;
 		}
 		return false;
 	}

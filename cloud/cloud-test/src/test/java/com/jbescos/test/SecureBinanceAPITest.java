@@ -17,6 +17,7 @@ import org.junit.Test;
 
 import com.jbescos.common.Account;
 import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Price;
 import com.jbescos.common.SecureBinanceAPI;
@@ -24,11 +25,13 @@ import com.jbescos.common.Utils;
 
 public class SecureBinanceAPITest {
 
+	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+
 	@Test
 	@Ignore
 	public void account() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		Client client = ClientBuilder.newClient();
-		SecureBinanceAPI api = SecureBinanceAPI.create(client, null);
+		SecureBinanceAPI api = SecureBinanceAPI.create(CLOUD_PROPERTIES, client, null);
 		Account account = api.account();
 		List<Price> prices = new BinanceAPI(client).price();
 		List<Map<String, String>> rows = Utils.userUsdt(new Date(), prices, account);
@@ -40,7 +43,7 @@ public class SecureBinanceAPITest {
 	@Ignore
 	public void testOrder() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		Client client = ClientBuilder.newClient();
-		SecureBinanceAPI api = SecureBinanceAPI.create(client, null);
+		SecureBinanceAPI api = SecureBinanceAPI.create(CLOUD_PROPERTIES, client, null);
 		System.out.println(api.testOrder("DOGEUSDT", "BUY", "10"));
 		client.close();
 	}
@@ -48,7 +51,7 @@ public class SecureBinanceAPITest {
 	@Test
 	public void signature() throws InvalidKeyException, NoSuchAlgorithmException {
 		Client client = ClientBuilder.newClient();
-		SecureBinanceAPI api = SecureBinanceAPI.create(client, null, "vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A", "NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j");
+		SecureBinanceAPI api = SecureBinanceAPI.create(CLOUD_PROPERTIES, client, null, "vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A", "NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j");
 		String signature = api.signature("symbol=LTCBTC&side=BUY&type=LIMIT&timeInForce=GTC&quantity=1&price=0.1&recvWindow=5000&timestamp=1499827319559");
 		assertEquals("c8db56825ae71d6d79447849e617115f4a920fa2acdcab2b053c4b2838bd6b71", signature);
 		client.close();

@@ -18,8 +18,10 @@ public class CautelousBroker implements Broker {
     private final double minProfitableSellPrice;
     private final boolean hasPreviousTransactions;
     private final Date lastPurchase;
+    private final CloudProperties cloudProperties;
 
-    public CautelousBroker(String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, Date lastPurchase) {
+    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, Date lastPurchase) {
+    	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
         this.max = Utils.getMinMax(values, false);
@@ -36,8 +38,8 @@ public class CautelousBroker implements Broker {
         this.action = evaluate(newest.getPrice(), values);
     }
     
-    public CautelousBroker(String symbol, List<CsvRow> values) {
-        this(symbol, values, 0, false, null);
+    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
+        this(cloudProperties, symbol, values, 0, false, null);
     }
     
     public CsvRow getMin() {
@@ -74,13 +76,13 @@ public class CautelousBroker implements Broker {
 
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
-        double buyCommision = (price * CloudProperties.BOT_BUY_COMISSION) + price;
+        double buyCommision = (price * cloudProperties.BOT_BUY_COMISSION) + price;
         if (buyCommision < avg) {
-            double comparedFactor = CloudProperties.BOT_MIN_MAX_RELATION_BUY;
+            double comparedFactor = cloudProperties.BOT_MIN_MAX_RELATION_BUY;
             if (!hasPreviousTransactions || (hasPreviousTransactions && buyCommision < minProfitableSellPrice)) {
                 if (factor > comparedFactor) {
                     if (Utils.isMin(values)) { // It is going up
-                        double percentileMin = ((avg - min.getPrice()) * CloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
+                        double percentileMin = ((avg - min.getPrice()) * cloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
                         if (buyCommision < percentileMin) {
                             action = Action.BUY;
                         } else {
@@ -97,14 +99,14 @@ public class CautelousBroker implements Broker {
             }
         } else if (hasPreviousTransactions) {
             if (Utils.isMax(values)) { // It is going down
-                double minSell = CloudProperties.minSell(this.symbol);
-                double sellCommision = (price * CloudProperties.BOT_SELL_COMISSION) + price;
+                double minSell = cloudProperties.minSell(this.symbol);
+                double sellCommision = (price * cloudProperties.BOT_SELL_COMISSION) + price;
                 if (sellCommision < minSell) {
                     LOGGER.info(() -> Utils.format(sellCommision) + " " + this.symbol + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max + ". Current price is " + newest);
                 } else if (sellCommision < minProfitableSellPrice) {
                     LOGGER.info(() -> Utils.format(sellCommision) + " " + this.symbol + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable. Current price is " + newest);
                 } else {
-                    double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), CloudProperties.BOT_MIN_PROFIT_SELL, CloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, CloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS);
+                    double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS);
                     double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
                     if (benefit >= expectedBenefit) {
                     	LOGGER.info(() -> symbol + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit) + ". Current price is " + newest);

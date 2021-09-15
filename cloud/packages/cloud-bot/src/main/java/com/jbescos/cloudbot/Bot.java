@@ -23,8 +23,10 @@ public class Bot {
 	private final List<CsvTransactionRow> transactions = new ArrayList<>();
 	private final List<CsvRow> walletHistorical = new ArrayList<>();
 	private final double minTransaction;
+	private final CloudProperties cloudProperties;
 
-	public Bot(Map<String, Double> wallet, boolean skip) {
+	public Bot(CloudProperties cloudProperties, Map<String, Double> wallet, boolean skip) {
+		this.cloudProperties = cloudProperties;
 		this.wallet = wallet;
 		this.skip = skip;
 		// Min transaction is 1/10 of initial money
@@ -64,19 +66,19 @@ public class Bot {
 	}
 
 	private void buy(String symbol, Broker stat) {
-	    if (!CloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+	    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
     		double currentPrice = stat.getNewest().getPrice();
     		wallet.putIfAbsent(symbol, 0.0);
     		double usdt = wallet.get(Utils.USDT);
-    		double buy = usdt * CloudProperties.BOT_BUY_REDUCER;
-    		if (!CloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+    		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
+    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
                 buy = buy * stat.getFactor();
             }
     		if (buy < minTransaction) {
     			buy = minTransaction;
     		}
     		if (updateWallet(Utils.USDT, buy * -1)) {
-    			double unitsOfSymbol = buy / (currentPrice + (currentPrice * CloudProperties.BOT_BUY_COMISSION));
+    			double unitsOfSymbol = buy / (currentPrice + (currentPrice * cloudProperties.BOT_BUY_COMISSION));
     			updateWallet(symbol, unitsOfSymbol);
     			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, buy, unitsOfSymbol, currentPrice);
     			transactions.add(transaction);
@@ -91,13 +93,13 @@ public class Bot {
 		double currentPrice = stat.getNewest().getPrice();
 		wallet.putIfAbsent(symbol, 0.0);
 		double unitsOfSymbol = wallet.get(symbol);
-		double sell = unitsOfSymbol * CloudProperties.BOT_SELL_REDUCER;
-		if (!CloudProperties.BOT_SELL_IGNORE_FACTOR_REDUCER) {
+		double sell = unitsOfSymbol * cloudProperties.BOT_SELL_REDUCER;
+		if (!cloudProperties.BOT_SELL_IGNORE_FACTOR_REDUCER) {
 		    sell = sell * stat.getFactor();
 		}
 		double usdt = currentPrice * sell;
 		if (usdt > minTransaction && updateWallet(symbol, sell * -1)) {
-			usdt = usdt - (usdt * CloudProperties.BOT_SELL_COMISSION);
+			usdt = usdt - (usdt * cloudProperties.BOT_SELL_COMISSION);
 			updateWallet(Utils.USDT, usdt);
 			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, usdt, unitsOfSymbol, currentPrice);
 			transactions.add(transaction);

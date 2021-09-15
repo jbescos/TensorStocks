@@ -27,46 +27,55 @@ import com.jbescos.common.Utils;
 public class BotFunction implements HttpFunction {
 
 	private static final Logger LOGGER = Logger.getLogger(BotFunction.class.getName());
+	private static final String USER_ID_PARAM = "userId";
 	private static final String SIDE_PARAM = "side";
 	private static final String SYMBOL_PARAM = "symbol";
 	private static final String QUANTITY_PARAM = "quantity";
 	
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
-		Client client = ClientBuilder.newClient();
-		BinanceAPI binanceAPI = new BinanceAPI(client);
-		BucketStorage storage = new BucketStorage(StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService(), binanceAPI);
-		SecureBinanceAPI api = SecureBinanceAPI.create(client, storage);
-		String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
-		if (side != null) {
-			Action action = Action.valueOf(side) ;
-			LOGGER.info(() -> "Actively invoked " + side);
-			if (Action.SELL_PANIC == action) {
-				Date now = new Date();
-				List<Broker> stats = new BinanceAPI(client).price().stream()
-						.filter(price -> CloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(price.getSymbol()))
-						.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
-						.map(row -> new PanicBroker(row.getSymbol(), row, 0))
-						.collect(Collectors.toList());
-				BotBinance bot = new BotBinance(api);
+		String userId = Utils.getParam(USER_ID_PARAM, null, request.getQueryParameters());
+		if (userId == null || userId.isEmpty()) {
+			response.getWriter().write("Parameter userId is mandatory");
+			response.setStatusCode(200);
+			response.setContentType("text/plain");
+		} else {
+			CloudProperties cloudProperties = new CloudProperties(userId);
+			Client client = ClientBuilder.newClient();
+			BinanceAPI binanceAPI = new BinanceAPI(client);
+			BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
+			SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client, storage);
+			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
+			if (side != null) {
+				Action action = Action.valueOf(side) ;
+				LOGGER.info(() -> "Actively invoked " + side);
+				if (Action.SELL_PANIC == action) {
+					Date now = new Date();
+					List<Broker> stats = new BinanceAPI(client).price().stream()
+							.filter(price -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(price.getSymbol()))
+							.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
+							.map(row -> new PanicBroker(row.getSymbol(), row, 0))
+							.collect(Collectors.toList());
+					BotBinance bot = new BotBinance(cloudProperties, api);
+					bot.execute(stats);
+					response.getWriter().write(stats.toString());
+				} else {
+					String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
+					String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
+					Map<String, String> apiResponse = api.orderSymbol(symbol, Action.valueOf(side), quantity);
+					response.getWriter().write(apiResponse.toString());
+				}
+			} else {
+				List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, true).stream()
+						.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
+				BotBinance bot = new BotBinance(cloudProperties, api);
 				bot.execute(stats);
 				response.getWriter().write(stats.toString());
-			} else {
-				String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
-				String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
-				Map<String, String> apiResponse = api.orderSymbol(symbol, Action.valueOf(side), quantity);
-				response.getWriter().write(apiResponse.toString());
 			}
-		} else {
-			List<Broker> stats = BotUtils.loadStatistics(client, true).stream()
-					.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-			BotBinance bot = new BotBinance(api);
-			bot.execute(stats);
-			response.getWriter().write(stats.toString());
+			response.setStatusCode(200);
+			response.setContentType("text/plain");
+			client.close();
 		}
-		response.setStatusCode(200);
-		response.setContentType("text/plain");
-		client.close();
 	}
 
 }

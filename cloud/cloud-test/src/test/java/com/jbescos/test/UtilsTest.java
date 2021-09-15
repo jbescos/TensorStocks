@@ -19,6 +19,8 @@ import com.jbescos.common.Utils;
 
 public class UtilsTest {
 
+	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+
 	@Test
 	public void daysBack() {
 		Date from = Utils.fromString(Utils.FORMAT, "2020-01-02");
@@ -35,9 +37,9 @@ public class UtilsTest {
 	
 	@Test
 	public void minSell() {
-		double value = CloudProperties.minSell("does not exist");
+		double value = CLOUD_PROPERTIES.minSell("does not exist");
 		assertEquals(0.0, value, 0.0);
-		value = CloudProperties.minSell("TESTUSDT");
+		value = CLOUD_PROPERTIES.minSell("TESTUSDT");
 		assertEquals(101, value, 0.0);
 	}
 	

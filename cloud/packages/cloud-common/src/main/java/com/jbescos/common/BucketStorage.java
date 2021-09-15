@@ -30,16 +30,18 @@ public class BucketStorage {
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
 	private final Storage storage;
 	private final BinanceAPI binanceAPI;
+	private final CloudProperties cloudProperties;
 	
-	public BucketStorage(Storage storage, BinanceAPI binanceAPI) {
+	public BucketStorage(CloudProperties cloudProperties, Storage storage, BinanceAPI binanceAPI) {
+		this.cloudProperties = cloudProperties;
 	    this.storage = storage;
 	    this.binanceAPI = binanceAPI;
 	}
 	
 	public Map<String, CsvRow> previousRowsUpdatedKline(long serverTime) throws IOException{
-		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
-		Blob retrieve = storage.get(CloudProperties.BUCKET, Utils.LAST_PRICE);
+		Blob retrieve = storage.get(cloudProperties.BUCKET, Utils.LAST_PRICE);
 		if (retrieve == null) {
 			LOGGER.warning(Utils.CSV_ROW_HEADER + " was not found");
 			// TODO It is better to get it from the last records of the date.csv
@@ -76,14 +78,14 @@ public class BucketStorage {
 	}
 
 	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, List<Price> prices, Date now) {
-	    Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+	    Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 	    List<CsvRow> newRows = new ArrayList<>();
         for (Price price : prices) {
             CsvRow previous = previousRows.get(price.getSymbol());
             CsvRow newRow = null;
             if (previous != null) {
-                newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(CloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(CloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
+                newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
                 newRow.setKline(previous.getKline());
             } else {
                 newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
@@ -91,30 +93,30 @@ public class BucketStorage {
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());
         }
-        storage.create(createBlobInfo(Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
+        storage.create(createBlobInfo(cloudProperties, Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
         return newRows;
 	}
 
 	public String updateFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
-		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, fileName).build().getBlobId());
+		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(cloudProperties.BUCKET, fileName).build().getBlobId());
 		if (retrieve == null) {
-			retrieve = storage.create(createBlobInfo(fileName, false), header);
+			retrieve = storage.create(createBlobInfo(cloudProperties, fileName, false), header);
 		}
-		final String TEMP_FILE = fileName + ".tmp";
-		storage.create(createBlobInfo(TEMP_FILE, false), content);
-		BlobInfo blobInfo = createBlobInfo(fileName, false);
+		final String TEMP_FILE = cloudProperties.USER_ID + "/" + fileName + ".tmp";
+		storage.create(createBlobInfo(cloudProperties, TEMP_FILE, false), content);
+		BlobInfo blobInfo = createBlobInfo(cloudProperties, fileName, false);
 		ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
 				.addSource(fileName).addSource(TEMP_FILE).build();
 		blobInfo = storage.compose(request);
-		storage.delete(CloudProperties.BUCKET, TEMP_FILE);
+		storage.delete(cloudProperties.BUCKET, TEMP_FILE);
 		return blobInfo.getMediaLink();
 	}
 	
-	public static String fileToString(String fileName) throws IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(CloudProperties.PROJECT_ID).build().getService();
+	public static String fileToString(CloudProperties cloudProperties, String fileName) throws IOException {
+		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 		StringBuilder builder = new StringBuilder();
-		try (ReadChannel readChannel = storage.reader(CloudProperties.BUCKET, fileName); BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));){
+		try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, fileName); BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));){
 			List<String> lines = CsvUtil.readLines(false, reader);
 			for (String line : lines) {
 				builder.append(line);
@@ -123,17 +125,8 @@ public class BucketStorage {
 		return builder.toString();
 	}
 
-	private static void updateTotalCsv(Storage storage, byte[] header, String newDataFile, String totalCsv) {
-		BlobInfo total = storage.get(BlobInfo.newBuilder(CloudProperties.BUCKET, totalCsv).build().getBlobId());
-		if (total == null) {
-			total = storage.create(createBlobInfo(totalCsv, false), header);
-		}
-		ComposeRequest request = ComposeRequest.newBuilder().setTarget(total).addSource(totalCsv).addSource(newDataFile).build();
-		storage.compose(request);
-	}
-
-	private static BlobInfo createBlobInfo(String fileName, boolean acl) {
-		BlobInfo.Builder builder = BlobInfo.newBuilder(CloudProperties.BUCKET, fileName);
+	private static BlobInfo createBlobInfo(CloudProperties cloudProperties, String fileName, boolean acl) {
+		BlobInfo.Builder builder = BlobInfo.newBuilder(cloudProperties.BUCKET, fileName);
 		if (acl) {
 			builder.setAcl(new ArrayList<>(Arrays.asList(Acl.of(User.ofAllUsers(), Role.READER))));
 		}
