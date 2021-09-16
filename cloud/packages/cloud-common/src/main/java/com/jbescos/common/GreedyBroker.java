@@ -35,13 +35,13 @@ public class GreedyBroker implements Broker {
                     if (Utils.isMax(values) || ( 1 - (minProfitableSellPrice / newest.getPrice())) > cloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
                         action = Action.SELL;
                     } else {
-                        LOGGER.info(() -> symbol + " discarded to sell because it is not a max");
+                        LOGGER.info(() -> newest + " discarded to sell because it is not a max");
                     }
                 } else {
-                    LOGGER.info(() -> symbol + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
+                    LOGGER.info(() -> newest + " sell discarded because last transaction was " + Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate()) + " is higher than moving date " + Utils.fromDate(Utils.FORMAT_SECOND, expirationHoldDate));
                 }
 			} else {
-				LOGGER.info(symbol + " sell discarded because price " + Utils.format(newest.getPrice()) + " is lower than min profitable " + Utils.format(acceptedPrice));
+				LOGGER.info(newest + " sell discarded because price is lower than min profitable " + Utils.format(acceptedPrice));
 			}
 		} else {
 			// BUY
@@ -49,10 +49,10 @@ public class GreedyBroker implements Broker {
 			    if (Utils.isMin(values)) {
 			        action = Action.BUY;
 			    } else {
-			        LOGGER.info(() -> symbol + " discarded to buy because it is not a min");
+			        LOGGER.info(() -> newest + " discarded to buy because it is not a min");
 			    }
 			} else {
-				LOGGER.info(() -> symbol + " is not good for buying");
+				LOGGER.info(() -> newest + " is not good for buying");
 			}
 		}
 	}

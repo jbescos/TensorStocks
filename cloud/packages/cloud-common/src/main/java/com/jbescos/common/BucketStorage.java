@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Acl;
 import com.google.cloud.storage.Acl.Role;
@@ -20,6 +21,7 @@ import com.google.cloud.storage.Acl.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 import com.google.cloud.storage.StorageOptions;
@@ -132,6 +134,10 @@ public class BucketStorage {
 		}
 		builder.setContentType("text/csv").setContentEncoding(Utils.UTF8.name()).setStorageClass(StorageClass.STANDARD);
 		return builder.build();
+	}
+	
+	public Page<Blob> list(String bucket) {
+		return storage.list(bucket, BlobListOption.currentDirectory());
 	}
 
 }

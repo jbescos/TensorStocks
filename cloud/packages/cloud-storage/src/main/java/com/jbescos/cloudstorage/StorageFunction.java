@@ -1,5 +1,6 @@
 package com.jbescos.cloudstorage;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -8,9 +9,11 @@ import java.util.logging.Logger;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
+import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI;
 import com.jbescos.common.BucketStorage;
@@ -32,6 +35,13 @@ public class StorageFunction implements HttpFunction {
 		Client client = ClientBuilder.newClient();
 		BinanceAPI binanceAPI = new BinanceAPI(client);
 		BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
+		List<String> userIds = new ArrayList<>();
+		Page<Blob> files = storage.list(cloudProperties.PROPERTIES_BUCKET);
+		for (Blob blob : files.iterateAll()) {
+			if (blob.isDirectory()) {
+				userIds.add(blob.getName().replaceAll("/", ""));
+			}
+		}
 		long time = binanceAPI.time();
 		Date now = new Date(time);
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
@@ -47,8 +57,8 @@ public class StorageFunction implements HttpFunction {
     		}
     		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
     		// Notify bot
-    		LOGGER.info("Sending bot messages to " + cloudProperties.USERS_LIST);
-    		for (String userId : cloudProperties.USERS_LIST) {
+    		LOGGER.info("Sending bot messages to " + userIds);
+    		for (String userId : userIds) {
     			publisher.publish(userId);
     		}
             client.close();

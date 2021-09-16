@@ -25,7 +25,7 @@ public class CloudProperties {
 	private static final Logger LOGGER = Logger.getLogger(CloudProperties.class.getName());
 	public final String USER_ID;
 	private final boolean USER_ACTIVE;
-	private final String PROPERTIES_BUCKET = "crypto-properties";
+	public final String PROPERTIES_BUCKET = "crypto-properties";
 	private final String PROPERTIES_FILE = "cloud.properties";
 	public final String PROJECT_ID = System.getenv("GCP_PROJECT");
 	public final String BUCKET;
@@ -36,7 +36,6 @@ public class CloudProperties {
 	public final double BINANCE_MIN_TRANSACTION;
 	public final List<String> BOT_NEVER_BUY_LIST_SYMBOLS;
 	public final List<String> BOT_WHITE_LIST_SYMBOLS;
-	public final List<String> USERS_LIST;
 	public final double BOT_SELL_REDUCER;
 	public final double BOT_BUY_REDUCER;
 	public final double BOT_PERCENTILE_BUY_FACTOR;
@@ -101,9 +100,6 @@ public class CloudProperties {
 		BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
 		value = getProperty("bot.never.buy");
 		BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
-		// GET this only from main properties
-		value = mainProperties.getProperty("users.list");
-		USERS_LIST = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
 		BOT_SELL_REDUCER = Double.parseDouble(getProperty("bot.sell.reducer"));
 		BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
 		BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
