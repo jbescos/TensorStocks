@@ -1,6 +1,7 @@
 package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-import com.jbescos.cloudbot.Bot;
+import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudbot.BotUtils;
 import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
@@ -137,8 +138,10 @@ public class BotTest {
     }
 
     private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) {
-        Bot trader = new Bot(CLOUD_PROPERTIES, wallet, false);
-        Bot holder = new Bot(CLOUD_PROPERTIES, new HashMap<>(wallet), true);
+    	double holderTotalUsd = wallet.get(Utils.USDT).doubleValue();
+    	List<CsvTransactionRow> transactions = new ArrayList<>();
+    	List<CsvRow> walletHistorical = new ArrayList<>();
+    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical);
         while (true) {
             Date to = new Date(now.getTime());
             // Days back
@@ -151,39 +154,44 @@ public class BotTest {
                 break;
             }
             Date fromTx = new Date(now.getTime() - TRANSACTIONS_BACK_MILLIS);
-            List<CsvTransactionRow> transactions = trader.getTransactions().stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-            List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, transactions);
+            List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
+            List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
             if (!stats.isEmpty()) {
-                trader.execute(stats);
-                holder.execute(stats);
+                try {
+					trader.execute(stats);
+				} catch (IOException e) {
+					e.printStackTrace();
+					fail(e.getMessage());
+				}
             }
             now = new Date(now.getTime() + (1000 * 60 * 30));
         }
         CsvRow first = rows.get(0);
-        TestResult result = new TestResult(first.getSymbol(), trader.getUsdtSnapshot(), holder.getUsdtSnapshot(), trader.getTransactions().size());
-        chart(rows, trader, result);
+        double usdSnapshot = walletHistorical.isEmpty() ? 0 : walletHistorical.get(walletHistorical.size() - 1).getPrice();
+        TestResult result = new TestResult(first.getSymbol(), usdSnapshot, holderTotalUsd, transactions.size());
+        chart(rows, result, wallet, transactions, walletHistorical);
         results.add(result);
     }
 
-    private void chart(List<CsvRow> rows, Bot trader, TestResult result) {
+    private void chart(List<CsvRow> rows, TestResult result, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical) {
         CsvRow last = rows.get(rows.size() - 1);
         String subfix = result.success ? "_success" : "_failure";
         File chartFile = new File("./target/" + last.getSymbol() + subfix + ".png");
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
             IChart<IRow> chart = new XYChart();
-            ChartGenerator.writeChart(trader.getTransactions(), output, chart);
+            ChartGenerator.writeChart(transactions, output, chart);
             ChartGenerator.writeChart(rows, output, chart);
-            ChartGenerator.writeChart(trader.getWalletHistorical(), output, chart);
+            ChartGenerator.writeChart(walletHistorical, output, chart);
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
         File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");
         try (FileOutputStream output = new FileOutputStream(barChartFile)) {
             Map<String, Double> walletUsdt = new HashMap<>();
-            for (Entry<String, Double> entry : trader.getWallet().entrySet()) {
+            for (Entry<String, Double> entry : wallet.entrySet()) {
                 walletUsdt.put(entry.getKey(),  entry.getValue() * last.getPrice());
             }
             IChart<IRow> chart = new BarChart(walletUsdt);
-            ChartGenerator.writeChart(trader.getTransactions(), output, chart);
+            ChartGenerator.writeChart(transactions, output, chart);
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
         File volumeChartFile = new File("./target/" + last.getSymbol() + subfix + "_volume.png");

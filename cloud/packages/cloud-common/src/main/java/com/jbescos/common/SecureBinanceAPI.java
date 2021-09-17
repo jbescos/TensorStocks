@@ -126,11 +126,11 @@ public class SecureBinanceAPI {
 		return account;
 	}
 	
-	public Map<String, Double> wallet(){
-		Map<String, Double> wallet = new HashMap<>();
+	public Map<String, String> wallet(){
+		Map<String, String> wallet = new HashMap<>();
 		Account account = account();
 		for (Balances balance : account.getBalances()) {
-			wallet.put(balance.getAsset(), Double.parseDouble(balance.getFree()));
+			wallet.put(balance.getAsset(), balance.getFree());
 		}
 		return wallet;
 	}

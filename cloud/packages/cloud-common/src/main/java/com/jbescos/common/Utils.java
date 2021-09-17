@@ -338,5 +338,13 @@ public class Utils {
 	        return result;
 	    }
 	}
+	
+	public static double symbolValue(double currentUsdt, double usdOfUnit) {
+		return currentUsdt / usdOfUnit;
+	}
+
+	public static double usdValue(double currentSymbol, double usdOfUnit) {
+		return currentSymbol * usdOfUnit;
+	}
 
 }

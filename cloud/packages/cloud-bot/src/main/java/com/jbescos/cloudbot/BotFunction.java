@@ -56,7 +56,7 @@ public class BotFunction implements HttpFunction {
 							.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
 							.map(row -> new PanicBroker(row.getSymbol(), row, 0))
 							.collect(Collectors.toList());
-					BotBinance bot = new BotBinance(cloudProperties, api);
+					BotExecution bot = BotExecution.binance(cloudProperties, api);
 					bot.execute(stats);
 					response.getWriter().write(stats.toString());
 				} else {
@@ -68,7 +68,7 @@ public class BotFunction implements HttpFunction {
 			} else {
 				List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, true).stream()
 						.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-				BotBinance bot = new BotBinance(cloudProperties, api);
+				BotExecution bot = BotExecution.binance(cloudProperties, api);
 				bot.execute(stats);
 				response.getWriter().write(stats.toString());
 			}

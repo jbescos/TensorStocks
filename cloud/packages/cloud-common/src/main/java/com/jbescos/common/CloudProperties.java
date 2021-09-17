@@ -36,7 +36,6 @@ public class CloudProperties {
 	public final double BINANCE_MIN_TRANSACTION;
 	public final List<String> BOT_NEVER_BUY_LIST_SYMBOLS;
 	public final List<String> BOT_WHITE_LIST_SYMBOLS;
-	public final double BOT_SELL_REDUCER;
 	public final double BOT_BUY_REDUCER;
 	public final double BOT_PERCENTILE_BUY_FACTOR;
 	public final double BOT_BUY_COMISSION;
@@ -47,7 +46,6 @@ public class CloudProperties {
 	private final Map<String, Double> MIN_SELL;
 	public final double EWMA_CONSTANT;
 	public final double EWMA_2_CONSTANT;
-	public final boolean BOT_SELL_IGNORE_FACTOR_REDUCER;
 	public final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
 	public final boolean PANIC_BROKER_ENABLE;
 	public final boolean GREEDY_BROKER_ENABLE;
@@ -100,7 +98,6 @@ public class CloudProperties {
 		BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
 		value = getProperty("bot.never.buy");
 		BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
-		BOT_SELL_REDUCER = Double.parseDouble(getProperty("bot.sell.reducer"));
 		BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
 		BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
 		BOT_BUY_COMISSION = Double.parseDouble(getProperty("bot.buy.comission"));
@@ -111,7 +108,6 @@ public class CloudProperties {
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(getProperty("binance.min.transaction"));
 		EWMA_CONSTANT = Double.parseDouble(getProperty("ewma.constant"));
 		EWMA_2_CONSTANT = Double.parseDouble(getProperty("ewma.2.constant"));
-		BOT_SELL_IGNORE_FACTOR_REDUCER = Boolean.valueOf(getProperty("bot.sell.ignore.factor.reducer"));
         BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(getProperty("bot.buy.ignore.factor.reducer"));
         BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(getProperty("bot.sell.benefit.compared.transactions"));
         BOT_PANIC_RATIO = Double.parseDouble(getProperty("bot.panic.ratio"));

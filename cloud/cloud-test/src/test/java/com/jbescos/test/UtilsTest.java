@@ -235,6 +235,16 @@ public class UtilsTest {
         assertEquals(0.2, result, 0.001);
 	}
 	
+	@Test
+	public void symbolValue() {
+		assertEquals("2.42730229", Utils.format(Utils.symbolValue(1000, 411.98)));
+	}
+
+	@Test
+	public void usdValue() {
+		assertEquals("823.96", Utils.format(Utils.usdValue(2, 411.98)));
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}

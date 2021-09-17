@@ -44,7 +44,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client, storage);
         List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, false).stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-        BotBinance bot = new BotBinance(cloudProperties, api);
+        BotExecution bot = BotExecution.binance(cloudProperties, api);
         bot.execute(stats);
         // Update wallet
         Account account = api.account();
