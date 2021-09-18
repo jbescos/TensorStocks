@@ -353,5 +353,9 @@ public class Utils {
 	public static double usdValue(double currentSymbol, double usdOfUnit) {
 		return currentSymbol * usdOfUnit;
 	}
+	
+	public static double applyCommission(double originalPrice, double commission) {
+		return originalPrice * (1 - commission);
+	}
 
 }

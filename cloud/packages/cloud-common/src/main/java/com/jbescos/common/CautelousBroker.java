@@ -76,17 +76,16 @@ public class CautelousBroker implements Broker {
 
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
-        double buyCommision = (price * cloudProperties.BOT_BUY_COMISSION) + price;
-        if (buyCommision < avg) {
+        if (price < avg) {
             double comparedFactor = cloudProperties.BOT_MIN_MAX_RELATION_BUY;
-            if (!hasPreviousTransactions || (hasPreviousTransactions && buyCommision < minProfitableSellPrice)) {
+            if (!hasPreviousTransactions || (hasPreviousTransactions && price < minProfitableSellPrice)) {
                 if (factor > comparedFactor) {
                     if (Utils.isMin(values)) { // It is going up
                         double percentileMin = ((avg - min.getPrice()) * cloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
-                        if (buyCommision < percentileMin) {
+                        if (price < percentileMin) {
                             action = Action.BUY;
                         } else {
-                            LOGGER.info(() -> newest + " buy discarded because the price " + Utils.format(buyCommision) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+                            LOGGER.info(() -> newest + " buy discarded because the price " + Utils.format(price) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                         }
                     } else {
                         LOGGER.info(() -> newest + " buy discarded because it is not min.");
@@ -100,10 +99,9 @@ public class CautelousBroker implements Broker {
         } else if (hasPreviousTransactions) {
             if (Utils.isMax(values)) { // It is going down
                 double minSell = cloudProperties.minSell(this.symbol);
-                double sellCommision = (price * cloudProperties.BOT_SELL_COMISSION) + price;
-                if (sellCommision < minSell) {
+                if (price < minSell) {
                     LOGGER.info(() -> newest + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
-                } else if (sellCommision < minProfitableSellPrice) {
+                } else if (price < minProfitableSellPrice) {
                     LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
                 } else {
                     double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL);

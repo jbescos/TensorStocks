@@ -38,8 +38,8 @@ public class CloudProperties {
 	public final List<String> BOT_WHITE_LIST_SYMBOLS;
 	public final double BOT_BUY_REDUCER;
 	public final double BOT_PERCENTILE_BUY_FACTOR;
-	public final double BOT_BUY_COMISSION;
-	public final double BOT_SELL_COMISSION;
+	public final double BOT_BUY_COMMISSION;
+	public final double BOT_SELL_COMMISSION;
 	public final double BOT_MIN_MAX_RELATION_BUY;
 	public final int BOT_HOURS_BACK_STATISTICS;
 	public final int BOT_MONTHS_BACK_TRANSACTIONS;
@@ -100,8 +100,8 @@ public class CloudProperties {
 		BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
 		BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
 		BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
-		BOT_BUY_COMISSION = Double.parseDouble(getProperty("bot.buy.comission"));
-		BOT_SELL_COMISSION = Double.parseDouble(getProperty("bot.sell.comission"));
+		BOT_BUY_COMMISSION = Double.parseDouble(getProperty("bot.buy.comission"));
+		BOT_SELL_COMMISSION = Double.parseDouble(getProperty("bot.sell.comission"));
 		BOT_MIN_MAX_RELATION_BUY = Double.parseDouble(getProperty("bot.min.max.relation.buy"));
 		BOT_HOURS_BACK_STATISTICS = Integer.parseInt(getProperty("bot.hours.back.statistics"));
 		BOT_MONTHS_BACK_TRANSACTIONS = Integer.parseInt(getProperty("bot.months.back.transactions"));

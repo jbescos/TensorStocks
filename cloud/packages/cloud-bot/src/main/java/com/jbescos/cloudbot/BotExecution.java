@@ -62,7 +62,7 @@ public class BotExecution {
 	    		if (updateWallet(Utils.USDT, buy * -1)) {
 	    				connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
 	    				wallet.putIfAbsent(walletSymbol, 0.0);
-	    				updateWallet(walletSymbol, buySymbol);
+	    				updateWallet(walletSymbol, Utils.applyCommission(buySymbol, cloudProperties.BOT_BUY_COMMISSION));
 	    		}
 	    	} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
@@ -83,7 +83,7 @@ public class BotExecution {
 				LOGGER.info(() -> "Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
 				if (updateWallet(walletSymbol, sell * -1)) {
 					connectAPI.order(symbol, stat, Utils.format(sell), Utils.format(usdtOfSymbol));
-					updateWallet(Utils.USDT, usdtOfSymbol);
+					updateWallet(Utils.USDT, Utils.applyCommission(usdtOfSymbol, cloudProperties.BOT_SELL_COMMISSION));
 				} else {
 					LOGGER.warning("Error with the wallet. It is expected to sell " + Utils.format(sell) + " " + symbol + " and there is " + Utils.format(wallet.get(walletSymbol)));
 				}
@@ -193,6 +193,7 @@ public class BotExecution {
 
 		@Override
 		public void order(String symbol, Broker stat, String quantity, String quantityUsd) {
+			// FIXME apply commission here?
 			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, Double.parseDouble(quantityUsd), Double.parseDouble(quantity), stat.getNewest().getPrice());
 			transactions.add(transaction);
 		}
