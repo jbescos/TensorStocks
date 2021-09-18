@@ -32,7 +32,7 @@ public class GreedyBroker implements Broker {
                 CsvTransactionRow tx = symbolTransactions.get(0);
                 acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * cloudProperties.BOT_GREEDY_IMMEDIATELY_SELL);
                 if (tx.getDate().getTime() < expirationHoldDate.getTime() || newest.getPrice() > acceptedPrice) {
-                    if (Utils.isMax(values) || ( 1 - (minProfitableSellPrice / newest.getPrice())) > cloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS) {
+                    if (Utils.isMax(values) || ( 1 - (minProfitableSellPrice / newest.getPrice())) > cloudProperties.BOT_MAX_PROFIT_SELL) {
                         action = Action.SELL;
                     } else {
                         LOGGER.info(() -> newest + " discarded to sell because it is not a max");

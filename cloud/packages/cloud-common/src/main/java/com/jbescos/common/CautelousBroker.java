@@ -106,7 +106,7 @@ public class CautelousBroker implements Broker {
                 } else if (sellCommision < minProfitableSellPrice) {
                     LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
                 } else {
-                    double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS);
+                    double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL);
                     double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
                     if (benefit >= expectedBenefit) {
                     	LOGGER.info(() -> newest + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit));

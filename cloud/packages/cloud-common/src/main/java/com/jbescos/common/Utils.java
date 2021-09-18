@@ -81,6 +81,13 @@ public class Utils {
 		return c.getTime();
 	}
 
+	public static Date getHoursOfDaysBack(Date currentTime, int hoursBack) {
+		Calendar c = Calendar.getInstance();
+		c.setTime(currentTime);
+		c.add(Calendar.HOUR, hoursBack * -1);
+		return c.getTime();
+	}
+
 	public static Date fromString(DateFormat format, String date) {
 		try {
 			return format.parse(date);

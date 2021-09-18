@@ -245,6 +245,12 @@ public class UtilsTest {
 		assertEquals("823.96", Utils.format(Utils.usdValue(2, 411.98)));
 	}
 	
+	@Test
+	public void getHoursOfDaysBack() {
+		assertEquals("2021-04-30 22:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getHoursOfDaysBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), 2)));
+		assertEquals("2021-05-06 00:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getHoursOfDaysBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-08 00:46:01"), 48)));
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}

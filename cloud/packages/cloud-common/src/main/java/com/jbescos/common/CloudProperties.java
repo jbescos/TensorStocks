@@ -41,7 +41,7 @@ public class CloudProperties {
 	public final double BOT_BUY_COMISSION;
 	public final double BOT_SELL_COMISSION;
 	public final double BOT_MIN_MAX_RELATION_BUY;
-	public final int BOT_DAYS_BACK_STATISTICS;
+	public final int BOT_HOURS_BACK_STATISTICS;
 	public final int BOT_MONTHS_BACK_TRANSACTIONS;
 	private final Map<String, Double> MIN_SELL;
 	public final double EWMA_CONSTANT;
@@ -49,7 +49,7 @@ public class CloudProperties {
 	public final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
 	public final boolean PANIC_BROKER_ENABLE;
 	public final boolean GREEDY_BROKER_ENABLE;
-	public final double BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS;
+	public final double BOT_MAX_PROFIT_SELL;
 	public final double BOT_PANIC_RATIO;
 	public final double BOT_MIN_PROFIT_SELL;
 	public final double BOT_PROFIT_DAYS_SUBSTRACTOR;
@@ -103,13 +103,14 @@ public class CloudProperties {
 		BOT_BUY_COMISSION = Double.parseDouble(getProperty("bot.buy.comission"));
 		BOT_SELL_COMISSION = Double.parseDouble(getProperty("bot.sell.comission"));
 		BOT_MIN_MAX_RELATION_BUY = Double.parseDouble(getProperty("bot.min.max.relation.buy"));
-		BOT_DAYS_BACK_STATISTICS = Integer.parseInt(getProperty("bot.days.back.statistics"));
+		BOT_HOURS_BACK_STATISTICS = Integer.parseInt(getProperty("bot.hours.back.statistics"));
 		BOT_MONTHS_BACK_TRANSACTIONS = Integer.parseInt(getProperty("bot.months.back.transactions"));
 		BINANCE_MIN_TRANSACTION = Double.parseDouble(getProperty("binance.min.transaction"));
 		EWMA_CONSTANT = Double.parseDouble(getProperty("ewma.constant"));
 		EWMA_2_CONSTANT = Double.parseDouble(getProperty("ewma.2.constant"));
         BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(getProperty("bot.buy.ignore.factor.reducer"));
-        BOT_SELL_BENEFIT_COMPARED_TRANSACTIONS = Double.parseDouble(getProperty("bot.sell.benefit.compared.transactions"));
+        BOT_MAX_PROFIT_SELL = Double.parseDouble(getProperty("bot.max.profit.sell"));
+        BOT_MIN_PROFIT_SELL = Double.parseDouble(getProperty("bot.min.profit.sell"));
         BOT_PANIC_RATIO = Double.parseDouble(getProperty("bot.panic.ratio"));
         BOT_PANIC_DAYS = Integer.parseInt(getProperty("bot.panic.days"));
         BOT_GREEDY_MIN_PERCENTILE_BUY = Double.parseDouble(getProperty("bot.greedy.min.percentile.buy"));
@@ -120,7 +121,6 @@ public class CloudProperties {
         BOT_GREEDY_DAYS_TO_HOLD = Integer.parseInt(getProperty("bot.greedy.days.to.hold"));
         BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(getProperty("bot.greedy.immediately.sell"));
         BOT_GREEDY_MIN_MAX_RELATION_BUY = Double.parseDouble(getProperty("bot.greedy.min.max.relation.buy"));
-        BOT_MIN_PROFIT_SELL = Double.parseDouble(getProperty("bot.min.profit.sell"));
         BOT_PROFIT_DAYS_SUBSTRACTOR = Double.parseDouble(getProperty("bot.profit.days.substractor"));
         Map<String, Double> minSell = createMinSell(idProperties);
         if (minSell.isEmpty()) {

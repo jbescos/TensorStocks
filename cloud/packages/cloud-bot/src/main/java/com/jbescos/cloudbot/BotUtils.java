@@ -41,10 +41,10 @@ public class BotUtils {
 	public static List<Broker> loadStatistics(CloudProperties cloudProperties, Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 		// Get 1 day more and compare dates later
-		List<String> days = Utils.daysBack(new Date(), cloudProperties.BOT_DAYS_BACK_STATISTICS + 1, "data/", ".csv");
+		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data/", ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
-		Date from = Utils.getDateOfDaysBack(now, cloudProperties.BOT_DAYS_BACK_STATISTICS);
+		Date from = Utils.getHoursOfDaysBack(now, cloudProperties.BOT_HOURS_BACK_STATISTICS);
 		List<CsvRow> csvInDay = null;
 		for (String day : days) {
 			try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, day);

@@ -42,9 +42,10 @@ public class BotTest {
     private static final boolean TEST_REVERSE = false;
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
     private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
-    private static final long DAY_MILLIS = 3600 * 1000 * 24;
+    private static final long HOURS_MILLIS = 3600 * 1000;
+    private static final long DAY_MILLIS = HOURS_MILLIS * 24;
     private static final long MONTH_MILLIS = DAY_MILLIS * 30;
-    private static final long DAYS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_DAYS_BACK_STATISTICS * DAY_MILLIS;
+    private static final long HOURS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_HOURS_BACK_STATISTICS * HOURS_MILLIS;
     private static final long TRANSACTIONS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
     private static final int TOP = 40;
@@ -145,7 +146,7 @@ public class BotTest {
         while (true) {
             Date to = new Date(now.getTime());
             // Days back
-            Date from = new Date(now.getTime() - (DAYS_BACK_MILLIS));
+            Date from = new Date(now.getTime() - HOURS_BACK_MILLIS);
             List<CsvRow> segment = rows.stream()
                     .filter(row -> row.getDate().getTime() >= from.getTime() && row.getDate().getTime() < to.getTime())
                     .collect(Collectors.toList());
