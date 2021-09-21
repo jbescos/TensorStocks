@@ -3,13 +3,9 @@ package com.jbescos.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -21,6 +17,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.jbescos.cloudbot.BotExecution;
@@ -33,15 +30,13 @@ import com.jbescos.common.Broker;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
 
 public class BotTest {
 
-    private static final boolean TEST_REVERSE = false;
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
-    private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+    private static final CloudProperties CLOUD_PROPERTIES = DataLoader.CLOUD_PROPERTIES;
     private static final long HOURS_MILLIS = 3600 * 1000;
     private static final long DAY_MILLIS = HOURS_MILLIS * 24;
     private static final long MONTH_MILLIS = DAY_MILLIS * 30;
@@ -49,6 +44,12 @@ public class BotTest {
     private static final long TRANSACTIONS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
     private static final int TOP = 40;
+    private static final DataLoader LOADER = new DataLoader();
+    
+    @BeforeClass
+    public static void beforeClass() throws IOException {
+        LOADER.loadData("2021-05-20", null);
+    }
 
     @AfterClass
     public static void afterClass() {
@@ -79,98 +80,45 @@ public class BotTest {
 
     @Test
     public void realData() throws IOException {
-        Date from = new Date();
-        Date to = Utils.fromString(Utils.FORMAT, "2021-05-20");
-        int daysBetween = (int) ChronoUnit.DAYS.between(to.toInstant(), from.toInstant());
-        List<String> days = Utils.daysBack(from, daysBetween, "/", ".csv"); // Starts the 2021-05-08
-        List<CsvRow> rows = new ArrayList<>();
-        for (String day : days) {
-            String csvFile = day;
-            InputStream csv = CsvUtilTest.class.getResourceAsStream(csvFile);
-            if (csv != null) {
-                LOGGER.info(() -> "Loading " + csvFile);
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(csv))) {
-                    List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
-                    dailyRows = dailyRows.stream().filter(r -> CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
-                    rows.addAll(dailyRows);
-                }
-                LOGGER.info("Rows loaded so far " + rows.size());
-            }
-        }
-        Map<String, List<CsvRow>> grouped = rows.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-        rows = null;
-        grouped.entrySet().parallelStream().forEach(entry -> {
-            CsvRow first = entry.getValue().get(0);
+        LOADER.symbols().parallelStream().forEach(symbol -> {
+            CsvRow first = LOADER.first(symbol);
             Map<String, Double> wallet = new HashMap<>();
             wallet.put(Utils.USDT, first.getPrice());
-            Date start = new Date(first.getDate().getTime() + DAY_MILLIS);
-            check(entry.getValue(), wallet, start);
-            if (TEST_REVERSE) {
-                reverse(entry.getValue());
-                wallet = new HashMap<>();
-                wallet.put("USDT", entry.getValue().get(0).getPrice());
-                check(entry.getValue(), wallet, start);
-            }
+            check(symbol, wallet);
         });
     }
-    
-    private void reverse(List<CsvRow> rows) {
-        for (int i=0; i<(rows.size()/2);i++) {
-            CsvRow row0 = rows.get(i);
-            Date date0 = row0.getDate();
-            CsvRow rowLast = rows.get((rows.size() - 1) - i);
-            row0.setDate(rowLast.getDate());
-            rowLast.setDate(date0);
-        }
-        Collections.reverse(rows);
-        rows.stream().forEach(row -> row.setSymbol(row.getSymbol() + "-reversed"));
-        setAvgs(rows);
-    }
-    
-    private void setAvgs(List<CsvRow> rows) {
-        Double previousResult = null;
-        Double previousResult2 = null;
-        for (CsvRow row : rows) {
-            previousResult = Utils.ewma(CLOUD_PROPERTIES.EWMA_CONSTANT, row.getPrice(), previousResult);
-            previousResult2 = Utils.ewma(CLOUD_PROPERTIES.EWMA_2_CONSTANT, row.getPrice(), previousResult2);
-            row.setAvg(previousResult);
-            row.setAvg2(previousResult2);
-        }
-    }
 
-    private void check(List<CsvRow> rows, Map<String, Double> wallet, Date now) {
+    private void check(String symbol, Map<String, Double> wallet) {
     	double holderTotalUsd = wallet.get(Utils.USDT).doubleValue();
-    	List<CsvTransactionRow> transactions = new ArrayList<>();
     	List<CsvRow> walletHistorical = new ArrayList<>();
+    	List<CsvTransactionRow> transactions = new ArrayList<>();
     	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical);
-        while (true) {
-            Date to = new Date(now.getTime());
-            // Days back
-            Date from = new Date(now.getTime() - HOURS_BACK_MILLIS);
-            List<CsvRow> segment = rows.stream()
-                    .filter(row -> row.getDate().getTime() >= from.getTime() && row.getDate().getTime() < to.getTime())
-                    .collect(Collectors.toList());
-//          LOGGER.info(() -> "Loading data from " + Utils.fromDate(Utils.FORMAT_SECOND, from) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, to) + ". " + segment.size() + " records");
-            if (segment.isEmpty()) {
-                break;
+    	CsvRow first = LOADER.first(symbol);
+    	long now = first.getDate().getTime() + HOURS_BACK_MILLIS;
+    	long last = LOADER.last(symbol).getDate().getTime();
+    	LOGGER.info(() -> symbol + " loaded from " + Utils.fromDate(Utils.FORMAT_SECOND, first.getDate()) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, LOADER.last(symbol).getDate()));
+    	while (now <= last) {
+    	    long previous = now - HOURS_BACK_MILLIS;
+    	    List<CsvRow> segment = LOADER.get(symbol, previous, now);
+    	    Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
+    	    List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
+    	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
+    	    try {
+                trader.execute(stats);
+            } catch (IOException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
             }
-            Date fromTx = new Date(now.getTime() - TRANSACTIONS_BACK_MILLIS);
-            List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-            List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
-            if (!stats.isEmpty()) {
-                try {
-					trader.execute(stats);
-				} catch (IOException e) {
-					e.printStackTrace();
-					fail(e.getMessage());
-				}
-            }
-            now = new Date(now.getTime() + (1000 * 60 * 30));
-        }
-        CsvRow first = rows.get(0);
+    	    CsvRow next = LOADER.next(symbol, segment.get(segment.size() - 1));
+    	    if (next != null) {
+    	        now = next.getDate().getTime();
+    	    } else {
+    	        break;
+    	    }
+    	}
         double usdSnapshot = walletHistorical.isEmpty() ? 0 : walletHistorical.get(walletHistorical.size() - 1).getPrice();
         TestResult result = new TestResult(first.getSymbol(), usdSnapshot, holderTotalUsd, transactions.size());
-        chart(rows, result, wallet, transactions, walletHistorical);
+        chart(LOADER.get(symbol), result, wallet, transactions, walletHistorical);
         results.add(result);
     }
 
