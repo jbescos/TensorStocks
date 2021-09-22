@@ -46,18 +46,18 @@ public class BotExecution {
 	
 	private void buy(String symbol, Broker stat) throws FileNotFoundException, IOException {
 	    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-	    	try {
-		    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-	    		wallet.putIfAbsent(Utils.USDT, 0.0);
-	    		double usdt = wallet.get(Utils.USDT);
-	    		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
-	    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
-	    		    buy = buy * stat.getFactor();
-	    		}
-	    		if (buy < connectAPI.minTransaction()) {
-	    			buy = connectAPI.minTransaction();
-	    		}
-	    		double buySymbol = Utils.symbolValue(buy, stat.getNewest().getPrice());
+	    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
+    		wallet.putIfAbsent(Utils.USDT, 0.0);
+    		double usdt = wallet.get(Utils.USDT);
+    		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
+    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+    		    buy = buy * stat.getFactor();
+    		}
+    		if (buy < connectAPI.minTransaction()) {
+    			buy = connectAPI.minTransaction();
+    		}
+    		double buySymbol = Utils.symbolValue(buy, stat.getNewest().getPrice());
+    		try {
 	    		LOGGER.info("Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
 	    		if (updateWallet(Utils.USDT, buy * -1)) {
 	    				connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
@@ -65,7 +65,7 @@ public class BotExecution {
 	    				updateWallet(walletSymbol, Utils.applyCommission(buySymbol, cloudProperties.BOT_BUY_COMMISSION));
 	    		}
 	    	} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Cannot buy " + symbol, e);
+				LOGGER.log(Level.SEVERE, "Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol, e);
 			}
 	    } else {
 	        LOGGER.info(() -> symbol + " discarded to buy because it is in bot.never.buy");
@@ -73,12 +73,12 @@ public class BotExecution {
 	}
 	
 	private void sell(String symbol, Broker stat) throws FileNotFoundException, IOException {
+		String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
+		wallet.putIfAbsent(walletSymbol, 0.0);
+		// Make sure we sell a little less than what we have
+		double sell = wallet.get(walletSymbol) * FLOAT_ISSUE;
+		double usdtOfSymbol = Utils.usdValue(sell, stat.getNewest().getPrice());
 		try {
-			String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-			wallet.putIfAbsent(walletSymbol, 0.0);
-			// Make sure we sell a little less than what we have
-			double sell = wallet.get(walletSymbol) * FLOAT_ISSUE;
-			double usdtOfSymbol = Utils.usdValue(sell, stat.getNewest().getPrice());
 			if (usdtOfSymbol >= connectAPI.minTransaction()) {
 				LOGGER.info(() -> "Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
 				if (updateWallet(walletSymbol, sell * -1)) {
@@ -91,7 +91,7 @@ public class BotExecution {
 				LOGGER.info(() -> "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Cannot sell " + symbol, e);
+			LOGGER.log(Level.SEVERE, "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol, e);
 		}
 	}
 
