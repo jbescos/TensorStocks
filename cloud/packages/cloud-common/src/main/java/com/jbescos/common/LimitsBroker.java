@@ -8,13 +8,21 @@ import com.jbescos.common.CloudProperties.FixedBuySell;
 public class LimitsBroker implements Broker {
     
     private static final Logger LOGGER = Logger.getLogger(LimitsBroker.class.getName());
+    private final CloudProperties cloudProperties;
     private final String symbol;
     private final CsvRow newest;
+    private final CsvRow min;
+    private final CsvRow max;
+    private final double minMaxFactor;
     private Action action = Action.NOTHING;
 
-    public LimitsBroker(String symbol, List<CsvRow> values, FixedBuySell fixedBuySell) {
+    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, FixedBuySell fixedBuySell) {
+    	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.newest = values.get(values.size() - 1);
+        this.min = Utils.getMinMax(values, true);
+        this.max = Utils.getMinMax(values, false);
+        this.minMaxFactor = Utils.calculateFactor(min, max);
         double price = newest.getPrice();
         if (price >= fixedBuySell.getFixedSell()) {
             if (Utils.isMax(values)) {
@@ -50,7 +58,7 @@ public class LimitsBroker implements Broker {
 
     @Override
     public double getFactor() {
-        return 0.3;
+        return Utils.factorMultiplier(minMaxFactor, cloudProperties.BOT_LIMITS_FACTOR_MULTIPLIER);
     }
 
     @Override

@@ -357,5 +357,14 @@ public class Utils {
 	public static double applyCommission(double originalPrice, double commission) {
 		return originalPrice * (1 - commission);
 	}
+	
+	public static double factorMultiplier(double factor, double multiplier) {
+		double result = factor * multiplier;
+		if (result > 1) {
+			return 1;
+		} else {
+			return result;
+		}
+	}
 
 }

@@ -134,7 +134,7 @@ public class BotUtils {
 		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
 		CsvRow oldest = rows.get(0);
 	    if (fixedBuySell != null) {
-		    return new LimitsBroker(symbol, rows, fixedBuySell);
+		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell);
 	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, minProfitableSellPrice)) {
 			return new PanicBroker(symbol, newest, minProfitableSellPrice);
 		} else if (cloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {

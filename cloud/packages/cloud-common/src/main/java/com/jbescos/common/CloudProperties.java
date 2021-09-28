@@ -60,6 +60,7 @@ public class CloudProperties {
 	public final int BOT_GREEDY_DAYS_TO_HOLD;
 	public final double BOT_GREEDY_IMMEDIATELY_SELL;
 	public final double BOT_GREEDY_MIN_MAX_RELATION_BUY;
+	public final double BOT_LIMITS_FACTOR_MULTIPLIER;
 	public final Map<String, FixedBuySell> FIXED_BUY_SELL;
 	private final Properties mainProperties;
 	private final Properties idProperties = new Properties();
@@ -122,6 +123,7 @@ public class CloudProperties {
         BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(getProperty("bot.greedy.immediately.sell"));
         BOT_GREEDY_MIN_MAX_RELATION_BUY = Double.parseDouble(getProperty("bot.greedy.min.max.relation.buy"));
         BOT_PROFIT_DAYS_SUBSTRACTOR = Double.parseDouble(getProperty("bot.profit.days.substractor"));
+        BOT_LIMITS_FACTOR_MULTIPLIER = Double.parseDouble(getProperty("bot.limits.factor.multiplier"));
         Map<String, Double> minSell = createMinSell(idProperties);
         if (minSell.isEmpty()) {
         	minSell = createMinSell(mainProperties);
