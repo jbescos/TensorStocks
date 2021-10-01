@@ -15,9 +15,12 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
 
+import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.Storage.BucketListOption;
 import com.google.cloud.storage.StorageOptions;
 
 public class CloudProperties {
@@ -72,13 +75,23 @@ public class CloudProperties {
 	public CloudProperties(String userId) {
 		USER_ID = userId;
 		try {
+		    LOGGER.info(() -> "Project id: " + PROJECT_ID);
 			Properties mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
 			if (mainProperties == null) {
 				mainProperties = new Properties();
 				Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-				loadProperties(mainProperties, storage, PROPERTIES_FILE);
+                Page<Bucket> page = storage.list(BucketListOption.prefix(PROPERTIES_BUCKET));
+                String propertiesBucket = null;
+                for (Bucket bucket : page.iterateAll()) {
+                    propertiesBucket = bucket.getName();
+                    break;
+                }
+                if (propertiesBucket == null) {
+                    throw new IllegalStateException("Bucket that starts with " + PROPERTIES_BUCKET + " was not found");
+                }
+				loadProperties(propertiesBucket, mainProperties, storage, PROPERTIES_FILE);
 				if (USER_ID != null) {
-					loadProperties(idProperties, storage, USER_ID + "/" + PROPERTIES_FILE);
+					loadProperties(propertiesBucket, idProperties, storage, USER_ID + "/" + PROPERTIES_FILE);
 				}
 			}
 			this.mainProperties = mainProperties;
@@ -147,8 +160,8 @@ public class CloudProperties {
 		return value;
 	}
 
-	private void loadProperties(Properties properties, Storage storage, String propertiesFile) throws IOException {
-		Blob blob = storage.get(PROPERTIES_BUCKET, propertiesFile);
+	private void loadProperties(String bucket, Properties properties, Storage storage, String propertiesFile) throws IOException {
+		Blob blob = storage.get(bucket, propertiesFile);
 		if (blob == null) {
 			throw new IllegalStateException("There is no " + propertiesFile);
 		}
