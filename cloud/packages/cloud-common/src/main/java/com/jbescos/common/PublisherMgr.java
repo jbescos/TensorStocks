@@ -45,7 +45,7 @@ public class PublisherMgr implements AutoCloseable {
     }
     
     public static PublisherMgr create(CloudProperties cloudProperties) throws IOException {
-        TopicName topicName = TopicName.of(cloudProperties.GOOGLE_PROJECT_ID, cloudProperties.GOOGLE_TOPIC_ID);
+        TopicName topicName = TopicName.of(cloudProperties.PROJECT_ID, cloudProperties.GOOGLE_TOPIC_ID);
         return new PublisherMgr(Publisher.newBuilder(topicName).build());
     }
 }
