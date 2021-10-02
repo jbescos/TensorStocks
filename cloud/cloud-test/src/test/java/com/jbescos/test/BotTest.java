@@ -16,14 +16,15 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudbot.BotUtils;
 import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
+import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.Broker;
@@ -51,8 +52,7 @@ public class BotTest {
         LOADER.loadData("2021-05-20", null);
     }
 
-    @AfterClass
-    public static void afterClass() {
+    private void printResult() {
         Collections.sort(results, (a, b) -> Double.compare(b.multiplier, a.multiplier));
         double total = 0;
         double transactionsValue = 0;
@@ -78,6 +78,48 @@ public class BotTest {
         LOGGER.info(() -> topInfo.toString());
     }
 
+	@Test
+	@Ignore
+    public void all() throws IOException {
+		final double INITIAL_USDT = 1000;
+		Map<String, Double> wallet = new HashMap<>();
+        wallet.put(Utils.USDT, INITIAL_USDT);
+        List<CsvRow> walletHistorical = new ArrayList<>();
+    	List<CsvTransactionRow> transactions = new ArrayList<>();
+    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical, CLOUD_PROPERTIES.BINANCE_MIN_TRANSACTION);
+    	CsvRow first = LOADER.first("BTCUSDT");
+    	long now = first.getDate().getTime() + HOURS_BACK_MILLIS;
+    	long last = LOADER.last(first.getSymbol()).getDate().getTime();
+    	while (now <= last) {
+    		long previous = now - HOURS_BACK_MILLIS;
+    		List<CsvRow> segment = LOADER.get(previous, now);
+    		Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
+    		List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
+    	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
+    	    try {
+                trader.execute(stats);
+            } catch (IOException e) {
+                e.printStackTrace();
+                fail(e.getMessage());
+            }
+    	    CsvRow lastRow = segment.get(segment.size() - 1);
+    	    CsvRow next = LOADER.next(lastRow.getSymbol(), lastRow);
+    	    if (next != null) {
+    	        now = next.getDate().getTime();
+    	    } else {
+    	        break;
+    	    }
+    	}
+    	LOGGER.info(() -> "Wallet before: " + INITIAL_USDT + " " + Utils.USDT);
+    	LOGGER.info(() -> "Wallet after: " + wallet);
+    	File chartFile = new File("./target/total.png");
+        try (FileOutputStream output = new FileOutputStream(chartFile)) {
+        	IChart<IRow> chart = new DateChart();
+        	ChartGenerator.writeChart(walletHistorical, output, chart);
+            ChartGenerator.save(output, chart);
+        }
+	}
+
     @Test
     public void realData() throws IOException {
         LOADER.symbols().parallelStream().forEach(symbol -> {
@@ -86,13 +128,14 @@ public class BotTest {
             wallet.put(Utils.USDT, first.getPrice());
             check(symbol, wallet);
         });
+        printResult();
     }
 
     private void check(String symbol, Map<String, Double> wallet) {
     	double holderTotalUsd = wallet.get(Utils.USDT).doubleValue();
     	List<CsvRow> walletHistorical = new ArrayList<>();
     	List<CsvTransactionRow> transactions = new ArrayList<>();
-    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical);
+    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical, holderTotalUsd * 0.1);
     	CsvRow first = LOADER.first(symbol);
     	long now = first.getDate().getTime() + HOURS_BACK_MILLIS;
     	long last = LOADER.last(symbol).getDate().getTime();
@@ -116,9 +159,10 @@ public class BotTest {
     	        break;
     	    }
     	}
-        double usdSnapshot = walletHistorical.isEmpty() ? 0 : walletHistorical.get(walletHistorical.size() - 1).getPrice();
+    	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
+        double usdSnapshot = totalWalletHistorical.isEmpty() ? 0 : totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
         TestResult result = new TestResult(first.getSymbol(), usdSnapshot, holderTotalUsd, transactions.size());
-        chart(LOADER.get(symbol), result, wallet, transactions, walletHistorical);
+        chart(LOADER.get(symbol), result, wallet, transactions, totalWalletHistorical);
         results.add(result);
     }
 

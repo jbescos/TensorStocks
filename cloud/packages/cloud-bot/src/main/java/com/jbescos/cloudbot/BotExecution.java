@@ -111,8 +111,8 @@ public class BotExecution {
 		return new BotExecution(cloudProperties, new Binance(cloudProperties, api));
 	}
 	
-	public static BotExecution test(CloudProperties cloudProperties, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical) {
-		return new BotExecution(cloudProperties, new Test(wallet, transactions, walletHistorical));
+	public static BotExecution test(CloudProperties cloudProperties, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
+		return new BotExecution(cloudProperties, new Test(wallet, transactions, walletHistorical, minTransaction));
 	}
 	
 	private static interface ConnectAPI {
@@ -178,12 +178,11 @@ public class BotExecution {
 		private final List<CsvRow> walletHistorical;
 		private final double minTransaction;
 		
-		private Test(Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical) {
+		private Test(Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
 			this.wallet = wallet;
 			this.transactions = transactions;
 			this.walletHistorical = walletHistorical;
-			// Min transaction is 1/10 of initial money
-			this.minTransaction = wallet.get(Utils.USDT) * 0.1;
+			this.minTransaction = minTransaction;
 		}
 
 		@Override
@@ -203,23 +202,29 @@ public class BotExecution {
 			return minTransaction;
 		}
 
-		private double usdtSnappshot(List<Broker> stats) {
+		private Map<String, Double> usdtSnappshot(List<Broker> stats) {
+			Map<String, Double> symbolSnapshot = new HashMap<>();
 			double snapshot = wallet.get(Utils.USDT);
 			for (Broker stat : stats) {
 				Double amount = wallet.get(stat.getSymbol().replaceFirst(Utils.USDT, ""));
 				if (amount != null) {
-					snapshot = snapshot + Utils.usdValue(amount, stat.getNewest().getPrice());
+					double symbolUsdt = Utils.usdValue(amount, stat.getNewest().getPrice());
+					symbolSnapshot.put(stat.getSymbol(), symbolUsdt);
+					snapshot = snapshot + symbolUsdt;
 				}
 			}
-			return snapshot;
+			symbolSnapshot.put("TOTAL-" + Utils.USDT, snapshot);
+			return symbolSnapshot;
 		}
 
 		@Override
 		public void postActions(List<Broker> stats) {
-			double usdtSnapshot = usdtSnappshot(stats);
+			Map<String, Double> symbolSnapshot = usdtSnappshot(stats);
 			CsvRow newest = stats.get(0).getNewest();
-			CsvRow walletUsdt = new CsvRow(newest.getDate(), "WALLET-TOTAL-" + Utils.USDT, usdtSnapshot, null, null);
-			walletHistorical.add(walletUsdt);
+			for (Entry<String, Double> entry : symbolSnapshot.entrySet()) {
+				CsvRow walletUsdt = new CsvRow(newest.getDate(), entry.getKey(), entry.getValue(), null, null);
+				walletHistorical.add(walletUsdt);
+			}
 		}
 		
 	}

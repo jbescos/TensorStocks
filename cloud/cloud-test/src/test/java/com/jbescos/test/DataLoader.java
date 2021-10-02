@@ -77,6 +77,14 @@ public class DataLoader {
         List<CsvRow> rows = grouped.get(symbol);
         return rows.stream().filter(row -> row.getDate().getTime() > from && row.getDate().getTime() <= to).collect(Collectors.toList());
     }
+   
+    public List<CsvRow> get(long from, long to) {
+    	List<CsvRow> rows = new ArrayList<>();
+    	for (String symbol : grouped.keySet()) {
+    		rows.addAll(get(symbol, from, to));
+    	}
+    	return rows;
+    }
     
     public List<CsvRow> get(String symbol) {
         List<CsvRow> rows = grouped.get(symbol);
