@@ -214,6 +214,7 @@ public class ChartGenerator {
 			}
 			Date from = Utils.getDateOfDaysBack(now, daysBack);
 			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+			LOGGER.info(() -> "Loading transactions of " + months);
 			for (Blob blob : transactionBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();

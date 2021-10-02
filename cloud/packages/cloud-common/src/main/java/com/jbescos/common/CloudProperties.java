@@ -26,11 +26,13 @@ import com.google.cloud.storage.StorageOptions;
 public class CloudProperties {
 
     private static final Logger LOGGER = Logger.getLogger(CloudProperties.class.getName());
+    private static final String PREFIX_PROPERTIES_BUCKET = "crypto-properties";
+    private static final String PREFIX_STORAGE_BUCKET = "crypto-for-training";
+    public final String PROPERTIES_BUCKET;
+    public final String BUCKET;
     public final String USER_ID;
     private final boolean USER_ACTIVE;
-    public final String PROPERTIES_BUCKET = "crypto-properties";
     private final String PROPERTIES_FILE = "cloud.properties";
-    public final String BUCKET;
     public final String GOOGLE_TOPIC_ID;
     public final String PROJECT_ID;
     public final String BINANCE_PUBLIC_KEY;
@@ -79,22 +81,23 @@ public class CloudProperties {
                 PROJECT_ID = StorageOptions.getDefaultProjectId();
                 LOGGER.info(() -> "ProjectId = " + PROJECT_ID);
                 mainProperties = new Properties();
-                Storage storage = StorageOptions.newBuilder().build().getService();
-                Page<Bucket> page = storage.list(BucketListOption.prefix(PROPERTIES_BUCKET));
-                String propertiesBucket = null;
-                for (Bucket bucket : page.iterateAll()) {
-                    propertiesBucket = bucket.getName();
-                    break;
+                Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
+                BUCKET = findByPrefix(storage, PREFIX_STORAGE_BUCKET);
+                if (BUCKET == null) {
+                    throw new IllegalStateException("Bucket that starts with " + PREFIX_STORAGE_BUCKET + " was not found");
                 }
-                if (propertiesBucket == null) {
-                    throw new IllegalStateException("Bucket that starts with " + PROPERTIES_BUCKET + " was not found");
+                PROPERTIES_BUCKET = findByPrefix(storage, PREFIX_PROPERTIES_BUCKET);
+                if (PROPERTIES_BUCKET == null) {
+                    throw new IllegalStateException("Bucket that starts with " + PREFIX_PROPERTIES_BUCKET + " was not found");
                 }
-                loadProperties(propertiesBucket, mainProperties, storage, PROPERTIES_FILE);
+                loadProperties(PROPERTIES_BUCKET, mainProperties, storage, PROPERTIES_FILE);
                 if (USER_ID != null) {
-                    loadProperties(propertiesBucket, idProperties, storage, USER_ID + "/" + PROPERTIES_FILE);
+                    loadProperties(PROPERTIES_BUCKET, idProperties, storage, USER_ID + "/" + PROPERTIES_FILE);
                 }
             } else {
                 PROJECT_ID = "test";
+                PROPERTIES_BUCKET = PREFIX_PROPERTIES_BUCKET;
+                BUCKET = PREFIX_STORAGE_BUCKET;
             }
             this.mainProperties = mainProperties;
         } catch (IOException e) {
@@ -104,7 +107,6 @@ public class CloudProperties {
         if (!USER_ACTIVE) {
             throw new IllegalStateException("User ID " + USER_ID + " is not active");
         }
-        BUCKET = getProperty("storage.bucket");
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
         BINANCE_PUBLIC_KEY = getProperty("binance.public.key");
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
@@ -147,6 +149,14 @@ public class CloudProperties {
             fixedBuySell = fixedBuySell(mainProperties);
         }
         FIXED_BUY_SELL = fixedBuySell;
+    }
+    
+    private String findByPrefix(Storage storage, String prefix) {
+    	Page<Bucket> page = storage.list(BucketListOption.prefix(prefix));
+        for (Bucket bucket : page.iterateAll()) {
+            return bucket.getName();
+        }
+        return null;
     }
     
     private String getProperty(String name) {
