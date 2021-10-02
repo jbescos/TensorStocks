@@ -98,7 +98,7 @@ public class ChartGenerator {
 		public List<IRow> read(int daysBack) throws IOException {
 		    Date from = Utils.getDateOfDaysBack(now, daysBack);
 			List<IRow> total = new ArrayList<>();
-			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 2, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
 			for (Blob blob : transactionBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();
@@ -136,7 +136,7 @@ public class ChartGenerator {
 		public List<IRow> read(int daysBack) throws IOException {
 			Date now = new Date();
 			Date from = Utils.getDateOfDaysBack(now, daysBack);
-			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX, ".csv");
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 2, cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX, ".csv");
 			List<IRow> rows = new ArrayList<>();
 			for (Blob blob : walletBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
@@ -213,7 +213,7 @@ public class ChartGenerator {
 				}
 			}
 			Date from = Utils.getDateOfDaysBack(now, daysBack);
-			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 1, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+			List<String> months = Utils.monthsBack(now, (daysBack / 31) + 2, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
 			LOGGER.info(() -> "Loading transactions of " + months);
 			for (Blob blob : transactionBlobs.iterateAll()) {
 				if (months.contains(blob.getName())) {
