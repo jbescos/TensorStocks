@@ -110,8 +110,11 @@ public class BotTest {
     	        break;
     	    }
     	}
+    	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
+    	double totalPrice = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
     	LOGGER.info(() -> "Wallet before: " + INITIAL_USDT + " " + Utils.USDT);
-    	LOGGER.info(() -> "Wallet after: " + wallet);
+    	LOGGER.info(() -> "Wallet after: " + totalPrice + " " + Utils.USDT);
+    	LOGGER.info(() -> "Benefit: " + ((INITIAL_USDT * 100) / totalPrice) + "%");
     	File chartFile = new File("./target/total.png");
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
         	IChart<IRow> chart = new DateChart();

@@ -205,12 +205,18 @@ public class BotExecution {
 		private Map<String, Double> usdtSnappshot(List<Broker> stats) {
 			Map<String, Double> symbolSnapshot = new HashMap<>();
 			double snapshot = wallet.get(Utils.USDT);
+			if (snapshot >= minTransaction) {
+				symbolSnapshot.put(Utils.USDT, snapshot);
+			}
 			for (Broker stat : stats) {
 				Double amount = wallet.get(stat.getSymbol().replaceFirst(Utils.USDT, ""));
 				if (amount != null) {
 					double symbolUsdt = Utils.usdValue(amount, stat.getNewest().getPrice());
-					symbolSnapshot.put(stat.getSymbol(), symbolUsdt);
 					snapshot = snapshot + symbolUsdt;
+					if (symbolUsdt >= minTransaction) {
+						// Ignore small values
+						symbolSnapshot.put(stat.getSymbol(), symbolUsdt);
+					}
 				}
 			}
 			symbolSnapshot.put("TOTAL-" + Utils.USDT, snapshot);
