@@ -114,7 +114,7 @@ public class BotTest {
     	double totalPrice = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
     	LOGGER.info(() -> "Wallet before: " + INITIAL_USDT + " " + Utils.USDT);
     	LOGGER.info(() -> "Wallet after: " + totalPrice + " " + Utils.USDT);
-    	LOGGER.info(() -> "Benefit: " + ((INITIAL_USDT * 100) / totalPrice) + "%");
+    	LOGGER.info(() -> ((totalPrice * 100) / INITIAL_USDT) + "%, " + Utils.format(totalPrice) + " " + Utils.USDT);
     	File chartFile = new File("./target/total.png");
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
         	IChart<IRow> chart = new DateChart();
