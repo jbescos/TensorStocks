@@ -36,6 +36,7 @@ public class Utils {
 	public static final String USDT = "USDT";
 	public static final String NEW_LINE = "\r\n";
 	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,VOLUME_BUY,VOLUME_TOTAL,OPEN_PRICE,CLOSE_PRICE" + NEW_LINE;
+	public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
 	public static final String LAST_PRICE = "data/last_price.csv";
 	public static final String EMPTY_STR = "";
 	public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
@@ -157,11 +158,11 @@ public class Utils {
 				throw new IllegalArgumentException("Every CsvAccountRow must contain the same symbol. It was found " + symbol + " and " + transaction.getSymbol());
 			}
 			if (transaction.getSide() == Action.BUY) {
-				totalQuantity = totalQuantity + transaction.getQuantity();
-				accumulated = accumulated + transaction.getUsdt();
+				totalQuantity = totalQuantity + Double.parseDouble(transaction.getQuantity());
+				accumulated = accumulated + Double.parseDouble(transaction.getUsdt());
 			} else {
-				accumulated = accumulated - transaction.getUsdt();
-				totalQuantity = totalQuantity - transaction.getQuantity();
+				accumulated = accumulated - Double.parseDouble(transaction.getUsdt());
+				totalQuantity = totalQuantity - Double.parseDouble(transaction.getQuantity());
 			}
 		}
 		if (totalQuantity > 0) {

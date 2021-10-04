@@ -10,12 +10,12 @@ public class CsvTransactionRow implements IRow {
 	private final String orderId;
 	private final Action side;
 	private final String symbol;
-	private double usdt;
-	private final double quantity;
+	private String usdt;
+	private final String quantity;
 	private final double usdtUnit;
 	
-	public CsvTransactionRow(Date date, String orderId, Action side, String symbol, double usdt, double quantity,
-			double usdtUnit) {
+	public CsvTransactionRow(Date date, String orderId, Action side, String symbol, String usdt, String quantity,
+	        double usdtUnit) {
 		this.date = date;
 		this.orderId = orderId;
 		this.side = side;
@@ -42,11 +42,11 @@ public class CsvTransactionRow implements IRow {
 		return symbol;
 	}
 
-	public double getUsdt() {
+	public String getUsdt() {
 		return usdt;
 	}
 
-	public double getQuantity() {
+	public String getQuantity() {
 		return quantity;
 	}
 
@@ -54,19 +54,25 @@ public class CsvTransactionRow implements IRow {
 		return usdtUnit;
 	}
 
-	@Override
-	public String toString() {
-		return " TX [date=" + Utils.fromDate(Utils.FORMAT_SECOND, date) + ", side=" + side + ", symbol=" + symbol + ", usdt=" + Utils.format(usdt)
-				+ ", quantity=" + quantity + ", usdtUnit=" + Utils.format(usdtUnit) + "]\n";
+    @Override
+    public String toString() {
+        return " TX [date=" + Utils.fromDate(Utils.FORMAT_SECOND, date) + ", side=" + side + ", symbol=" + symbol + ", usdt=" + usdt
+                + ", quantity=" + quantity + ", usdtUnit=" + Utils.format(usdtUnit) + "]\n";
+    }
+
+	public String toCsvLine() {
+	    StringBuilder data = new StringBuilder();
+        data.append(Utils.fromDate(Utils.FORMAT_SECOND, date)).append(",").append(orderId).append(",").append(side.name()).append(",").append(symbol).append(",").append(usdt).append(",").append(quantity).append(",").append(Utils.format(usdtUnit)).append("\r\n");
+		return data.toString();
 	}
 
 	@Override
 	public double getPrice() {
-		return usdt;
+		return Double.parseDouble(usdt);
 	}
 
 	public void setUsdt(double usdt) {
-		this.usdt = usdt;
+		this.usdt = Double.toString(usdt);
 	}
 
 	@Override

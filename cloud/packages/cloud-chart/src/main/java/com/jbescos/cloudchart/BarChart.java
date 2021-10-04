@@ -55,7 +55,7 @@ public class BarChart implements IChart<IRow> {
 		if (entries != null && !entries.isEmpty()) {
 			double totalPrice = 0;
 			for (CsvTransactionRow row : entries) {
-				totalPrice = totalPrice + row.getUsdt();
+				totalPrice = totalPrice + Double.parseDouble(row.getUsdt());
 			}
 			return totalPrice;
 		}

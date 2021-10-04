@@ -2,7 +2,6 @@ package com.jbescos.cloudbot;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -19,6 +18,7 @@ import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
+import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.PanicBroker;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
@@ -44,7 +44,7 @@ public class BotFunction implements HttpFunction {
 			Client client = ClientBuilder.newClient();
 			BinanceAPI binanceAPI = new BinanceAPI(client);
 			BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
-			SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client, storage);
+			SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client);
 			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
 			if (side != null) {
 				Action action = Action.valueOf(side) ;
@@ -56,19 +56,20 @@ public class BotFunction implements HttpFunction {
 							.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
 							.map(row -> new PanicBroker(row.getSymbol(), row, 0))
 							.collect(Collectors.toList());
-					BotExecution bot = BotExecution.binance(cloudProperties, api);
+					BotExecution bot = BotExecution.binance(cloudProperties, api, storage);
 					bot.execute(stats);
 					response.getWriter().write(stats.toString());
 				} else {
 					String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 					String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
-					Map<String, String> apiResponse = api.orderSymbol(symbol, Action.valueOf(side), quantity);
+					CsvTransactionRow apiResponse = api.orderSymbol(symbol, Action.valueOf(side), quantity);
+					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(apiResponse.getDate()) + ".csv", apiResponse.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					response.getWriter().write(apiResponse.toString());
 				}
 			} else {
 				List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, true).stream()
 						.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-				BotExecution bot = BotExecution.binance(cloudProperties, api);
+				BotExecution bot = BotExecution.binance(cloudProperties, api, storage);
 				bot.execute(stats);
 				response.getWriter().write(stats.toString());
 			}

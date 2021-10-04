@@ -41,10 +41,10 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         long time = binanceAPI.time();
         Date now = new Date(time);
         BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
-        SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client, storage);
+        SecureBinanceAPI api = SecureBinanceAPI.create(cloudProperties, client);
         List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, false).stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-        BotExecution bot = BotExecution.binance(cloudProperties, api);
+        BotExecution bot = BotExecution.binance(cloudProperties, api, storage);
         bot.execute(stats);
         // Update wallet
         Account account = api.account();

@@ -47,30 +47,30 @@ public class UtilsTest {
 	@Test
 	public void sellWhenBenefit() {
 		// 1 buy = 10$, 1 buy = 15$ -> 1 sell = 12.5
-		double minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 10, 1), createCsvTransactionRow(Action.BUY, 15, 1)));
+		double minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "10", "1"), createCsvTransactionRow(Action.BUY, "15", "1")));
 		assertEquals("12.5", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 10, 1), createCsvTransactionRow(Action.BUY, 15, 1), createCsvTransactionRow(Action.BUY, 2, 1)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "10", "1"), createCsvTransactionRow(Action.BUY, "15", "1"), createCsvTransactionRow(Action.BUY, "2", "1")));
 		assertEquals("9", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 2, 4)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "2", "4")));
 		assertEquals("0.5", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 2, 4), createCsvTransactionRow(Action.BUY, 1, 10)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "2", "4"), createCsvTransactionRow(Action.BUY, "1", "10")));
 		assertEquals("0.21428571", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 4, 2), createCsvTransactionRow(Action.SELL, 2, 1)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "4", "2"), createCsvTransactionRow(Action.SELL, "2", "1")));
 		assertEquals("2", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 1, 4), createCsvTransactionRow(Action.SELL, 1, 4)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "1", "4"), createCsvTransactionRow(Action.SELL, "1", "4")));
 		assertEquals("0", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.SELL, 1, 10)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.SELL, "1", "10")));
 		assertEquals("0", Utils.format(minSell));
-		double minSellExample = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5)));
+		double minSellExample = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "14.0", "57.5"), createCsvTransactionRow(Action.BUY, "10.0", "37.5")));
 		assertEquals("0.25263157", Utils.format(minSellExample));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, 14.0, 57.5), createCsvTransactionRow(Action.BUY, 10.0, 37.5), createCsvTransactionRow(Action.SELL, 14.0, 30.0)));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "14.0", "57.5"), createCsvTransactionRow(Action.BUY, "10.0", "37.5"), createCsvTransactionRow(Action.SELL, "14.0", "30.0")));
 		assertEquals("0.15384615", Utils.format(minSell));
 		assertTrue(minSellExample > minSell);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void sellWhenBenefitDifferentSymbols() {
-		Utils.minSellProfitable(Arrays.asList(new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol1", 1.0, 2.0, 3.0), new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol2", 1.0, 2.0, 3.0)));
+		Utils.minSellProfitable(Arrays.asList(new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol1", "1.0", "2.0", 3.0), new CsvTransactionRow(new Date(0), "a", Action.BUY, "symbol2", "1.0", "2.0", 3.0)));
 	}
 	
 	@Test
@@ -162,20 +162,20 @@ public class UtilsTest {
 	@Test
 	public void isPanicSellInDays() {
 	    Date dateLimit = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:00:01");
-	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-02 00:00:00", Action.SELL_PANIC, 1, 1)), dateLimit));
-	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, 1, 1)), dateLimit));
+	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-02 00:00:00", Action.SELL_PANIC, "1", "1")), dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, "1", "1")), dateLimit));
 	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(
-	            createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, 1, 1),
-	            createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, 1, 1))
+	            createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, "1", "1"),
+	            createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, "1", "1"))
 	            , dateLimit));
 	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(
-	            createCsvTransactionRow("2021-04-30 00:00:00", Action.BUY, 1, 1),
-                createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, 1, 1),
-                createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, 1, 1))
+	            createCsvTransactionRow("2021-04-30 00:00:00", Action.BUY, "1", "1"),
+                createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, "1", "1"),
+                createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, "1", "1"))
                 , dateLimit));
 	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(
-                createCsvTransactionRow("2021-05-05 00:00:00", Action.BUY, 1, 1),
-                createCsvTransactionRow("2021-05-05 00:00:01", Action.SELL_PANIC, 1, 1))
+                createCsvTransactionRow("2021-05-05 00:00:00", Action.BUY, "1", "1"),
+                createCsvTransactionRow("2021-05-05 00:00:01", Action.SELL_PANIC, "1", "1"))
                 , dateLimit));
 	}
 	
@@ -250,12 +250,20 @@ public class UtilsTest {
 		assertEquals("2021-04-30 22:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getHoursOfDaysBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), 2)));
 		assertEquals("2021-05-06 00:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getHoursOfDaysBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-08 00:46:01"), 48)));
 	}
-	
-	private CsvTransactionRow createCsvTransactionRow(Action side, double usdt, double quantity) {
+
+	@Test
+	public void expectedCsvLine() {
+	    String expectedLine = "2021-06-18 14:05:14,,BUY,any,12.62573000,19.70000000,0.6409\r\n";
+	    CsvTransactionRow txRow = createCsvTransactionRow("2021-06-18 14:05:14", Action.BUY, "12.62573000", "19.70000000");
+	    assertEquals(expectedLine, txRow.toCsvLine());
+	}
+
+	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}
 	
-    private CsvTransactionRow createCsvTransactionRow(String date, Action side, double usdt, double quantity) {
-        return new CsvTransactionRow(Utils.fromString(Utils.FORMAT_SECOND, date), "", side, "any", usdt, quantity, usdt / quantity);
+    private CsvTransactionRow createCsvTransactionRow(String date, Action side, String usdt, String quantity) {
+        double result = Double.parseDouble(usdt) / Double.parseDouble(quantity);
+        return new CsvTransactionRow(Utils.fromString(Utils.FORMAT_SECOND, date), "", side, "any", usdt, quantity, result);
     }
 }

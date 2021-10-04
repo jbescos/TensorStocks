@@ -35,16 +35,12 @@ public class SecureBinanceAPI {
 	private final Mac mac;
 	private final String publicKey;
 	private final Client client;
-	private final BucketStorage storage;
-	private final CloudProperties cloudProperties;
 
-	private SecureBinanceAPI(CloudProperties cloudProperties, Client client, BucketStorage storage, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
+	private SecureBinanceAPI(Client client, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
 		mac = Mac.getInstance(HMAC_SHA_256);
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
-		this.cloudProperties = cloudProperties;
 		this.publicKey = publicKey;
 		this.client = client;
-		this.storage = storage;
 	}
 
 	public String signature(String data) {
@@ -136,19 +132,18 @@ public class SecureBinanceAPI {
 	}
 	
 	// quoteOrderQty in USDT
-	public Map<String, String> orderUSDT(String symbol, Action action, String quoteOrderQty) throws FileNotFoundException, IOException {
+	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info(() -> "Prepared USDT order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info(() -> "Completed USDT order: " + response);
-		saveTransaction(now, response, action);
-		return response;
+		return createTxFromResponse(now, response, action);
 	}
 	
 	// quantity in units of symbol
-	public Map<String, String> orderSymbol(String symbol, Action action, String quantity) throws FileNotFoundException, IOException {
+	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		ExchangeInfo exchange = new BinanceAPI(client).exchangeInfo(symbol);
@@ -158,25 +153,22 @@ public class SecureBinanceAPI {
 		LOGGER.info(() -> "Prepared Symbol order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info(() -> "Completed Symbol order: " + response);
-		saveTransaction(now, response, action);
-		return response;
+		return createTxFromResponse(now, response, action);
 	}
-	
-	private void saveTransaction(Date now, Map<String, String> response, Action action) throws FileNotFoundException, IOException {
-		// Units of symbol
-		String executedQty = response.get("executedQty");
-		// USDT
-		String cummulativeQuoteQty = response.get("cummulativeQuoteQty");
-		// quoteOrderQty / executedQty
-		double quoteOrderQtyBD = Double.parseDouble(cummulativeQuoteQty);
-		double executedQtyBD = Double.parseDouble(executedQty);
-		double result = quoteOrderQtyBD/executedQtyBD;
-		final byte[] HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT\r\n".getBytes(Utils.UTF8);
-		StringBuilder data = new StringBuilder();
-		data.append(Utils.fromDate(Utils.FORMAT_SECOND, now)).append(",").append(response.get("orderId")).append(",").append(action.toString()).append(",").append(response.get("symbol")).append(",").append(cummulativeQuoteQty).append(",").append(executedQty).append(",").append(Utils.format(result)).append("\r\n");
-		storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(now) + ".csv", data.toString().getBytes(Utils.UTF8), HEADER);
+
+	private CsvTransactionRow createTxFromResponse(Date now, Map<String, String> response, Action action) {
+	    // Units of symbol
+        String executedQty = response.get("executedQty");
+        // USDT
+        String cummulativeQuoteQty = response.get("cummulativeQuoteQty");
+        // quoteOrderQty / executedQty
+        double quoteOrderQtyBD = Double.parseDouble(cummulativeQuoteQty);
+        double executedQtyBD = Double.parseDouble(executedQty);
+        double result = quoteOrderQtyBD/executedQtyBD;
+        CsvTransactionRow transaction = new CsvTransactionRow(now, response.get("orderId"), action, response.get("symbol"), cummulativeQuoteQty, executedQty, result);
+        return transaction;
 	}
-	
+
 	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty) throws FileNotFoundException, IOException {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
@@ -187,13 +179,13 @@ public class SecureBinanceAPI {
 		return response;
 	}
 
-	public static SecureBinanceAPI create(CloudProperties cloudProperties, Client client, BucketStorage storage, String publicKey, String privateKey)
+	public static SecureBinanceAPI create(Client client, String publicKey, String privateKey)
 			throws InvalidKeyException, NoSuchAlgorithmException {
-		return new SecureBinanceAPI(cloudProperties, client, storage, publicKey, privateKey);
+		return new SecureBinanceAPI(client, publicKey, privateKey);
 	}
 	
-	public static SecureBinanceAPI create(CloudProperties cloudProperties, Client client, BucketStorage storage)
+	public static SecureBinanceAPI create(CloudProperties cloudProperties, Client client)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		return new SecureBinanceAPI(cloudProperties, client, storage, cloudProperties.BINANCE_PUBLIC_KEY, cloudProperties.BINANCE_PRIVATE_KEY);
+		return new SecureBinanceAPI(client, cloudProperties.BINANCE_PUBLIC_KEY, cloudProperties.BINANCE_PRIVATE_KEY);
 	}
 }

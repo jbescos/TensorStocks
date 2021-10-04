@@ -114,8 +114,8 @@ public class CsvUtil {
 			String orderId = columns[1];
 			String side = columns[2];
 			String symbol = columns[3];
-			double usdt = Double.parseDouble(columns[4]);
-			double quantity = Double.parseDouble(columns[5]);
+			String usdt = columns[4];
+			String quantity = columns[5];
 			double usdtUnit = Double.parseDouble(columns[6]);
 			CsvTransactionRow row = new CsvTransactionRow(date, orderId, Action.valueOf(side), symbol, usdt, quantity, usdtUnit);
 			return row;

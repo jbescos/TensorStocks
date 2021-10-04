@@ -2,6 +2,8 @@ package com.jbescos.cloudbot;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,8 +12,10 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.google.cloud.storage.Storage;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
+import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
@@ -107,8 +111,8 @@ public class BotExecution {
 		return false;
 	}
 	
-	public static BotExecution binance(CloudProperties cloudProperties, SecureBinanceAPI api) {
-		return new BotExecution(cloudProperties, new Binance(cloudProperties, api));
+	public static BotExecution binance(CloudProperties cloudProperties, SecureBinanceAPI api, BucketStorage storage) {
+		return new BotExecution(cloudProperties, new Binance(cloudProperties, api, storage));
 	}
 	
 	public static BotExecution test(CloudProperties cloudProperties, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
@@ -128,14 +132,17 @@ public class BotExecution {
 	
 	private static class Binance implements ConnectAPI {
 		
+	    private final List<CsvTransactionRow> transactions = new ArrayList<>();
 		private final SecureBinanceAPI api;
 		private final CloudProperties cloudProperties;
+		private final BucketStorage storage;
 		private final Map<String, String> originalWallet;
 		private final Map<String, Double> wallet = new HashMap<>();
 		
-		private Binance(CloudProperties cloudProperties, SecureBinanceAPI api) {
+		private Binance(CloudProperties cloudProperties, SecureBinanceAPI api, BucketStorage storage) {
 			this.cloudProperties = cloudProperties;
 			this.api = api;
+			this.storage = storage;
 			this.originalWallet = api.wallet();
 			for (Entry<String, String> entry : originalWallet.entrySet()) {
 				wallet.put(entry.getKey(), Double.parseDouble(entry.getValue()));
@@ -149,13 +156,15 @@ public class BotExecution {
 
 		@Override
 		public void order(String symbol, Broker stat, String quantity, String quantityUsd) {
+		    CsvTransactionRow transaction = null;
 			try {
 				if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 					String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-					api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol));
+					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol));
 				} else {
-					api.orderSymbol(symbol, stat.getAction(), quantity);
+				    transaction = api.orderSymbol(symbol, stat.getAction(), quantity);
 				}
+				transactions.add(transaction);
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot " + stat.getAction().name() + " " + quantity + " " + symbol, e);
 			}
@@ -167,7 +176,19 @@ public class BotExecution {
 		}
 
 		@Override
-		public void postActions(List<Broker> stats) {}
+		public void postActions(List<Broker> stats) {
+		    if (!transactions.isEmpty()) {
+		        LOGGER.info(() -> "Persisting " + transactions.size() + " transactions");
+		        Date now = transactions.get(0).getDate();
+		        StringBuilder data = new StringBuilder();
+		        transactions.stream().forEach(r -> data.append(r.toCsvLine()));
+		        try {
+                    storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(now) + ".csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, "Cannot save transactions " + transactions, e);
+                }
+		    }
+		}
 		
 	}
 	
@@ -193,7 +214,7 @@ public class BotExecution {
 		@Override
 		public void order(String symbol, Broker stat, String quantity, String quantityUsd) {
 			// FIXME apply commission here?
-			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, Double.parseDouble(quantityUsd), Double.parseDouble(quantity), stat.getNewest().getPrice());
+			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, quantityUsd, quantity, stat.getNewest().getPrice());
 			transactions.add(transaction);
 		}
 
