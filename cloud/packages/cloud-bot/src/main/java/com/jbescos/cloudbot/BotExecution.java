@@ -12,7 +12,6 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.google.cloud.storage.Storage;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BucketStorage;
@@ -52,7 +51,7 @@ public class BotExecution {
 	    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
 	    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
     		wallet.putIfAbsent(Utils.USDT, 0.0);
-    		double usdt = wallet.get(Utils.USDT);
+    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
     		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
     		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
     		    buy = buy * stat.getFactor();
@@ -162,7 +161,7 @@ public class BotExecution {
 					String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol));
 				} else {
-				    transaction = api.orderSymbol(symbol, stat.getAction(), quantity);
+				    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd);
 				}
 				transactions.add(transaction);
 			} catch (Exception e) {

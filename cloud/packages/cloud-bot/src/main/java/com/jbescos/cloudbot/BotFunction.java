@@ -31,6 +31,7 @@ public class BotFunction implements HttpFunction {
 	private static final String SIDE_PARAM = "side";
 	private static final String SYMBOL_PARAM = "symbol";
 	private static final String QUANTITY_PARAM = "quantity";
+	private static final String QUANTITY_USDT_PARAM = "quantityUsd";
 	
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
@@ -62,8 +63,9 @@ public class BotFunction implements HttpFunction {
 				} else {
 					String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 					String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
-					CsvTransactionRow apiResponse = api.orderSymbol(symbol, Action.valueOf(side), quantity);
-					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(apiResponse.getDate()) + ".csv", apiResponse.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+					String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
+					CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty) : api.orderSymbol(symbol, Action.valueOf(side), quantity);
+					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(apiResponse.getDate()) + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					response.getWriter().write(apiResponse.toString());
 				}
 			} else {
