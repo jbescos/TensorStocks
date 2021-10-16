@@ -31,6 +31,7 @@ public class CloudProperties {
     public final String PROPERTIES_BUCKET;
     public final String BUCKET;
     public final String USER_ID;
+    public final String BROKER_COMMISSION;
     private final boolean USER_ACTIVE;
     private final String PROPERTIES_FILE = "cloud.properties";
     public final String GOOGLE_TOPIC_ID;
@@ -114,6 +115,7 @@ public class CloudProperties {
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
         BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
+        BROKER_COMMISSION = getProperty("broker.commission");
         BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
         BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
         BOT_BUY_COMMISSION = Double.parseDouble(getProperty("bot.buy.comission"));

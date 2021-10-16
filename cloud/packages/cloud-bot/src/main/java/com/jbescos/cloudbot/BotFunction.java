@@ -1,5 +1,6 @@
 package com.jbescos.cloudbot;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -17,10 +18,12 @@ import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.PanicBroker;
 import com.jbescos.common.SecureBinanceAPI;
+import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
@@ -55,7 +58,7 @@ public class BotFunction implements HttpFunction {
 					List<Broker> stats = new BinanceAPI(client).price().stream()
 							.filter(price -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(price.getSymbol()))
 							.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
-							.map(row -> new PanicBroker(row.getSymbol(), row, 0))
+							.map(row -> new PanicBroker(row.getSymbol(), row, new TransactionsSummary(false, 0, null, Collections.emptyList(), Collections.emptyList())))
 							.collect(Collectors.toList());
 					BotExecution bot = BotExecution.binance(cloudProperties, api, storage);
 					bot.execute(stats);
@@ -64,8 +67,16 @@ public class BotFunction implements HttpFunction {
 					String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 					String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
 					String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
-					CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty) : api.orderSymbol(symbol, Action.valueOf(side), quantity);
-					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(apiResponse.getDate()) + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+					CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty, null) : api.orderSymbol(symbol, Action.valueOf(side), quantity, null);
+					String month = Utils.thisMonth(apiResponse.getDate());
+					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+					if (apiResponse.getSide() == Action.SELL || apiResponse.getSide() == Action.SELL_PANIC) {
+						Broker broker = BotUtils.loadStatistics(cloudProperties, client, true).stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
+						CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), apiResponse);
+						StringBuilder profitData = new StringBuilder();
+						profitData.append(row.toCsvLine());
+						storage.updateFile(cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+					}
 					response.getWriter().write(apiResponse.toString());
 				}
 			} else {

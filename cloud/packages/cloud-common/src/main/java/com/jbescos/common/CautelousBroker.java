@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -18,9 +19,10 @@ public class CautelousBroker implements Broker {
     private final double minProfitableSellPrice;
     private final boolean hasPreviousTransactions;
     private final Date lastPurchase;
+    private final TransactionsSummary summary;
     private final CloudProperties cloudProperties;
 
-    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, Date lastPurchase) {
+    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, TransactionsSummary summary) {
     	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
@@ -32,14 +34,15 @@ public class CautelousBroker implements Broker {
         } else {
             this.avg = newest.getAvg();
         }
-        this.hasPreviousTransactions = hasPreviousTransactions;
-        this.minProfitableSellPrice = minProfitableSellPrice;
-        this.lastPurchase = lastPurchase;
+        this.summary = summary;
+        this.hasPreviousTransactions = summary.isHasTransactions();
+        this.minProfitableSellPrice = summary.getMinProfitable();
+        this.lastPurchase = summary.getLastPurchase();
         this.action = evaluate(newest.getPrice(), values);
     }
     
     public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
-        this(cloudProperties, symbol, values, 0, false, null);
+        this(cloudProperties, symbol, values, new TransactionsSummary(false, 0, null, Collections.emptyList(), Collections.emptyList()));
     }
     
     public CsvRow getMin() {
@@ -73,6 +76,11 @@ public class CautelousBroker implements Broker {
     public CsvRow getNewest() {
         return newest;
     }
+
+	@Override
+	public TransactionsSummary getPreviousTransactions() {
+		return summary;
+	}
 
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;

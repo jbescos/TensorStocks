@@ -15,16 +15,18 @@ public class GreedyBroker implements Broker {
 	private final CsvRow max;
 	private Action action = Action.NOTHING;
 	private final CloudProperties cloudProperties;
+	private final TransactionsSummary summary;
 
-	public GreedyBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double minProfitableSellPrice, boolean hasPreviousTransactions, List<CsvTransactionRow> symbolTransactions) {
+	public GreedyBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, TransactionsSummary summary, List<CsvTransactionRow> symbolTransactions) {
 		this.cloudProperties = cloudProperties;
 		this.symbol = symbol;
 		this.newest = values.get(values.size() - 1);
 		this.min = Utils.getMinMax(values, true);
 		this.max = Utils.getMinMax(values, false);
 		this.factor = Utils.calculateFactor(min, max);
-		this.minProfitableSellPrice = minProfitableSellPrice;
-		if (hasPreviousTransactions) {
+		this.minProfitableSellPrice = summary.getMinProfitable();
+		this.summary = summary;
+		if (summary.isHasTransactions()) {
 			// SELL
 			double acceptedPrice = minProfitableSellPrice + (minProfitableSellPrice * cloudProperties.BOT_GREEDY_MIN_PROFIT_SELL);
 			if (newest.getPrice() > acceptedPrice) {
@@ -80,12 +82,17 @@ public class GreedyBroker implements Broker {
 	public double getFactor() {
 		return cloudProperties.BOT_GREEDY_DEFAULT_FACTOR_SELL + factor;
 	}
-	
-	   @Override
-	    public String toString() {
-	        StringBuilder builder = new StringBuilder("symbol=").append(symbol);
-	        builder.append(", newest=").append(newest).append(", avg=").append(newest.getAvg()).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
-	        return builder.toString();
-	    }
+
+	@Override
+	public TransactionsSummary getPreviousTransactions() {
+		return summary;
+	}
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder("symbol=").append(symbol);
+        builder.append(", newest=").append(newest).append(", avg=").append(newest.getAvg()).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
+        return builder.toString();
+    }
 
 }

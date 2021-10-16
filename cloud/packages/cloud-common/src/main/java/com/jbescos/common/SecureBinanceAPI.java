@@ -132,18 +132,18 @@ public class SecureBinanceAPI {
 	}
 	
 	// quoteOrderQty in USDT
-	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty) {
+	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, Double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info(() -> "Prepared USDT order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info(() -> "Completed USDT order: " + response);
-		return createTxFromResponse(now, response, action);
+		return createTxFromResponse(now, response, action, currentUsdtPrice);
 	}
 	
 	// quantity in units of symbol
-	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity) {
+	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, Double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		ExchangeInfo exchange = new BinanceAPI(client).exchangeInfo(symbol);
@@ -153,19 +153,21 @@ public class SecureBinanceAPI {
 		LOGGER.info(() -> "Prepared Symbol order: " + Arrays.asList(args).toString());
 		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {}, args);
 		LOGGER.info(() -> "Completed Symbol order: " + response);
-		return createTxFromResponse(now, response, action);
+		return createTxFromResponse(now, response, action, currentUsdtPrice);
 	}
 
-	private CsvTransactionRow createTxFromResponse(Date now, Map<String, String> response, Action action) {
+	private CsvTransactionRow createTxFromResponse(Date now, Map<String, String> response, Action action, Double currentUsdtPrice) {
 	    // Units of symbol
         String executedQty = response.get("executedQty");
         // USDT
         String cummulativeQuoteQty = response.get("cummulativeQuoteQty");
-        // quoteOrderQty / executedQty
-        double quoteOrderQtyBD = Double.parseDouble(cummulativeQuoteQty);
-        double executedQtyBD = Double.parseDouble(executedQty);
-        double result = quoteOrderQtyBD/executedQtyBD;
-        CsvTransactionRow transaction = new CsvTransactionRow(now, response.get("orderId"), action, response.get("symbol"), cummulativeQuoteQty, executedQty, result);
+        if (currentUsdtPrice == null) {
+        	// quoteOrderQty / executedQty
+        	double quoteOrderQtyBD = Double.parseDouble(cummulativeQuoteQty);
+            double executedQtyBD = Double.parseDouble(executedQty);
+            currentUsdtPrice = quoteOrderQtyBD/executedQtyBD;
+        }
+        CsvTransactionRow transaction = new CsvTransactionRow(now, response.get("orderId"), action, response.get("symbol"), cummulativeQuoteQty, executedQty, currentUsdtPrice);
         return transaction;
 	}
 

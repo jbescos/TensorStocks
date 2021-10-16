@@ -32,6 +32,7 @@ import com.jbescos.common.CsvUtil;
 import com.jbescos.common.GreedyBroker;
 import com.jbescos.common.LimitsBroker;
 import com.jbescos.common.PanicBroker;
+import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
 public class BotUtils {
@@ -123,24 +124,21 @@ public class BotUtils {
 	}
 	
 	private static Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
-		double minProfitableSellPrice = Utils.minSellProfitable(symbolTransactions);
-		boolean hasPreviousTransactions = symbolTransactions != null && !symbolTransactions.isEmpty();
+		TransactionsSummary summary = Utils.minSellProfitable(symbolTransactions);
 		CsvRow newest = rows.get(rows.size() - 1);
-		Date lastPurchase = null;
-		if (hasPreviousTransactions) {
-		    lastPurchase = symbolTransactions.get(0).getDate();
-		    LOGGER.info(() -> symbol + " is " + Utils.format(benefit(minProfitableSellPrice, newest.getPrice())) + " compared with min profitable price");
+		if (summary.isHasTransactions()) {
+		    LOGGER.info(() -> symbol + " is " + Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
 		CsvRow oldest = rows.get(0);
 	    if (fixedBuySell != null) {
-		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell);
-	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, minProfitableSellPrice)) {
-			return new PanicBroker(symbol, newest, minProfitableSellPrice);
+		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell, summary);
+	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, summary.getMinProfitable())) {
+			return new PanicBroker(symbol, newest, summary);
 		} else if (cloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
-			return new GreedyBroker(cloudProperties, symbol, rows, minProfitableSellPrice, hasPreviousTransactions, symbolTransactions);
+			return new GreedyBroker(cloudProperties, symbol, rows, summary, symbolTransactions);
 		} else {
-			return new CautelousBroker(cloudProperties, symbol, rows, minProfitableSellPrice, hasPreviousTransactions, lastPurchase);
+			return new CautelousBroker(cloudProperties, symbol, rows, summary);
 		}
 	}
 

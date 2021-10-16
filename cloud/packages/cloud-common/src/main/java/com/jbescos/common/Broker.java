@@ -10,6 +10,8 @@ public interface Broker {
 	
 	double getFactor();
 	
+	TransactionsSummary getPreviousTransactions();
+	
 	public static enum Action {
 		BUY {
             @Override

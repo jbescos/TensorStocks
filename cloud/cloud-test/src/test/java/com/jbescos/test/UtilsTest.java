@@ -14,7 +14,9 @@ import org.junit.Test;
 import com.jbescos.common.BinanceAPI.Interval;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
 public class UtilsTest {
@@ -47,23 +49,23 @@ public class UtilsTest {
 	@Test
 	public void sellWhenBenefit() {
 		// 1 buy = 10$, 1 buy = 15$ -> 1 sell = 12.5
-		double minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "10", "1"), createCsvTransactionRow(Action.BUY, "15", "1")));
+		double minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "10", "1"), createCsvTransactionRow(Action.BUY, "15", "1"))).getMinProfitable();
 		assertEquals("12.5", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "10", "1"), createCsvTransactionRow(Action.BUY, "15", "1"), createCsvTransactionRow(Action.BUY, "2", "1")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "10", "1"), createCsvTransactionRow(Action.BUY, "15", "1"), createCsvTransactionRow(Action.BUY, "2", "1"))).getMinProfitable();
 		assertEquals("9", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "2", "4")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "2", "4"))).getMinProfitable();
 		assertEquals("0.5", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "2", "4"), createCsvTransactionRow(Action.BUY, "1", "10")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "2", "4"), createCsvTransactionRow(Action.BUY, "1", "10"))).getMinProfitable();
 		assertEquals("0.21428571", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "4", "2"), createCsvTransactionRow(Action.SELL, "2", "1")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "4", "2"), createCsvTransactionRow(Action.SELL, "2", "1"))).getMinProfitable();
 		assertEquals("2", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "1", "4"), createCsvTransactionRow(Action.SELL, "1", "4")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "1", "4"), createCsvTransactionRow(Action.SELL, "1", "4"))).getMinProfitable();
 		assertEquals("0", Utils.format(minSell));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.SELL, "1", "10")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.SELL, "1", "10"))).getMinProfitable();
 		assertEquals("0", Utils.format(minSell));
-		double minSellExample = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "14.0", "57.5"), createCsvTransactionRow(Action.BUY, "10.0", "37.5")));
+		double minSellExample = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "14.0", "57.5"), createCsvTransactionRow(Action.BUY, "10.0", "37.5"))).getMinProfitable();
 		assertEquals("0.25263157", Utils.format(minSellExample));
-		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "14.0", "57.5"), createCsvTransactionRow(Action.BUY, "10.0", "37.5"), createCsvTransactionRow(Action.SELL, "14.0", "30.0")));
+		minSell = Utils.minSellProfitable(Arrays.asList(createCsvTransactionRow(Action.BUY, "14.0", "57.5"), createCsvTransactionRow(Action.BUY, "10.0", "37.5"), createCsvTransactionRow(Action.SELL, "14.0", "30.0"))).getMinProfitable();
 		assertEquals("0.15384615", Utils.format(minSell));
 		assertTrue(minSellExample > minSell);
 	}
@@ -256,6 +258,22 @@ public class UtilsTest {
 	    String expectedLine = "2021-06-18 14:05:14,,BUY,any,12.62573000,19.70000000,0.6409\r\n";
 	    CsvTransactionRow txRow = createCsvTransactionRow("2021-06-18 14:05:14", Action.BUY, "12.62573000", "19.70000000");
 	    assertEquals(expectedLine, txRow.toCsvLine());
+	}
+	
+	@Test
+	public void csvBenefitRow() {
+		CsvTransactionRow sell = createCsvTransactionRow("2021-10-01 00:00:00", Action.SELL, "1000.8454", "1.3");
+		CsvTransactionRow buy1 = createCsvTransactionRow("2021-08-01 00:00:00", Action.BUY, "500.6", "0.7");
+		CsvTransactionRow buy2 = createCsvTransactionRow("2021-09-01 00:00:00", Action.BUY, "400", "0.6");
+		TransactionsSummary summary = Utils.minSellProfitable(Arrays.asList(buy2, buy1));
+		CsvProfitRow profitRow = CsvProfitRow.build("0.03", summary, sell);
+		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
+		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,1000.8454,3%,3.007362,100.2454,97.238038,11.13095713%" + Utils.NEW_LINE, profitRow.toCsvLine());
+		// Sell quantity does not match with but quantity because the user bought out of the system. We only consider the bot proportion
+		sell = createCsvTransactionRow("2021-10-01 00:00:00", Action.SELL, "1538", "2");
+		profitRow = CsvProfitRow.build("0.03", summary, sell);
+		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
+		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,999.7,3%,2.973,99.1,96.127,11.00377526%" + Utils.NEW_LINE, profitRow.toCsvLine());
 	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {

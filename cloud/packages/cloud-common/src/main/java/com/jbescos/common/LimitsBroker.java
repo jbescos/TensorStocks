@@ -14,15 +14,17 @@ public class LimitsBroker implements Broker {
     private final CsvRow min;
     private final CsvRow max;
     private final double minMaxFactor;
+    private final TransactionsSummary summary;
     private Action action = Action.NOTHING;
 
-    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, FixedBuySell fixedBuySell) {
+    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, FixedBuySell fixedBuySell, TransactionsSummary summary) {
     	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.newest = values.get(values.size() - 1);
         this.min = Utils.getMinMax(values, true);
         this.max = Utils.getMinMax(values, false);
         this.minMaxFactor = Utils.calculateFactor(min, max);
+        this.summary = summary;
         double price = newest.getPrice();
         if (price >= fixedBuySell.getFixedSell()) {
             if (Utils.isMax(values)) {
@@ -60,6 +62,11 @@ public class LimitsBroker implements Broker {
     public double getFactor() {
         return Utils.factorMultiplier(minMaxFactor, cloudProperties.BOT_LIMITS_FACTOR_MULTIPLIER);
     }
+
+	@Override
+	public TransactionsSummary getPreviousTransactions() {
+		return summary;
+	}
 
     @Override
     public String toString() {

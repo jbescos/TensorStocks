@@ -16,6 +16,7 @@ import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.SecureBinanceAPI;
@@ -157,11 +158,12 @@ public class BotExecution {
 		public void order(String symbol, Broker stat, String quantity, String quantityUsd) {
 		    CsvTransactionRow transaction = null;
 			try {
+				double currentUsdtPrice = stat.getNewest().getPrice();
 				if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 					String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol));
+					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol), currentUsdtPrice);
 				} else {
-				    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd);
+				    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd, currentUsdtPrice);
 				}
 				transactions.add(transaction);
 			} catch (Exception e) {
@@ -179,13 +181,33 @@ public class BotExecution {
 		    if (!transactions.isEmpty()) {
 		        LOGGER.info(() -> "Persisting " + transactions.size() + " transactions");
 		        Date now = transactions.get(0).getDate();
+		        String month = Utils.thisMonth(now);
 		        StringBuilder data = new StringBuilder();
 		        transactions.stream().forEach(r -> data.append(r.toCsvLine()));
+		        String transactionsCsv = cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv";
 		        try {
-                    storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + Utils.thisMonth(now) + ".csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+                    storage.updateFile(transactionsCsv, data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
                 } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "Cannot save transactions " + transactions, e);
+                    LOGGER.log(Level.SEVERE, "Cannot save " + transactionsCsv + ": " + data, e);
                 }
+		        StringBuilder profitData = new StringBuilder();
+		        transactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
+		        	for (Broker broker : stats) {
+		        		if (tx.getSymbol().equals(broker.getSymbol())) {
+		        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
+		        			profitData.append(row.toCsvLine());
+		        			break;
+		        		}
+		        	}
+		        });
+		        if (profitData.length() > 0) {
+		        	String profitCsv = cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv";
+			        try {
+	                    storage.updateFile(profitCsv, profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+	                } catch (IOException e) {
+	                    LOGGER.log(Level.SEVERE, "Cannot save " + profitCsv + ": " + profitData, e);
+	                }
+		        }
 		    }
 		}
 		
