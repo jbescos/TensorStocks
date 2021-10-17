@@ -14,11 +14,11 @@ import java.util.logging.Logger;
 
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
-import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.FileUpdater;
 import com.jbescos.common.SecureBinanceAPI;
 import com.jbescos.common.Utils;
 
@@ -64,9 +64,11 @@ public class BotExecution {
     		try {
 	    		LOGGER.info("Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
 	    		if (updateWallet(Utils.USDT, buy * -1)) {
-	    				connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
-	    				wallet.putIfAbsent(walletSymbol, 0.0);
-	    				updateWallet(walletSymbol, Utils.applyCommission(buySymbol, cloudProperties.BOT_BUY_COMMISSION));
+    			    CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
+    			    if (transaction != null) {
+    			    	wallet.putIfAbsent(walletSymbol, 0.0);
+        				updateWallet(walletSymbol, Double.parseDouble(transaction.getQuantity()));
+    			    }
 	    		}
 	    	} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol, e);
@@ -79,19 +81,18 @@ public class BotExecution {
 	private void sell(String symbol, Broker stat) throws FileNotFoundException, IOException {
 		String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 		wallet.putIfAbsent(walletSymbol, 0.0);
-		// Make sure we sell a little less than what we have
-		double sell = wallet.get(walletSymbol) * FLOAT_ISSUE;
+		double sell = wallet.remove(walletSymbol);
 		double usdtOfSymbol = Utils.usdValue(sell, stat.getNewest().getPrice());
 		try {
 			if (usdtOfSymbol >= connectAPI.minTransaction()) {
 				LOGGER.info(() -> "Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
-				if (updateWallet(walletSymbol, sell * -1)) {
-					connectAPI.order(symbol, stat, Utils.format(sell), Utils.format(usdtOfSymbol));
-					updateWallet(Utils.USDT, Utils.applyCommission(usdtOfSymbol, cloudProperties.BOT_SELL_COMMISSION));
-				} else {
-					LOGGER.warning("Error with the wallet. It is expected to sell " + Utils.format(sell) + " " + symbol + " and there is " + Utils.format(wallet.get(walletSymbol)));
+				CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(sell), Utils.format(usdtOfSymbol));
+				if (transaction != null) {
+					updateWallet(Utils.USDT, transaction.getPrice());
 				}
 			} else {
+				// Restore wallet
+				wallet.put(walletSymbol, sell);
 				LOGGER.info(() -> "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
 			}
 		} catch (Exception e) {
@@ -111,19 +112,19 @@ public class BotExecution {
 		return false;
 	}
 	
-	public static BotExecution binance(CloudProperties cloudProperties, SecureBinanceAPI api, BucketStorage storage) {
+	public static BotExecution binance(CloudProperties cloudProperties, SecureBinanceAPI api, FileUpdater storage) {
 		return new BotExecution(cloudProperties, new Binance(cloudProperties, api, storage));
 	}
 	
-	public static BotExecution test(CloudProperties cloudProperties, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
-		return new BotExecution(cloudProperties, new Test(wallet, transactions, walletHistorical, minTransaction));
+	public static BotExecution test(CloudProperties cloudProperties, FileUpdater storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
+		return new BotExecution(cloudProperties, new Test(cloudProperties, storage, wallet, transactions, walletHistorical, minTransaction));
 	}
 	
 	private static interface ConnectAPI {
 		
 		Map<String, Double> wallet();
 		
-		void order(String symbol, Broker stat, String quantity, String quantityUsd);
+		CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd);
 
 		double minTransaction();
 		
@@ -135,11 +136,11 @@ public class BotExecution {
 	    private final List<CsvTransactionRow> transactions = new ArrayList<>();
 		private final SecureBinanceAPI api;
 		private final CloudProperties cloudProperties;
-		private final BucketStorage storage;
+		private final FileUpdater storage;
 		private final Map<String, String> originalWallet;
 		private final Map<String, Double> wallet = new HashMap<>();
 		
-		private Binance(CloudProperties cloudProperties, SecureBinanceAPI api, BucketStorage storage) {
+		private Binance(CloudProperties cloudProperties, SecureBinanceAPI api, FileUpdater storage) {
 			this.cloudProperties = cloudProperties;
 			this.api = api;
 			this.storage = storage;
@@ -155,7 +156,7 @@ public class BotExecution {
 		}
 
 		@Override
-		public void order(String symbol, Broker stat, String quantity, String quantityUsd) {
+		public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd) {
 		    CsvTransactionRow transaction = null;
 			try {
 				double currentUsdtPrice = stat.getNewest().getPrice();
@@ -169,6 +170,7 @@ public class BotExecution {
 			} catch (Exception e) {
 				LOGGER.log(Level.SEVERE, "Cannot " + stat.getAction().name() + " " + quantity + " " + symbol, e);
 			}
+			return transaction;
 		}
 
 		@Override
@@ -215,12 +217,17 @@ public class BotExecution {
 	
 	private static class Test implements ConnectAPI {
 		
+		private final CloudProperties cloudProperties;
+		private final FileUpdater storage;
+		private final List<CsvTransactionRow> newTransactions = new ArrayList<>();
 		private final Map<String, Double> wallet;
 		private final List<CsvTransactionRow> transactions;
 		private final List<CsvRow> walletHistorical;
 		private final double minTransaction;
 		
-		private Test(Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
+		private Test(CloudProperties cloudProperties, FileUpdater storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
+			this.cloudProperties = cloudProperties;
+			this.storage = storage;
 			this.wallet = wallet;
 			this.transactions = transactions;
 			this.walletHistorical = walletHistorical;
@@ -233,10 +240,18 @@ public class BotExecution {
 		}
 
 		@Override
-		public void order(String symbol, Broker stat, String quantity, String quantityUsd) {
-			// FIXME apply commission here?
-			CsvTransactionRow transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, quantityUsd, quantity, stat.getNewest().getPrice());
+		public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd) {
+			CsvTransactionRow transaction = null;
+			if (stat.getAction() == Action.BUY) {
+				double netoQuantity = Utils.applyCommission(Double.parseDouble(quantity), cloudProperties.BOT_BUY_COMMISSION);
+				transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, quantityUsd, Utils.format(netoQuantity), stat.getNewest().getPrice());
+			} else {
+				double netoUsdt = Utils.applyCommission(Double.parseDouble(quantityUsd), cloudProperties.BOT_SELL_COMMISSION);
+				transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, Utils.format(netoUsdt), quantity, stat.getNewest().getPrice());
+			}
+			newTransactions.add(transaction);
 			transactions.add(transaction);
+			return transaction;
 		}
 
 		@Override
@@ -273,6 +288,23 @@ public class BotExecution {
 				CsvRow walletUsdt = new CsvRow(newest.getDate(), entry.getKey(), entry.getValue(), null, null);
 				walletHistorical.add(walletUsdt);
 			}
+			StringBuilder profitData = new StringBuilder();
+			newTransactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
+	        	for (Broker broker : stats) {
+	        		if (tx.getSymbol().equals(broker.getSymbol())) {
+	        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
+	        			profitData.append(row.toCsvLine());
+	        			break;
+	        		}
+	        	}
+	        });
+	        if (profitData.length() > 0) {
+		        try {
+                    storage.updateFile("profit.csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, "Cannot save profit.csv: " + profitData, e);
+                }
+	        }
 		}
 		
 	}

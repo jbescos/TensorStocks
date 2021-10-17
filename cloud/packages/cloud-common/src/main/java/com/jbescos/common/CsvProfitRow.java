@@ -7,7 +7,7 @@ import java.util.Date;
 public class CsvProfitRow {
 	
 	public static final String PREFIX = "profit/profit_";
-	public static final String HEADER = "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%" + Utils.NEW_LINE;
+	public static final String HEADER = "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISSION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%" + Utils.NEW_LINE;
 	
 	private final Date sellDate;
 	private final Date firstBuyDate;

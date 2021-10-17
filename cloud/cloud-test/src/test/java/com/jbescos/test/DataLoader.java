@@ -58,7 +58,6 @@ public class DataLoader {
                 if (start) {
                     try {
                         Utils.fromString(Utils.FORMAT, date);
-                        LOGGER.info(() -> "Loading " + resource);
                         try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataLoader.class.getResourceAsStream("/" + resource)))) {
                             List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
                             dailyRows = dailyRows.stream().filter(r -> CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
@@ -93,6 +92,10 @@ public class DataLoader {
     
     public CsvRow first(String symbol) {
         return grouped.get(symbol).get(0);
+    }
+    
+    public CsvRow first() {
+        return grouped.entrySet().iterator().next().getValue().get(0);
     }
 
     public CsvRow next(String symbol, CsvRow current) {

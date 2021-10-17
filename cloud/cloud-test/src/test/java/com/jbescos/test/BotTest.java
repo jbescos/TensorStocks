@@ -33,6 +33,7 @@ import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
+import com.jbescos.test.util.TestFileStorage;
 
 public class BotTest {
 
@@ -80,14 +81,13 @@ public class BotTest {
 
 	@Test
 	@Ignore
-    public void all() throws IOException {
+    public void allTogether() throws IOException {
 		final double INITIAL_USDT = 1000;
 		Map<String, Double> wallet = new HashMap<>();
         wallet.put(Utils.USDT, INITIAL_USDT);
         List<CsvRow> walletHistorical = new ArrayList<>();
     	List<CsvTransactionRow> transactions = new ArrayList<>();
-    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical, CLOUD_PROPERTIES.BINANCE_MIN_TRANSACTION);
-    	CsvRow first = LOADER.first("BTCUSDT");
+    	CsvRow first = LOADER.first();
     	long now = first.getDate().getTime() + HOURS_BACK_MILLIS;
     	long last = LOADER.last(first.getSymbol()).getDate().getTime();
     	while (now <= last) {
@@ -97,6 +97,7 @@ public class BotTest {
     		List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
     	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
     	    try {
+    	    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, new TestFileStorage("./target/total_"), wallet, transactions, walletHistorical, CLOUD_PROPERTIES.BINANCE_MIN_TRANSACTION);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -124,7 +125,7 @@ public class BotTest {
 	}
 
     @Test
-    public void realData() throws IOException {
+    public void separately() throws IOException {
         LOADER.symbols().parallelStream().forEach(symbol -> {
             CsvRow first = LOADER.first(symbol);
             Map<String, Double> wallet = new HashMap<>();
@@ -136,9 +137,9 @@ public class BotTest {
 
     private void check(String symbol, Map<String, Double> wallet) {
     	double holderTotalUsd = wallet.get(Utils.USDT).doubleValue();
+    	final double MIN_TX = holderTotalUsd * 0.1;
     	List<CsvRow> walletHistorical = new ArrayList<>();
     	List<CsvTransactionRow> transactions = new ArrayList<>();
-    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, wallet, transactions, walletHistorical, holderTotalUsd * 0.1);
     	CsvRow first = LOADER.first(symbol);
     	long now = first.getDate().getTime() + HOURS_BACK_MILLIS;
     	long last = LOADER.last(symbol).getDate().getTime();
@@ -150,6 +151,7 @@ public class BotTest {
     	    List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
     	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
     	    try {
+    	    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, new TestFileStorage("./target/" + symbol + "_"), wallet, transactions, walletHistorical, MIN_TX);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();

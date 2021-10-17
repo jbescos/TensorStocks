@@ -27,7 +27,7 @@ import com.google.cloud.storage.StorageClass;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BinanceAPI.Interval;
 
-public class BucketStorage {
+public class BucketStorage implements FileUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
 	private final Storage storage;
@@ -99,6 +99,7 @@ public class BucketStorage {
         return newRows;
 	}
 
+	@Override
 	public String updateFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
 		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(cloudProperties.BUCKET, fileName).build().getBlobId());
