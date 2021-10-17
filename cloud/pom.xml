@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.jbescos.cloud</groupId>
-	<artifactId>project</artifactId>
+	<artifactId>cloud</artifactId>
 	<version>1.0</version>
 	<packaging>pom</packaging>
 
@@ -18,7 +18,6 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.plugin>3.8.1</maven.compiler.plugin>
-		<project.version>1.0</project.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<junit.version>4.13.1</junit.version>
@@ -26,9 +25,7 @@
 		<jaxrs.version>2.1.1</jaxrs.version>
 		<google-functions.version>1.0.1</google-functions.version>
 		<google-cloud.version>1.98.0</google-cloud.version>
-		<mysql.version>8.0.24</mysql.version>
 		<jfreechart.version>1.5.0</jfreechart.version>
-		<deeplearning4j.version>1.0.0-beta7</deeplearning4j.version>
 		<tyrus.version>2.0.0</tyrus.version>
 		<pubsub.version>1.113.5</pubsub.version>
 	</properties>
@@ -81,11 +78,6 @@
 				<version>${jersey.version}</version>
 			</dependency>
 			<dependency>
-				<groupId>mysql</groupId>
-				<artifactId>mysql-connector-java</artifactId>
-				<version>${mysql.version}</version>
-			</dependency>
-			<dependency>
 				<groupId>org.jfree</groupId>
 				<artifactId>jfreechart</artifactId>
 				<version>${jfreechart.version}</version>
@@ -95,16 +87,6 @@
 				<artifactId>junit</artifactId>
 				<version>${junit.version}</version>
 				<scope>test</scope>
-			</dependency>
-			<dependency>
-				<groupId>org.deeplearning4j</groupId>
-				<artifactId>deeplearning4j-core</artifactId>
-				<version>${deeplearning4j.version}</version>
-			</dependency>
-			<dependency>
-				<groupId>org.nd4j</groupId>
-				<artifactId>nd4j-native-platform</artifactId>
-				<version>${deeplearning4j.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>org.glassfish.tyrus</groupId>
