@@ -288,23 +288,29 @@ public class BotExecution {
 				CsvRow walletUsdt = new CsvRow(newest.getDate(), entry.getKey(), entry.getValue(), null, null);
 				walletHistorical.add(walletUsdt);
 			}
-			StringBuilder profitData = new StringBuilder();
-			newTransactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
-	        	for (Broker broker : stats) {
-	        		if (tx.getSymbol().equals(broker.getSymbol())) {
-	        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
-	        			profitData.append(row.toCsvLine());
-	        			break;
-	        		}
-	        	}
-	        });
-	        if (profitData.length() > 0) {
-		        try {
-                    storage.updateFile("profit.csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
-                } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "Cannot save profit.csv: " + profitData, e);
+			if (!newTransactions.isEmpty()) {
+				try {
+					StringBuilder data = new StringBuilder();
+					newTransactions.stream().forEach(r -> data.append(r.toCsvLine()));
+					storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+					StringBuilder profitData = new StringBuilder();
+					newTransactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
+			        	for (Broker broker : stats) {
+			        		if (tx.getSymbol().equals(broker.getSymbol())) {
+			        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
+			        			profitData.append(row.toCsvLine());
+			        			break;
+			        		}
+			        	}
+			        });
+			        if (profitData.length() > 0) {
+		                    storage.updateFile("profit.csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+			        }
+				} catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, "Cannot save csv ", e);
                 }
-	        }
+			}
+
 		}
 		
 	}
