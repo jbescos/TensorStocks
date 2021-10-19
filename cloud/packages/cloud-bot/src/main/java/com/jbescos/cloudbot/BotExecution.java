@@ -162,6 +162,7 @@ public class BotExecution {
 				double currentUsdtPrice = stat.getNewest().getPrice();
 				if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 					String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
+					// FIXME Sell only what was bought before to avoid selling external user purchases
 					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol), currentUsdtPrice);
 				} else {
 				    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd, currentUsdtPrice);
