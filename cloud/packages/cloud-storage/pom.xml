@@ -6,7 +6,7 @@
 
 	<parent>
 		<groupId>com.jbescos.cloud.packages</groupId>
-		<artifactId>project</artifactId>
+		<artifactId>packages</artifactId>
 		<version>1.0</version>
 	</parent>
 
@@ -37,8 +37,12 @@
 			<artifactId>jersey-media-json-jackson</artifactId>
 		</dependency>
 		<dependency>
-		    <groupId>com.google.cloud</groupId>
-		    <artifactId>google-cloud-pubsub</artifactId>
+			<groupId>org.glassfish.jersey.connectors</groupId>
+			<artifactId>jersey-netty-connector</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.google.cloud</groupId>
+			<artifactId>google-cloud-pubsub</artifactId>
 		</dependency>
 	</dependencies>
 

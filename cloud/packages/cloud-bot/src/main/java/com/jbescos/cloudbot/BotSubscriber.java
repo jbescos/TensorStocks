@@ -36,9 +36,11 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         String userId = new String(Base64.getDecoder().decode(payload.data));
         LOGGER.info(() -> "Received: " + userId);
         CloudProperties cloudProperties = new CloudProperties(userId);
+        LOGGER.info(() -> "Openning HTTP client in: " + userId);
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
         long time = publicAPI.time();
+        LOGGER.info(() -> "Server time is: " + time);
         Date now = new Date(time);
         BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), publicAPI);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);

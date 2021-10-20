@@ -24,7 +24,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
-import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.PublicAPI.Interval;
 
 public class BucketStorage implements FileUpdater {
@@ -40,8 +39,7 @@ public class BucketStorage implements FileUpdater {
 	    this.unauthorizedAPI = unauthorizedAPI;
 	}
 	
-	public Map<String, CsvRow> previousRowsUpdatedKline(long serverTime) throws IOException{
-		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
+	public Map<String, CsvRow> previousRowsUpdatedKline(long serverTime) throws IOException {
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
 		Blob retrieve = storage.get(cloudProperties.BUCKET, Utils.LAST_PRICE);
 		if (retrieve == null) {
@@ -80,7 +78,6 @@ public class BucketStorage implements FileUpdater {
 	}
 
 	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, List<Price> prices, Date now) {
-	    Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 	    List<CsvRow> newRows = new ArrayList<>();
         for (Price price : prices) {
@@ -114,18 +111,6 @@ public class BucketStorage implements FileUpdater {
 		blobInfo = storage.compose(request);
 		storage.delete(cloudProperties.BUCKET, TEMP_FILE);
 		return blobInfo.getMediaLink();
-	}
-	
-	public static String fileToString(CloudProperties cloudProperties, String fileName) throws IOException {
-		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
-		StringBuilder builder = new StringBuilder();
-		try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, fileName); BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));){
-			List<String> lines = CsvUtil.readLines(false, reader);
-			for (String line : lines) {
-				builder.append(line);
-			}
-		}
-		return builder.toString();
 	}
 
 	private static BlobInfo createBlobInfo(CloudProperties cloudProperties, String fileName, boolean acl) {

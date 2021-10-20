@@ -21,7 +21,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<junit.version>4.13.1</junit.version>
-		<jersey.version>2.32</jersey.version>
+		<jersey.version>2.35</jersey.version>
 		<jaxrs.version>2.1.1</jaxrs.version>
 		<google-functions.version>1.0.1</google-functions.version>
 		<google-cloud.version>1.98.0</google-cloud.version>
@@ -48,9 +48,9 @@
 				<version>${jaxrs.version}</version>
 			</dependency>
 			<dependency>
-			    <groupId>com.google.cloud</groupId>
-			    <artifactId>google-cloud-pubsub</artifactId>
-			    <version>${pubsub.version}</version>
+				<groupId>com.google.cloud</groupId>
+				<artifactId>google-cloud-pubsub</artifactId>
+				<version>${pubsub.version}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.google.cloud.functions</groupId>
@@ -75,6 +75,11 @@
 			<dependency>
 				<groupId>org.glassfish.jersey.media</groupId>
 				<artifactId>jersey-media-json-jackson</artifactId>
+				<version>${jersey.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.glassfish.jersey.connectors</groupId>
+				<artifactId>jersey-netty-connector</artifactId>
 				<version>${jersey.version}</version>
 			</dependency>
 			<dependency>

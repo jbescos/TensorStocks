@@ -6,7 +6,7 @@
 
 	<parent>
 		<groupId>com.jbescos.cloud</groupId>
-		<artifactId>project</artifactId>
+		<artifactId>cloud</artifactId>
 		<version>1.0</version>
 	</parent>
 	
