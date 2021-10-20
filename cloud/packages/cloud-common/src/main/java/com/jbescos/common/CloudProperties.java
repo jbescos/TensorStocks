@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -14,6 +16,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
+
+import javax.ws.rs.client.Client;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
@@ -36,8 +40,10 @@ public class CloudProperties {
     private final String PROPERTIES_FILE = "cloud.properties";
     public final String GOOGLE_TOPIC_ID;
     public final String PROJECT_ID;
+    public final Exchange USER_EXCHANGE;
     public final String BINANCE_PUBLIC_KEY;
     public final String BINANCE_PRIVATE_KEY;
+    public final String MIZAR_API_KEY;
     public final double BINANCE_MIN_TRANSACTION;
     public final List<String> BOT_NEVER_BUY_LIST_SYMBOLS;
     public final List<String> BOT_WHITE_LIST_SYMBOLS;
@@ -109,8 +115,10 @@ public class CloudProperties {
             throw new IllegalStateException("User ID " + USER_ID + " is not active");
         }
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
+        USER_EXCHANGE = Exchange.valueOf(getProperty("user.exchange"));
         BINANCE_PUBLIC_KEY = getProperty("binance.public.key");
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
+        MIZAR_API_KEY = getProperty("mizar.api.key");
         String value = getProperty("bot.white.list");
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
@@ -240,5 +248,22 @@ public class CloudProperties {
         public double getFixedBuy() {
             return fixedBuy;
         }
+    }
+    
+    public static enum Exchange {
+        BINANCE {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredBinanceAPI.create(cloudProperties, client);
+            }
+        }, MIZAR {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+        };
+        
+        public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
     }
 }

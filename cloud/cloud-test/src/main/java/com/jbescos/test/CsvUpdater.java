@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import com.jbescos.common.BinanceAPI;
-import com.jbescos.common.BinanceAPI.Interval;
+import com.jbescos.common.PublicAPI;
+import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
@@ -51,7 +51,7 @@ public class CsvUpdater {
 		return null;
 	}
 	
-	private static void addKlines(BinanceAPI api, Map<String, List<CsvRow>> groupedSymbol, Date startTime, Date endTime) {
+	private static void addKlines(PublicAPI api, Map<String, List<CsvRow>> groupedSymbol, Date startTime, Date endTime) {
 		Interval interval = Interval.getInterval(startTime.getTime(), endTime.getTime());
 		long from = interval.from(startTime.getTime());
     	long to = interval.to(from);
@@ -86,7 +86,7 @@ public class CsvUpdater {
 	
 	private static void updateCsv(String rootFolder, String startIn) throws IOException {
 		Client client = ClientBuilder.newClient();
-		BinanceAPI api = new BinanceAPI(client);
+		PublicAPI api = new PublicAPI(client);
 		File rootCsvFolder = new File(rootFolder);
 		List<String> files = new ArrayList<>(Arrays.asList(rootCsvFolder.list()));
 		Collections.sort(files);
