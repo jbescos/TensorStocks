@@ -21,9 +21,8 @@ import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Price;
-import com.jbescos.common.SecuredAPI;
-import com.jbescos.common.SecuredBinanceAPI;
 import com.jbescos.common.PublicAPI;
+import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
@@ -38,20 +37,22 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         LOGGER.info(() -> "Received: " + userId);
         CloudProperties cloudProperties = new CloudProperties(userId);
         Client client = ClientBuilder.newClient();
-        PublicAPI unauthorizedAPI = new PublicAPI(client);
-        long time = unauthorizedAPI.time();
+        PublicAPI publicAPI = new PublicAPI(client);
+        long time = publicAPI.time();
         Date now = new Date(time);
-        BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), unauthorizedAPI);
-        SecuredAPI api = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
+        BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), publicAPI);
+        SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
         List<Broker> stats = BotUtils.loadStatistics(cloudProperties).stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-        BotExecution bot = BotExecution.production(cloudProperties, api, storage);
+        BotExecution bot = BotExecution.production(cloudProperties, securedApi, storage);
         bot.execute(stats);
-        // Update wallet
-        Account account = api.account();
-        List<Price> prices = unauthorizedAPI.price();
-        List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
-        storage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+        // Update wallet in case the exchange supports it
+        Account account = securedApi.account();
+        if (account != null) {
+	        List<Price> prices = publicAPI.price();
+	        List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
+	        storage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+        }
         client.close();
     }
 

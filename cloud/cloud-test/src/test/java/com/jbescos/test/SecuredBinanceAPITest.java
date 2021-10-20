@@ -23,7 +23,7 @@ import com.jbescos.common.Price;
 import com.jbescos.common.SecuredBinanceAPI;
 import com.jbescos.common.Utils;
 
-public class SecureBinanceAPITest {
+public class SecuredBinanceAPITest {
 
 	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
 
