@@ -13,8 +13,8 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.common.BinanceAPI;
-import com.jbescos.common.BinanceAPI.Interval;
+import com.jbescos.common.PublicAPI;
+import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.ExchangeInfo;
 import com.jbescos.common.Kline;
 import com.jbescos.common.Utils;
@@ -32,7 +32,7 @@ public class BinanceTest {
 //        "stepSize": "1.00"
         String symbol = "SHIBUSDT";
         Client client = ClientBuilder.newClient();
-        ExchangeInfo info = new BinanceAPI(client).exchangeInfo(symbol);
+        ExchangeInfo info = new PublicAPI(client).exchangeInfo(symbol);
         LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(info.getServerTime())));
         Map<String, Object> filter = info.getFilter(symbol, ExchangeInfo.LOT_SIZE);
         assertEquals("1.00", filter.get("minQty").toString());
@@ -52,7 +52,7 @@ public class BinanceTest {
     	long to = interval.to(from);
     	String symbol = "BTCUSDT";
     	Client client = ClientBuilder.newClient();
-    	List<Kline> klines = new BinanceAPI(client).klines(interval, symbol, null, from, to);
+    	List<Kline> klines = new PublicAPI(client).klines(interval, symbol, null, from, to);
     	LOGGER.info(() -> klines.toString());
     	Kline kline = klines.get(0);
     	LOGGER.info(() -> "Asking for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
@@ -65,7 +65,7 @@ public class BinanceTest {
     @Ignore
     public void serverTime() {
     	Client client = ClientBuilder.newClient();
-    	long time = new BinanceAPI(client).time();
+    	long time = new PublicAPI(client).time();
     	LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(time)));
     }
 }

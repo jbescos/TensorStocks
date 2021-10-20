@@ -19,7 +19,7 @@ import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.FileUpdater;
-import com.jbescos.common.SecureBinanceAPI;
+import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.Utils;
 
 public class BotExecution {
@@ -112,12 +112,12 @@ public class BotExecution {
 		return false;
 	}
 	
-	public static BotExecution binance(CloudProperties cloudProperties, SecureBinanceAPI api, FileUpdater storage) {
-		return new BotExecution(cloudProperties, new Binance(cloudProperties, api, storage));
+	public static BotExecution production(CloudProperties cloudProperties, SecuredAPI api, FileUpdater storage) {
+		return new BotExecution(cloudProperties, new ConnectAPIImpl(cloudProperties, api, storage));
 	}
 	
 	public static BotExecution test(CloudProperties cloudProperties, FileUpdater storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
-		return new BotExecution(cloudProperties, new Test(cloudProperties, storage, wallet, transactions, walletHistorical, minTransaction));
+		return new BotExecution(cloudProperties, new ConnectAPITest(cloudProperties, storage, wallet, transactions, walletHistorical, minTransaction));
 	}
 	
 	private static interface ConnectAPI {
@@ -131,16 +131,16 @@ public class BotExecution {
 		void postActions(List<Broker> stats);
 	}
 	
-	private static class Binance implements ConnectAPI {
+	private static class ConnectAPIImpl implements ConnectAPI {
 		
 	    private final List<CsvTransactionRow> transactions = new ArrayList<>();
-		private final SecureBinanceAPI api;
+		private final SecuredAPI api;
 		private final CloudProperties cloudProperties;
 		private final FileUpdater storage;
 		private final Map<String, String> originalWallet;
 		private final Map<String, Double> wallet = new HashMap<>();
 		
-		private Binance(CloudProperties cloudProperties, SecureBinanceAPI api, FileUpdater storage) {
+		private ConnectAPIImpl(CloudProperties cloudProperties, SecuredAPI api, FileUpdater storage) {
 			this.cloudProperties = cloudProperties;
 			this.api = api;
 			this.storage = storage;
@@ -216,7 +216,7 @@ public class BotExecution {
 		
 	}
 	
-	private static class Test implements ConnectAPI {
+	private static class ConnectAPITest implements ConnectAPI {
 		
 		private final CloudProperties cloudProperties;
 		private final FileUpdater storage;
@@ -226,7 +226,7 @@ public class BotExecution {
 		private final List<CsvRow> walletHistorical;
 		private final double minTransaction;
 		
-		private Test(CloudProperties cloudProperties, FileUpdater storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
+		private ConnectAPITest(CloudProperties cloudProperties, FileUpdater storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
 			this.cloudProperties = cloudProperties;
 			this.storage = storage;
 			this.wallet = wallet;

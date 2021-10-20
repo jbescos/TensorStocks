@@ -25,19 +25,19 @@ import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.BinanceAPI.Interval;
+import com.jbescos.common.PublicAPI.Interval;
 
 public class BucketStorage implements FileUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
 	private final Storage storage;
-	private final BinanceAPI binanceAPI;
+	private final PublicAPI unauthorizedAPI;
 	private final CloudProperties cloudProperties;
 	
-	public BucketStorage(CloudProperties cloudProperties, Storage storage, BinanceAPI binanceAPI) {
+	public BucketStorage(CloudProperties cloudProperties, Storage storage, PublicAPI unauthorizedAPI) {
 		this.cloudProperties = cloudProperties;
 	    this.storage = storage;
-	    this.binanceAPI = binanceAPI;
+	    this.unauthorizedAPI = unauthorizedAPI;
 	}
 	
 	public Map<String, CsvRow> previousRowsUpdatedKline(long serverTime) throws IOException{
@@ -57,7 +57,7 @@ public class BucketStorage implements FileUpdater {
 					Interval interval = Interval.getInterval(row.getDate().getTime(), serverTime);
 					long from = interval.from(row.getDate().getTime());
 			    	long to = interval.to(from);
-	                List<Kline> klines = binanceAPI.klines(interval, row.getSymbol(), null, from, to);
+	                List<Kline> klines = unauthorizedAPI.klines(interval, row.getSymbol(), null, from, to);
 	                if (!klines.isEmpty()) {
 	                    Kline kline = klines.get(0);
 	                    row.setKline(kline);

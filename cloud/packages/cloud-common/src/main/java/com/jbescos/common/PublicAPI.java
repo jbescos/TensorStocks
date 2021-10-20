@@ -11,12 +11,12 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-public final class BinanceAPI {
+public final class PublicAPI {
 
 	private static final String URL = "https://api.binance.com";
 	private final Client client;
 	
-	public BinanceAPI(Client client) {
+	public PublicAPI(Client client) {
 		this.client = client;
 	}
 	

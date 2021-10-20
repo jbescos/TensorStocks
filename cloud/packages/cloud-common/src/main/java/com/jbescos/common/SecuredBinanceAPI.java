@@ -26,9 +26,9 @@ import javax.ws.rs.core.Response;
 import com.jbescos.common.Account.Balances;
 import com.jbescos.common.Broker.Action;
 
-public class SecureBinanceAPI {
+public class SecuredBinanceAPI implements SecuredAPI {
 
-	private static final Logger LOGGER = Logger.getLogger(SecureBinanceAPI.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(SecuredBinanceAPI.class.getName());
 	private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
 	private static final String HMAC_SHA_256 = "HmacSHA256";
 	private static final String URL = "https://api.binance.com";
@@ -36,7 +36,7 @@ public class SecureBinanceAPI {
 	private final String publicKey;
 	private final Client client;
 
-	private SecureBinanceAPI(Client client, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
+	private SecuredBinanceAPI(Client client, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
 		mac = Mac.getInstance(HMAC_SHA_256);
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
 		this.publicKey = publicKey;
@@ -112,6 +112,7 @@ public class SecureBinanceAPI {
 		}
 	}
 
+	@Override
 	public Account account() {
 		Account account = get("/api/v3/account", new GenericType<Account>() {}, "timestamp", Long.toString(new Date().getTime()));
 		List<Balances> balances = account.getBalances().stream().filter(balance -> {
@@ -122,6 +123,7 @@ public class SecureBinanceAPI {
 		return account;
 	}
 	
+	@Override
 	public Map<String, String> wallet(){
 		Map<String, String> wallet = new HashMap<>();
 		Account account = account();
@@ -132,6 +134,7 @@ public class SecureBinanceAPI {
 	}
 	
 	// quoteOrderQty in USDT
+	@Override
 	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, Double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
@@ -143,10 +146,11 @@ public class SecureBinanceAPI {
 	}
 	
 	// quantity in units of symbol
+	@Override
 	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, Double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
-		ExchangeInfo exchange = new BinanceAPI(client).exchangeInfo(symbol);
+		ExchangeInfo exchange = new PublicAPI(client).exchangeInfo(symbol);
 		Map<String, Object> filter = exchange.getFilter(symbol, ExchangeInfo.LOT_SIZE);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, filter.get("minQty").toString(), filter.get("maxQty").toString(), filter.get("stepSize").toString());
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
@@ -181,13 +185,13 @@ public class SecureBinanceAPI {
 		return response;
 	}
 
-	public static SecureBinanceAPI create(Client client, String publicKey, String privateKey)
+	public static SecuredBinanceAPI create(Client client, String publicKey, String privateKey)
 			throws InvalidKeyException, NoSuchAlgorithmException {
-		return new SecureBinanceAPI(client, publicKey, privateKey);
+		return new SecuredBinanceAPI(client, publicKey, privateKey);
 	}
 	
-	public static SecureBinanceAPI create(CloudProperties cloudProperties, Client client)
+	public static SecuredBinanceAPI create(CloudProperties cloudProperties, Client client)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		return new SecureBinanceAPI(client, cloudProperties.BINANCE_PUBLIC_KEY, cloudProperties.BINANCE_PRIVATE_KEY);
+		return new SecuredBinanceAPI(client, cloudProperties.BINANCE_PUBLIC_KEY, cloudProperties.BINANCE_PRIVATE_KEY);
 	}
 }

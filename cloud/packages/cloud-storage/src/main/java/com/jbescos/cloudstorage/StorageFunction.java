@@ -15,7 +15,7 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.BinanceAPI;
+import com.jbescos.common.PublicAPI;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
@@ -33,7 +33,7 @@ public class StorageFunction implements HttpFunction {
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
 		CloudProperties cloudProperties = new CloudProperties();
 		Client client = ClientBuilder.newClient();
-		BinanceAPI binanceAPI = new BinanceAPI(client);
+		PublicAPI binanceAPI = new PublicAPI(client);
 		BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
 		List<String> userIds = new ArrayList<>();
 		Page<Blob> files = storage.list(cloudProperties.PROPERTIES_BUCKET);
