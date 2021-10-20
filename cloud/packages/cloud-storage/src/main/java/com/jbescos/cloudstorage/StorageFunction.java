@@ -58,9 +58,7 @@ public class StorageFunction implements HttpFunction {
     		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
     		// Notify bot
     		LOGGER.info("Sending bot messages to " + userIds);
-    		for (String userId : userIds) {
-    			publisher.publish(userId);
-    		}
+    		publisher.publish(userIds.toArray(new String[0]));
             client.close();
             response.setStatusCode(200);
             response.getWriter().write(downloadLink);
