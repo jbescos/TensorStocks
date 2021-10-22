@@ -44,7 +44,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         Date now = new Date(time);
         BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), publicAPI);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
-        List<Broker> stats = BotUtils.loadStatistics(cloudProperties).stream()
+        List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, false).stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
         BotExecution bot = BotExecution.production(cloudProperties, securedApi, storage);
         bot.execute(stats);

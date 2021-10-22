@@ -61,6 +61,7 @@ public class SecuredMizarAPITest {
 	@Test
 	@Ignore
 	public void getOpenAllPositions() {
+		// {"open_positions":[{"position_id":"454","strategy_id":"113","open_timestamp":1634914483529,"open_price":"10.882000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}]}
 		System.out.println(mizarApi.getOpenAllPositions());
 	}
 	
@@ -68,6 +69,23 @@ public class SecuredMizarAPITest {
 	@Ignore
 	public void selfHostedStrategyInfo() {
 		System.out.println(mizarApi.selfHostedStrategyInfo());
+	}
+	
+	@Test
+	@Ignore
+	public void openPosition() {
+		// buy
+		// open_price is the price of 1 unit in USDT
+		// {"position_id":"452","strategy_id":"113","open_timestamp":1634913294278,"open_price":"10.843000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}
+		System.out.println(mizarApi.openPosition("UNFI", "USDT", 0.1));
+	}
+
+	@Test
+	@Ignore
+	public void closePosition() {
+		// sell
+		// {"position_id":"453","strategy_id":"113","open_timestamp":1634913995389,"close_timestamp":1634914090671,"open_price":"10.827000000000","close_price":"10.843000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}
+		System.out.println(mizarApi.closePosition(452));
 	}
 
 }

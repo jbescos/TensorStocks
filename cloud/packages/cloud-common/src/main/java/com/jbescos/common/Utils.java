@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 
 import com.jbescos.common.Account.Balances;
 import com.jbescos.common.Broker.Action;
+import com.jbescos.common.SecuredMizarAPI.OpenPositionResponse;
 
 public class Utils {
 
@@ -379,6 +380,16 @@ public class Utils {
 		} else {
 			return result;
 		}
+	}
+	
+	public static double totalQuantity(double limitUsdAmount, List<OpenPositionResponse> positions) {
+		double quantity = 0;
+		for (OpenPositionResponse position : positions) {
+			double spent = limitUsdAmount * position.size;
+			double currentPrice = Double.parseDouble(position.open_price);
+			quantity = quantity + symbolValue(spent, currentPrice);
+		}
+		return quantity;
 	}
 
 }

@@ -13,7 +13,6 @@ import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.PublicAPI;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BucketStorage;
@@ -22,7 +21,8 @@ import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.PanicBroker;
-import com.jbescos.common.SecuredBinanceAPI;
+import com.jbescos.common.PublicAPI;
+import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
@@ -48,7 +48,7 @@ public class BotFunction implements HttpFunction {
 			Client client = ClientBuilder.newClient();
 			PublicAPI binanceAPI = new PublicAPI(client);
 			BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), binanceAPI);
-			SecuredBinanceAPI api = SecuredBinanceAPI.create(cloudProperties, client);
+			SecuredAPI api = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
 			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
 			if (side != null) {
 				Action action = Action.valueOf(side) ;
@@ -71,7 +71,7 @@ public class BotFunction implements HttpFunction {
 					String month = Utils.thisMonth(apiResponse.getDate());
 					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					if (apiResponse.getSide() == Action.SELL || apiResponse.getSide() == Action.SELL_PANIC) {
-						Broker broker = BotUtils.loadStatistics(cloudProperties).stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
+						Broker broker = BotUtils.loadStatistics(cloudProperties, client, true).stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
 						CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), apiResponse);
 						StringBuilder profitData = new StringBuilder();
 						profitData.append(row.toCsvLine());
@@ -80,7 +80,11 @@ public class BotFunction implements HttpFunction {
 					response.getWriter().write(apiResponse.toString());
 				}
 			} else {
-			    response.getWriter().write(SIDE_PARAM + " is required");
+				List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, true).stream()
+						.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
+				BotExecution bot = BotExecution.production(cloudProperties, api, storage);
+				bot.execute(stats);
+				response.getWriter().write(stats.toString());
 			}
 			response.setStatusCode(200);
 			response.setContentType("text/plain");

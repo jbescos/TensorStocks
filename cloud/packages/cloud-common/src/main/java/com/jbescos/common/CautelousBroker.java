@@ -125,7 +125,7 @@ public class CautelousBroker implements Broker {
                 LOGGER.info(() -> newest + " sell discarded because it is not max.");
             }
         } else {
-            LOGGER.info(() -> newest + " discarded because it is not good for buying and there is nothing to sell.");
+//            LOGGER.info(() -> newest + " discarded because it is not good for buying and there is nothing to sell.");
         }
         return action;
     }

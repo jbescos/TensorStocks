@@ -28,9 +28,11 @@ public class StorageFunction implements HttpFunction {
 
     private static final Logger LOGGER = Logger.getLogger(StorageFunction.class.getName());
 	private static final byte[] CSV_HEADER_TOTAL = Utils.CSV_ROW_HEADER.getBytes(Utils.UTF8);
+	private static final String SKIP_PARAM = "skip";
 
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
+		boolean skip = Boolean.parseBoolean(Utils.getParam(SKIP_PARAM, "false", request.getQueryParameters()));
 		CloudProperties cloudProperties = new CloudProperties();
 		Client client = ClientBuilder.newClient();
 		PublicAPI binanceAPI = new PublicAPI(client);
@@ -47,21 +49,25 @@ public class StorageFunction implements HttpFunction {
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		Map<String, CsvRow> previousRows = storage.previousRowsUpdatedKline(time);
 		try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
-		    // Update current prices
-    		List<Price> prices = binanceAPI.price();
-            String fileName = Utils.FORMAT.format(now) + ".csv";
-    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now);
-    		StringBuilder builder = new StringBuilder();
-    		for (CsvRow row : updatedRows) {
-    			builder.append(row.toCsvLine());
-    		}
-    		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+			if (!skip) {
+			    // Update current prices
+	    		List<Price> prices = binanceAPI.price();
+	            String fileName = Utils.FORMAT.format(now) + ".csv";
+	    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now);
+	    		StringBuilder builder = new StringBuilder();
+	    		for (CsvRow row : updatedRows) {
+	    			builder.append(row.toCsvLine());
+	    		}
+	    		String downloadLink = storage.updateFile("data/" + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+	    		response.getWriter().write(downloadLink);
+			} else {
+				response.getWriter().write("Skipped");
+			}
     		// Notify bot
     		LOGGER.info("Sending bot messages to " + userIds);
     		publisher.publish(userIds.toArray(new String[0]));
             client.close();
             response.setStatusCode(200);
-            response.getWriter().write(downloadLink);
         }
 	}
 

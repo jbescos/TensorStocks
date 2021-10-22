@@ -45,6 +45,7 @@ public class CloudProperties {
     public final String BINANCE_PRIVATE_KEY;
     public final String MIZAR_API_KEY;
     public final int MIZAR_STRATEGY_ID;
+    public final double MIZAR_LIMIT_TRANSACTION_AMOUNT;
     public final double BINANCE_MIN_TRANSACTION;
     public final List<String> BOT_NEVER_BUY_LIST_SYMBOLS;
     public final List<String> BOT_WHITE_LIST_SYMBOLS;
@@ -117,10 +118,12 @@ public class CloudProperties {
         }
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
         USER_EXCHANGE = Exchange.valueOf(getProperty("user.exchange"));
+        LOGGER.info(() -> "Exchange = " + USER_EXCHANGE.name());
         BINANCE_PUBLIC_KEY = getProperty("binance.public.key");
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));
+        MIZAR_LIMIT_TRANSACTION_AMOUNT = Double.parseDouble(getProperty("mizar.limit.transaction.amount"));
         String value = getProperty("bot.white.list");
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
@@ -261,8 +264,7 @@ public class CloudProperties {
         }, MIZAR {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-                // TODO Auto-generated method stub
-                return null;
+                return SecuredMizarAPI.create(cloudProperties, client);
             }
         };
         

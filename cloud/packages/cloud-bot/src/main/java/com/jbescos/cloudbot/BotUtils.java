@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
+
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
@@ -29,6 +31,7 @@ import com.jbescos.common.CsvUtil;
 import com.jbescos.common.GreedyBroker;
 import com.jbescos.common.LimitsBroker;
 import com.jbescos.common.PanicBroker;
+import com.jbescos.common.PublicAPI;
 import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
@@ -36,7 +39,7 @@ public class BotUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<Broker> loadStatistics(CloudProperties cloudProperties) throws IOException {
+	public static List<Broker> loadStatistics(CloudProperties cloudProperties, Client client, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 		// Get 1 day more and compare dates later
 		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data/", ".csv");
@@ -71,6 +74,22 @@ public class BotUtils {
 		    }
 		}
 		LOGGER.info(() -> "Transactions loaded: " + transactions.size() + " from " + months);
+		if (requestLatestPrices) {
+			List<CsvRow> latestCsv = new PublicAPI(client).price().stream()
+					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
+					.filter(row -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
+					.collect(Collectors.toList());
+			for (CsvRow last : latestCsv) {
+				for (CsvRow inDay : csvInDay) {
+					if (last.getSymbol().equals(inDay.getSymbol())) {
+						last.setAvg(Utils.ewma(cloudProperties.EWMA_CONSTANT, last.getPrice(), inDay.getAvg()));
+						last.setAvg2(Utils.ewma(cloudProperties.EWMA_2_CONSTANT, last.getPrice(), inDay.getAvg2()));
+						break;
+					}
+				}
+			}
+			rows.addAll(latestCsv);
+		}
 		return fromCsvRows(cloudProperties, rows, transactions);
 	}
 
