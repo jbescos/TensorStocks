@@ -16,10 +16,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.Account;
-import com.jbescos.common.PublicAPI;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.Price;
+import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredBinanceAPI;
 import com.jbescos.common.Utils;
 
@@ -33,7 +34,7 @@ public class SecuredBinanceAPITest {
 		Client client = ClientBuilder.newClient();
 		SecuredBinanceAPI api = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
 		Account account = api.account();
-		List<Price> prices = new PublicAPI(client).price();
+		List<Price> prices = Exchange.BINANCE.price(new PublicAPI(client));
 		List<Map<String, String>> rows = Utils.userUsdt(new Date(), prices, account);
 		System.out.println(CsvUtil.toString(rows));
 		client.close();

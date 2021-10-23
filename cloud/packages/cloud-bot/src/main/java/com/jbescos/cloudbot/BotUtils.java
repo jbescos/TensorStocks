@@ -12,8 +12,6 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.client.Client;
-
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
@@ -39,10 +37,10 @@ public class BotUtils {
 
 	private static final Logger LOGGER = Logger.getLogger(BotUtils.class.getName());
 
-	public static List<Broker> loadStatistics(CloudProperties cloudProperties, Client client, boolean requestLatestPrices) throws IOException {
+	public static List<Broker> loadStatistics(CloudProperties cloudProperties, PublicAPI publicApi, boolean requestLatestPrices) throws IOException {
 		Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 		// Get 1 day more and compare dates later
-		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data/", ".csv");
+		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data" + cloudProperties.USER_EXCHANGE.getFolder(), ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
 		Date from = Utils.getHoursOfDaysBack(now, cloudProperties.BOT_HOURS_BACK_STATISTICS);
@@ -75,7 +73,7 @@ public class BotUtils {
 		}
 		LOGGER.info(() -> "Transactions loaded: " + transactions.size() + " from " + months);
 		if (requestLatestPrices) {
-			List<CsvRow> latestCsv = new PublicAPI(client).price().stream()
+			List<CsvRow> latestCsv = cloudProperties.USER_EXCHANGE.price(publicApi).stream()
 					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
 					.filter(row -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
 					.collect(Collectors.toList());

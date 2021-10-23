@@ -192,27 +192,6 @@ public class BotTest {
             ChartGenerator.writeChart(transactions, output, chart);
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
-        File volumeChartFile = new File("./target/" + last.getSymbol() + subfix + "_volume.png");
-        try (FileOutputStream output = new FileOutputStream(volumeChartFile)) {
-            IChart<IRow> chart = new XYChart();
-            List<CsvRow> buyVolumens = new ArrayList<>();
-            List<CsvRow> sellVolumens = new ArrayList<>();
-            for (CsvRow row : rows) {
-            	if (row.getKline() != null) {
-	                String volumeBuyStr = row.getKline().getTakerBuyBaseAssetVolume();
-	                double volumeBuy = "".equals(volumeBuyStr) ? 0 : Double.parseDouble(volumeBuyStr);
-	                String volumeTotalStr = row.getKline().getVolume();
-	                double volumeTotal = "".equals(volumeTotalStr) ? 0 : Double.parseDouble(volumeTotalStr);
-	                CsvRow buyVol = new CsvRow(row.getDate(), "BUY_VOLUME", volumeBuy);
-	                CsvRow sellVol = new CsvRow(row.getDate(), "SELL_VOLUME", volumeTotal - volumeBuy);
-	                buyVolumens.add(buyVol);
-	                sellVolumens.add(sellVol);
-            	}
-            }
-            ChartGenerator.writeChart(buyVolumens, output, chart);
-            ChartGenerator.writeChart(sellVolumens, output, chart);
-            ChartGenerator.save(output, chart);
-        } catch (IOException e) {}
     }
 
     @Test

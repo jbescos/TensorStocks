@@ -44,7 +44,7 @@ public class DataLoader {
     public void loadData(String from, String to) throws IOException {
         grouped.clear();
         List<CsvRow> rows = new ArrayList<>();
-        List<String> resources = resources("/");
+        List<String> resources = resources(CLOUD_PROPERTIES.USER_EXCHANGE.getFolder());
         Collections.sort(resources);
         boolean start = false;
         for (String resource : resources) {
@@ -58,7 +58,7 @@ public class DataLoader {
                 if (start) {
                     try {
                         Utils.fromString(Utils.FORMAT, date);
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataLoader.class.getResourceAsStream("/" + resource)))) {
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataLoader.class.getResourceAsStream(CLOUD_PROPERTIES.USER_EXCHANGE.getFolder() + resource)))) {
                             List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
                             dailyRows = dailyRows.stream().filter(r -> CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
                             rows.addAll(dailyRows);

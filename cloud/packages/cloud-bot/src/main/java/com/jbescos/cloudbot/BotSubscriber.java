@@ -42,16 +42,16 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         long time = publicAPI.time();
         LOGGER.info(() -> "Server time is: " + time);
         Date now = new Date(time);
-        BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService(), publicAPI);
+        BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
-        List<Broker> stats = BotUtils.loadStatistics(cloudProperties, client, false).stream()
+        List<Broker> stats = BotUtils.loadStatistics(cloudProperties, publicAPI, false).stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
         BotExecution bot = BotExecution.production(cloudProperties, securedApi, storage);
         bot.execute(stats);
         // Update wallet in case the exchange supports it
         Account account = securedApi.account();
         if (account != null) {
-	        List<Price> prices = publicAPI.price();
+	        List<Price> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
 	        List<Map<String, String>> rows = Utils.userUsdt(now, prices, account);
 	        storage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
         }

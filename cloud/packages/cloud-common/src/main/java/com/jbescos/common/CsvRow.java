@@ -9,7 +9,6 @@ public class CsvRow implements IRow {
 	private double price;
 	private Double avg;
 	private Double avg2;
-	private Kline kline;
 	
 	public CsvRow(Date date, String symbol, double price, Double avg, Double avg2) {
 		this.date = date;
@@ -76,24 +75,11 @@ public class CsvRow implements IRow {
 	public void setAvg2(Double avg2) {
 		this.avg2 = avg2;
 	}
-
-	public Kline getKline() {
-		return kline;
-	}
-
-	public void setKline(Kline kline) {
-		this.kline = kline;
-	}
 	
 	public String toCsvLine() {
 		StringBuilder builder = new StringBuilder();
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, date);
-		String volumeBuy = kline == null ? Utils.EMPTY_STR : kline.getTakerBuyBaseAssetVolume();
-		String volume = kline == null ? Utils.EMPTY_STR : kline.getVolume();
-		String open = kline == null ? Utils.EMPTY_STR : kline.getOpen();
-		String close = kline == null ? Utils.EMPTY_STR : kline.getClose();
 		builder.append(dateStr).append(",").append(getSymbol()).append(",").append(getPrice()).append(",").append(getAvg()).append(",").append(getAvg2())
-		.append(",").append(volumeBuy).append(",").append(volume).append(",").append(open).append(",").append(close)
 		.append(Utils.NEW_LINE);
 		return builder.toString();
 	}

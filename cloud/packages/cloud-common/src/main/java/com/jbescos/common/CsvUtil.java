@@ -146,7 +146,6 @@ public class CsvUtil {
 						}
 					}
 					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg);
-					row.setKline(kline);
 					return row;
 				}
 			}

@@ -30,7 +30,7 @@ import com.jbescos.common.Utils;
 public class ChartGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(ChartGenerator.class.getName());
-	private static final String DATA_PREFIX = "data/";
+	private static final String DATA_PREFIX = "data";
 	private static final int PRECISSION_CHART_DAYS = 7;
 
 	public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
@@ -173,7 +173,7 @@ public class ChartGenerator {
 			this.cloudProperties = cloudProperties;
 			this.symbols = symbols;
 			Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
-			dataBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(DATA_PREFIX));
+			dataBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(DATA_PREFIX + cloudProperties.USER_EXCHANGE.getFolder()));
 			transactionBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
 		}
 
@@ -190,7 +190,7 @@ public class ChartGenerator {
 		public List<IRow> read(int daysBack) throws IOException {
 			Date now = new Date();
 			List<IRow> total = new ArrayList<>();
-			List<String> days = Utils.daysBack(now, daysBack, DATA_PREFIX, ".csv");
+			List<String> days = Utils.daysBack(now, daysBack, DATA_PREFIX + cloudProperties.USER_EXCHANGE.getFolder(), ".csv");
 			for (Blob blob : dataBlobs.iterateAll()) {
 				if (days.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();

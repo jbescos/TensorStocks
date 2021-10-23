@@ -256,18 +256,40 @@ public class CloudProperties {
     }
     
     public static enum Exchange {
-        BINANCE {
+        BINANCE("/binance/") {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredBinanceAPI.create(cloudProperties, client);
             }
-        }, MIZAR {
+
+			@Override
+			public List<Price> price(PublicAPI publicApi) {
+				return publicApi.priceBinance();
+			}
+        }, MIZAR_KUCOIN("/kucoin/") {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
+
+			@Override
+			public List<Price> price(PublicAPI publicApi) {
+				return publicApi.priceKucoin();
+			}
         };
+    	
+    	private final String folder;
+    	
+    	private Exchange(String folder) {
+    		this.folder = folder;
+    	}
         
-        public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
+        public String getFolder() {
+			return folder;
+		}
+
+		public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
+        
+        public abstract List<Price> price(PublicAPI publicApi);
     }
 }

@@ -15,53 +15,22 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-
-import com.jbescos.common.PublicAPI;
-import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.Kline;
 import com.jbescos.common.Utils;
 
 public class CsvUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(CsvUpdater.class.getName());
-	private static final long MILLIS_24H = 3600 * 1000 * 24;
 	private static final CloudProperties cloudProperties = new CloudProperties();
 
 	public static void main(String args[]) throws IOException {
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources", "2021-05-08.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources\\binance", "2021-05-08.csv");
 		LOGGER.info(() -> "Finished");
-	}
-	
-	private static Kline getKline(CsvRow row, List<Kline> klines) {
-		long rowTimestamp = row.getDate().getTime();
-		for (Kline kline : klines) {
-			if (kline.getOpenTime() <= rowTimestamp && kline.getCloseTime() >= rowTimestamp) {
-				return kline;
-			}
-		}
-		return null;
-	}
-	
-	private static void addKlines(PublicAPI api, Map<String, List<CsvRow>> groupedSymbol, Date startTime, Date endTime) {
-		Interval interval = Interval.getInterval(startTime.getTime(), endTime.getTime());
-		long from = interval.from(startTime.getTime());
-    	long to = interval.to(from);
-		for (Entry<String, List<CsvRow>> symbolRows : groupedSymbol.entrySet()) {
-			List<Kline> klines = api.klines(interval, symbolRows.getKey(), 1000, from, to);
-			for (CsvRow row : symbolRows.getValue()) {
-				Kline kline = getKline(row, klines);
-				row.setKline(kline);
-			}
-		}
 	}
 	
 	private static void updateLastPricesFromPreviousDay(Map<String, CsvRow> lastPrices, Date startTime, String rootFolder) throws FileNotFoundException, IOException {
@@ -85,8 +54,6 @@ public class CsvUpdater {
 	}
 	
 	private static void updateCsv(String rootFolder, String startIn) throws IOException {
-		Client client = ClientBuilder.newClient();
-		PublicAPI api = new PublicAPI(client);
 		File rootCsvFolder = new File(rootFolder);
 		List<String> files = new ArrayList<>(Arrays.asList(rootCsvFolder.list()));
 		Collections.sort(files);
@@ -98,7 +65,6 @@ public class CsvUpdater {
 				LOGGER.info(() -> "Processing " + file);
 				try {
 					Date startTime = Utils.fromString(Utils.FORMAT, file.replace(".csv", ""));
-					Date endTime = new Date(startTime.getTime() + MILLIS_24H);
 					if (lastPrices.isEmpty()) {
 						updateLastPricesFromPreviousDay(lastPrices, startTime, rootFolder);
 					}
@@ -109,7 +75,6 @@ public class CsvUpdater {
 						LOGGER.info("Read " + rowsInFile.size() + " rows in " + fullPath);
 						Collections.sort(rowsInFile, (r1, r2) -> r1.getDate().compareTo(r2.getDate()));
 						Map<String, List<CsvRow>> groupedSymbol = rowsInFile.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
-//						addKlines(api, groupedSymbol, startTime, endTime);
 						for (List<CsvRow> values : groupedSymbol.values()) {
 							CsvRow last = lastPrices.get(values.get(0).getSymbol());
 							for (CsvRow row : values) {

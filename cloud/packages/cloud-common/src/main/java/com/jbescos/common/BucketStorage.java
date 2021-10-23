@@ -24,60 +24,37 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
-import com.jbescos.common.PublicAPI.Interval;
 
 public class BucketStorage implements FileUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
 	private final Storage storage;
-	private final PublicAPI unauthorizedAPI;
 	private final CloudProperties cloudProperties;
 	
-	public BucketStorage(CloudProperties cloudProperties, Storage storage, PublicAPI unauthorizedAPI) {
+	public BucketStorage(CloudProperties cloudProperties, Storage storage) {
 		this.cloudProperties = cloudProperties;
 	    this.storage = storage;
-	    this.unauthorizedAPI = unauthorizedAPI;
 	}
 	
-	public Map<String, CsvRow> previousRowsUpdatedKline(long serverTime) throws IOException {
+	public Map<String, CsvRow> previousRows(long serverTime, String lastUpdated) throws IOException {
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
-		Blob retrieve = storage.get(cloudProperties.BUCKET, Utils.LAST_PRICE);
+		Blob retrieve = storage.get(cloudProperties.BUCKET, lastUpdated);
 		if (retrieve == null) {
-			LOGGER.warning(Utils.CSV_ROW_HEADER + " was not found");
+			LOGGER.warning(lastUpdated + " was not found");
 			// TODO It is better to get it from the last records of the date.csv
 		} else {
-			String klineLogMessage = null;
 			try (ReadChannel readChannel = retrieve.reader();
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				List<CsvRow> csv = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
 				for (CsvRow row : csv) {
 					previousRows.put(row.getSymbol(), row);
-					Interval interval = Interval.getInterval(row.getDate().getTime(), serverTime);
-					long from = interval.from(row.getDate().getTime());
-			    	long to = interval.to(from);
-	                List<Kline> klines = unauthorizedAPI.klines(interval, row.getSymbol(), null, from, to);
-	                if (!klines.isEmpty()) {
-	                    Kline kline = klines.get(0);
-	                    row.setKline(kline);
-	                    if (klineLogMessage == null) {
-		                    klineLogMessage = "Klines obtained for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
-		                			" and received from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getOpenTime()))
-		                			+ " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getCloseTime()));
-	                    }
-	                } else {
-	                	// Ignore it
-//	                    LOGGER.warning(row.getSymbol() + ". KLine was not found from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)));
-	                }
 				}
-			}
-			if (klineLogMessage != null) {
-				LOGGER.info(klineLogMessage);
 			}
 		}
 		return previousRows;
 	}
 
-	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, List<Price> prices, Date now) {
+	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, List<Price> prices, Date now, String lastPriceCsv) {
 	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 	    List<CsvRow> newRows = new ArrayList<>();
         for (Price price : prices) {
@@ -85,14 +62,13 @@ public class BucketStorage implements FileUpdater {
             CsvRow newRow = null;
             if (previous != null) {
                 newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
-                newRow.setKline(previous.getKline());
             } else {
                 newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
             }
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());
         }
-        storage.create(createBlobInfo(cloudProperties, Utils.LAST_PRICE, false), builder.toString().getBytes(Utils.UTF8));
+        storage.create(createBlobInfo(cloudProperties, lastPriceCsv, false), builder.toString().getBytes(Utils.UTF8));
         return newRows;
 	}
 

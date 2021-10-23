@@ -36,9 +36,9 @@ public class Utils {
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 	public static final String USDT = "USDT";
 	public static final String NEW_LINE = "\r\n";
-	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,VOLUME_BUY,VOLUME_TOTAL,OPEN_PRICE,CLOSE_PRICE" + NEW_LINE;
+	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2" + NEW_LINE;
 	public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
-	public static final String LAST_PRICE = "data/last_price.csv";
+	public static final String LAST_PRICE = "last_price.csv";
 	public static final String EMPTY_STR = "";
 	public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
 	public static final String WALLET_PREFIX = "wallet/wallet_";

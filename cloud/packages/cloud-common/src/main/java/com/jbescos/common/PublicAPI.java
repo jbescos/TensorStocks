@@ -1,7 +1,9 @@
 package com.jbescos.common;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
@@ -11,9 +13,12 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.jbescos.common.kucoin.AllTickers;
+
 public final class PublicAPI {
 
-	private static final String URL = "https://api.binance.com";
+	private static final String BINANCE_URL = "https://api.binance.com";
+	private static final String KUCOIN_URL = "https://api.kucoin.com";
 	private final Client client;
 	
 	public PublicAPI(Client client) {
@@ -21,7 +26,7 @@ public final class PublicAPI {
 	}
 	
 	public long time() {
-		return get("/api/v3/time", new GenericType<ServerTime>() {}).getServerTime();
+		return get(BINANCE_URL, "/api/v3/time", new GenericType<ServerTime>() {}).getServerTime();
 	}
 	
 	public ExchangeInfo exchangeInfo(String symbol) {
@@ -31,15 +36,22 @@ public final class PublicAPI {
 	    } else {
 	        query = new String[0];
 	    }
-		ExchangeInfo exchangeInfo = get("/api/v3/exchangeInfo", new GenericType<ExchangeInfo>() {}, query);
+		ExchangeInfo exchangeInfo = get(BINANCE_URL, "/api/v3/exchangeInfo", new GenericType<ExchangeInfo>() {}, query);
 		return exchangeInfo;
 	}
 	
-	public List<Price> price() {
-		List<Price> prices = get("/api/v3/ticker/price", new GenericType<List<Price>>() {});
-		prices = prices.stream().filter(price -> price.getSymbol().endsWith("USDT"))
+	public List<Price> priceBinance() {
+		List<Price> prices = get(BINANCE_URL, "/api/v3/ticker/price", new GenericType<List<Price>>() {});
+		prices = prices.stream().filter(price -> price.getSymbol().endsWith(Utils.USDT))
 				.filter(price -> !price.getSymbol().endsWith("UPUSDT"))
 				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT")).collect(Collectors.toList());
+		return prices;
+	}
+	
+	public List<Price> priceKucoin() {
+		AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {});
+		List<Price> prices = allTickers.getData().getTicker().stream().filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
+				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy()))).collect(Collectors.toList());
 		return prices;
 	}
 	
@@ -59,7 +71,7 @@ public final class PublicAPI {
 			queryParams.add("endTime");
 			queryParams.add(Long.toString(endTime));
 		}
-		List<Object[]> result = get("/api/v3/klines", new GenericType<List<Object[]>>() {}, queryParams.toArray(new String[0]));
+		List<Object[]> result = get(BINANCE_URL, "/api/v3/klines", new GenericType<List<Object[]>>() {}, queryParams.toArray(new String[0]));
 		List<Kline> klines = new ArrayList<>(result.size());
 		for (Object[] values : result) {
 			klines.add(Kline.fromArray(values));
@@ -67,8 +79,8 @@ public final class PublicAPI {
 		return klines;
 	}
 
-    public <T> T get(String path, GenericType<T> type, String... query) {
-        WebTarget webTarget = client.target(URL).path(path);
+    public <T> T get(String baseUrl, String path, GenericType<T> type, String... query) {
+        WebTarget webTarget = client.target(baseUrl).path(path);
         StringBuilder queryStr = new StringBuilder();
         if (query.length != 0) {
             for (int i = 0; i < query.length; i = i + 2) {
