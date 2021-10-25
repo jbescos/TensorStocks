@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
@@ -48,7 +49,11 @@ public class SecuredMizarAPI implements SecuredAPI {
 
     public List<String> compatibleSymbols(String exchange, String market) {
     	MizarSymbols response = get("/symbols", new GenericType<MizarSymbols>(){}, "exchange", exchange, "market", market);
-    	return response.symbols.stream().map(mizarSymbol -> mizarSymbol.symbol).filter(symbol -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(symbol)).collect(Collectors.toList());
+    	Stream<String> stream = response.symbols.stream().map(mizarSymbol -> mizarSymbol.symbol);
+    	if (!cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty()) {
+    	    stream = stream.filter(symbol -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(symbol));
+    	}
+    	return stream.collect(Collectors.toList());   
     }
 
     public long serverTime() {
