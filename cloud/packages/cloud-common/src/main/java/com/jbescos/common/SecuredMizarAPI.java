@@ -156,7 +156,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     		positionsBySymbol = open.open_positions.stream().filter(openPosition -> openPosition.strategy_id == cloudProperties.MIZAR_STRATEGY_ID).collect(Collectors.groupingBy(openPosition -> openPosition.base_asset));
     	}
     	List<OpenPositionResponse> positions = positionsBySymbol.get(asset);
-    	if (positionsBySymbol == null || positions.isEmpty()) {
+    	if (positions == null || positions.isEmpty()) {
     		throw new IllegalArgumentException("It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + positionsBySymbol);
     	}
     	List<ClosePositionResponse> closeResponses = new ArrayList<>();

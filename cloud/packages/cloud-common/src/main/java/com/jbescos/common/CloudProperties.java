@@ -62,6 +62,7 @@ public class CloudProperties {
     public final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
     public final boolean PANIC_BROKER_ENABLE;
     public final boolean GREEDY_BROKER_ENABLE;
+    public final boolean LIMITS_BROKER_ENABLE;
     public final double BOT_MAX_PROFIT_SELL;
     public final double BOT_PANIC_RATIO;
     public final double BOT_MIN_PROFIT_SELL;
@@ -148,6 +149,7 @@ public class CloudProperties {
         BOT_GREEDY_MIN_PROFIT_SELL = Double.parseDouble(getProperty("bot.greedy.min.profit.sell"));
         PANIC_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.panic.enable"));
         GREEDY_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.greedy.enable"));
+        LIMITS_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.limits.enable"));
         BOT_GREEDY_DEFAULT_FACTOR_SELL = Double.parseDouble(getProperty("bot.greedy.default.factor.to.sell"));
         BOT_GREEDY_DAYS_TO_HOLD = Integer.parseInt(getProperty("bot.greedy.days.to.hold"));
         BOT_GREEDY_IMMEDIATELY_SELL = Double.parseDouble(getProperty("bot.greedy.immediately.sell"));
@@ -219,18 +221,21 @@ public class CloudProperties {
     
     private  Map<String, FixedBuySell> fixedBuySell(Properties properties) {
         Map<String, FixedBuySell> fixedBuySell = new HashMap<>();
-        Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
-        while (enums.hasMoreElements()) {
-            String key = enums.nextElement();
-            if (key.startsWith("bot.fixed")) {
-                String symbol = key.split("\\.")[3];
-                if (!fixedBuySell.containsKey(symbol)) {
-                    double fixedSell = Double.parseDouble(properties.getProperty("bot.fixed.sell." + symbol));
-                    double fixedBuy = Double.parseDouble(properties.getProperty("bot.fixed.buy." + symbol));
-                    FixedBuySell content = new FixedBuySell(fixedSell, fixedBuy);
-                    fixedBuySell.put(symbol, content);
-                }
-            }
+        if (LIMITS_BROKER_ENABLE) {
+	        @SuppressWarnings("unchecked")
+			Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+	        while (enums.hasMoreElements()) {
+	            String key = enums.nextElement();
+	            if (key.startsWith("bot.limits.fixed")) {
+	                String symbol = key.split("\\.")[4];
+	                if (!fixedBuySell.containsKey(symbol)) {
+	                    double fixedSell = Double.parseDouble(properties.getProperty("bot.limits.fixed.sell." + symbol));
+	                    double fixedBuy = Double.parseDouble(properties.getProperty("bot.limits.fixed.buy." + symbol));
+	                    FixedBuySell content = new FixedBuySell(fixedSell, fixedBuy);
+	                    fixedBuySell.put(symbol, content);
+	                }
+	            }
+	        }
         }
         return Collections.unmodifiableMap(fixedBuySell);
     }
