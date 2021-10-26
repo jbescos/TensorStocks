@@ -11,6 +11,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.SecuredMizarAPI;
+import com.jbescos.common.SecuredMizarAPI.OpenPositionResponse;
+import com.jbescos.common.SecuredMizarAPI.OpenPositions;
 import com.jbescos.common.Utils;
 
 public class SecuredMizarAPITest {
@@ -43,7 +45,7 @@ public class SecuredMizarAPITest {
 	@Test
 	@Ignore
 	public void createStrategy() {
-		String name = "Jorge Test 2";
+		String name = "Kucoin";
 		String description = "Automated strategy creator";
 		List<String> exchanges = Arrays.asList("kucoin");
 		List<String> symbols = mizarApi.compatibleSymbols("kucoin", "SPOT");
@@ -87,5 +89,14 @@ public class SecuredMizarAPITest {
 		// {"position_id":"453","strategy_id":"113","open_timestamp":1634913995389,"close_timestamp":1634914090671,"open_price":"10.827000000000","close_price":"10.843000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}
 		System.out.println(mizarApi.closePosition(452));
 	}
+
+    @Test
+    @Ignore
+    public void closePositionAll() {
+        OpenPositions openPositions = mizarApi.getOpenAllPositions();
+        for (OpenPositionResponse position : openPositions.open_positions) {
+            System.out.println(mizarApi.closePosition(position.position_id));
+        }
+    }
 
 }

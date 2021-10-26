@@ -87,7 +87,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     	obj.put("strategy_id", cloudProperties.MIZAR_STRATEGY_ID);
     	obj.put("base_asset", base_asset);
     	obj.put("quote_asset", quote_asset);
-    	obj.put("is_long", false);
+    	obj.put("is_long", true);
     	obj.put("size", size);
     	LOGGER.info(() -> "Open position: " + obj);
     	OpenPositionResponse response = post("/open-position", obj, new GenericType<OpenPositionResponse>(){});
