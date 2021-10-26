@@ -49,7 +49,11 @@ public class SecuredMizarAPI implements SecuredAPI {
 
     public List<String> compatibleSymbols(String exchange, String market) {
     	MizarSymbols response = get("/symbols", new GenericType<MizarSymbols>(){}, "exchange", exchange, "market", market);
-    	Stream<String> stream = response.symbols.stream().map(mizarSymbol -> mizarSymbol.symbol);
+    	Stream<String> stream = response.symbols.stream()
+    			.filter(mizarSymbol -> mizarSymbol.symbol.endsWith(Utils.USDT))
+    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("3LUSDT"))
+    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("3SUSDT"))
+    			.map(mizarSymbol -> mizarSymbol.symbol);
     	if (!cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty()) {
     	    stream = stream.filter(symbol -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(symbol));
     	}

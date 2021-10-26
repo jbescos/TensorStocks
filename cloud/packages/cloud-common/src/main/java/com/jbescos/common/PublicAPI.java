@@ -1,9 +1,7 @@
 package com.jbescos.common;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
@@ -42,16 +40,22 @@ public final class PublicAPI {
 	
 	public List<Price> priceBinance() {
 		List<Price> prices = get(BINANCE_URL, "/api/v3/ticker/price", new GenericType<List<Price>>() {});
-		prices = prices.stream().filter(price -> price.getSymbol().endsWith(Utils.USDT))
+		prices = prices.stream()
+				.filter(price -> price.getSymbol().endsWith(Utils.USDT))
 				.filter(price -> !price.getSymbol().endsWith("UPUSDT"))
-				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT")).collect(Collectors.toList());
+				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT"))
+				.collect(Collectors.toList());
 		return prices;
 	}
 	
 	public List<Price> priceKucoin() {
 		AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {});
-		List<Price> prices = allTickers.getData().getTicker().stream().filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
-				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy()))).collect(Collectors.toList());
+		List<Price> prices = allTickers.getData().getTicker().stream()
+				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
+				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())))
+				.filter(ticker -> !ticker.getSymbol().endsWith("3LUSDT"))
+				.filter(ticker -> !ticker.getSymbol().endsWith("3SUSDT"))
+				.collect(Collectors.toList());
 		return prices;
 	}
 	
