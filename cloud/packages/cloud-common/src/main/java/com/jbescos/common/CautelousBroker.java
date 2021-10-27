@@ -42,7 +42,7 @@ public class CautelousBroker implements Broker {
     }
     
     public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
-        this(cloudProperties, symbol, values, new TransactionsSummary(false, 0, null, Collections.emptyList(), Collections.emptyList()));
+        this(cloudProperties, symbol, values, new TransactionsSummary(false, 0, Double.MAX_VALUE, null, Collections.emptyList(), Collections.emptyList()));
     }
     
     public CsvRow getMin() {
@@ -90,14 +90,14 @@ public class CautelousBroker implements Broker {
         } else {
             if (price < avg) {
                 double comparedFactor = cloudProperties.BOT_MIN_MAX_RELATION_BUY;
-                if (!hasPreviousTransactions || (hasPreviousTransactions && price < minProfitableSellPrice)) {
+                if (!hasPreviousTransactions || (hasPreviousTransactions && price < summary.getLowestPurchase())) {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
                             double percentileMin = ((avg - min.getPrice()) * cloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
                             if (price < percentileMin) {
                                 action = Action.BUY;
                             } else {
-                                LOGGER.info(() -> newest + " buy discarded because the price " + Utils.format(price) + " is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+                                LOGGER.info(() -> newest + " buy discarded because the price is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                             }
                         } else {
                             LOGGER.info(() -> newest + " buy discarded because it is not min.");
@@ -106,7 +106,7 @@ public class CautelousBroker implements Broker {
                         LOGGER.info(() -> newest + " buy discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
                     }
                 } else {
-                    LOGGER.info(() -> newest + " buy discarded because current price is higher than what was bought before.");
+                    LOGGER.info(() -> newest + " buy discarded because current price is higher than lowest purchase " + Utils.format(summary.getLowestPurchase()));
                 }
             } else if (hasPreviousTransactions) {
                 if (Utils.isMax(values)) { // It is going down

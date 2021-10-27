@@ -151,6 +151,7 @@ public class Utils {
 		List<CsvTransactionRow> sells = new ArrayList<>();
 		boolean hasTransactions = false;
 		double minProfitable = 0;
+		double lowestPurchase = Double.MAX_VALUE;
 		if (previousTransactions == null || previousTransactions.isEmpty()) {
 			minProfitable = 0;
 		} else {
@@ -163,16 +164,22 @@ public class Utils {
 				} else if (!symbol.equals(transaction.getSymbol())) {
 					throw new IllegalArgumentException("Every CsvAccountRow must contain the same symbol. It was found " + symbol + " and " + transaction.getSymbol());
 				}
+				double quantity = Double.parseDouble(transaction.getQuantity());
+				double usdt = Double.parseDouble(transaction.getUsdt());
 				if (transaction.getSide() == Action.BUY) {
 					if (lastPurchase == null) {
 						lastPurchase = transaction.getDate();
 					}
-					totalQuantity = totalQuantity + Double.parseDouble(transaction.getQuantity());
-					accumulated = accumulated + Double.parseDouble(transaction.getUsdt());
+					double usdtUnit = usdt / quantity;
+					if (usdtUnit < lowestPurchase) {
+					    lowestPurchase = usdtUnit;
+					}
+					totalQuantity = totalQuantity + quantity;
+					accumulated = accumulated + usdt;
 					buys.add(transaction);
 				} else {
-					accumulated = accumulated - Double.parseDouble(transaction.getUsdt());
-					totalQuantity = totalQuantity - Double.parseDouble(transaction.getQuantity());
+					accumulated = accumulated - usdt;
+					totalQuantity = totalQuantity - quantity;
 					sells.add(transaction);
 				}
 			}
@@ -183,7 +190,7 @@ public class Utils {
 				minProfitable = 0.0;
 			}
 		}
-		return new TransactionsSummary(hasTransactions, minProfitable, lastPurchase, buys, sells);
+		return new TransactionsSummary(hasTransactions, minProfitable, lowestPurchase, lastPurchase, buys, sells);
 	}
 	
 	public static boolean isPanicSellInDays(List<CsvTransactionRow> previousTransactions, Date deadLine) {

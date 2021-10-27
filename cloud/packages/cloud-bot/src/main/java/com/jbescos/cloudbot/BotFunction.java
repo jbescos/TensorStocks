@@ -59,7 +59,7 @@ public class BotFunction implements HttpFunction {
 					List<Broker> stats = cloudProperties.USER_EXCHANGE.price(publicApi).stream()
 							.filter(price -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(price.getSymbol()))
 							.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
-							.map(row -> new PanicBroker(row.getSymbol(), row, new TransactionsSummary(false, 0, null, Collections.emptyList(), Collections.emptyList())))
+							.map(row -> new PanicBroker(row.getSymbol(), row, new TransactionsSummary(false, 0, Double.MAX_VALUE, null, Collections.emptyList(), Collections.emptyList())))
 							.collect(Collectors.toList());
 					BotExecution bot = BotExecution.production(cloudProperties, api, storage);
 					bot.execute(stats);
