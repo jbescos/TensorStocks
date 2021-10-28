@@ -142,6 +142,9 @@ public class SecuredMizarAPI implements SecuredAPI {
     }
     
     private CsvTransactionRow buy(String symbol, double factor) {
+    	if (cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+    		factor = 1;
+    	}
     	String asset = symbol.replaceFirst(Utils.USDT, "");
     	double usdtToBuy = cloudProperties.MIZAR_LIMIT_TRANSACTION_AMOUNT * factor;
     	OpenPositionResponse open = openPosition(asset, Utils.USDT, factor);
