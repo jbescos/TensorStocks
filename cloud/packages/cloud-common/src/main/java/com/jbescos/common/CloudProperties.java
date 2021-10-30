@@ -89,7 +89,6 @@ public class CloudProperties {
             Properties mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
             if (mainProperties == null) {
                 PROJECT_ID = StorageOptions.getDefaultProjectId();
-                LOGGER.info(() -> "ProjectId = " + PROJECT_ID);
                 mainProperties = new Properties();
                 Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
                 BUCKET = findByPrefix(storage, PREFIX_STORAGE_BUCKET);
@@ -119,7 +118,7 @@ public class CloudProperties {
         }
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
         USER_EXCHANGE = Exchange.valueOf(getProperty("user.exchange"));
-        LOGGER.info(() -> "Exchange = " + USER_EXCHANGE.name());
+        LOGGER.info(() -> "UserId: " + userId + ", ProjectId = " + PROJECT_ID + ", Exchange = " + USER_EXCHANGE.name());
         BINANCE_PUBLIC_KEY = getProperty("binance.public.key");
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
         MIZAR_API_KEY = getProperty("mizar.api.key");

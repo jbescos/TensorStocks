@@ -164,11 +164,13 @@ public class BotTest {
     	        break;
     	    }
     	}
-    	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
-        double usdSnapshot = totalWalletHistorical.isEmpty() ? 0 : totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
-        TestResult result = new TestResult(first.getSymbol(), usdSnapshot, holderTotalUsd, transactions.size());
-        chart(LOADER.get(symbol), result, wallet, transactions, totalWalletHistorical);
-        results.add(result);
+        if (!transactions.isEmpty()) {
+        	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
+        	double usdSnapshot = totalWalletHistorical.isEmpty() ? 0 : totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
+        	TestResult result = new TestResult(first.getSymbol(), usdSnapshot, holderTotalUsd, transactions.size());
+            results.add(result);
+            chart(LOADER.get(symbol), result, wallet, transactions, totalWalletHistorical);
+        }
     }
 
     private void chart(List<CsvRow> rows, TestResult result, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical) {
