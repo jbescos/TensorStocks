@@ -142,11 +142,14 @@ public class SecuredMizarAPI implements SecuredAPI {
     }
     
     private CsvTransactionRow buy(String symbol, double factor) {
+    	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
+    		throw new IllegalStateException("For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
+    	}
     	if (cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
     		factor = 1;
     	}
     	String asset = symbol.replaceFirst(Utils.USDT, "");
-    	double usdtToBuy = cloudProperties.MIZAR_LIMIT_TRANSACTION_AMOUNT * factor;
+    	double usdtToBuy = cloudProperties.LIMIT_TRANSACTION_AMOUNT * factor;
     	OpenPositionResponse open = openPosition(asset, Utils.USDT, factor);
     	double quantity = Utils.symbolValue(usdtToBuy, Double.parseDouble(open.open_price));
     	CsvTransactionRow transaction = new CsvTransactionRow(new Date(open.open_timestamp), Integer.toString(open.position_id), Action.BUY, symbol, Utils.format(usdtToBuy), Utils.format(quantity), Double.parseDouble(open.open_price));
@@ -155,12 +158,15 @@ public class SecuredMizarAPI implements SecuredAPI {
 
     // symbol comes with the symbol + USDT
     public CsvTransactionRow sell(String symbol, Action action) {
+    	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
+    		throw new IllegalStateException("For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
+    	}
     	ClosePositionsResponse response = closeAllBySymbol(symbol);
     	if (response.closed_positions == null || response.closed_positions.isEmpty()) {
     		throw new IllegalArgumentException("It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + response);
     	}
     	StringBuilder orderIds = new StringBuilder();
-    	double totalQuantity = Utils.totalQuantity(cloudProperties.MIZAR_LIMIT_TRANSACTION_AMOUNT, response.closed_positions);
+    	double totalQuantity = Utils.totalQuantity(cloudProperties.LIMIT_TRANSACTION_AMOUNT, response.closed_positions);
     	for (ClosePositionResponse position : response.closed_positions) {
     		if (orderIds.length() != 0) {
     			orderIds.append("-");

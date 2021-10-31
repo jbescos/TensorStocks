@@ -45,8 +45,9 @@ public class CloudProperties {
     public final String BINANCE_PRIVATE_KEY;
     public final String MIZAR_API_KEY;
     public final int MIZAR_STRATEGY_ID;
-    public final double MIZAR_LIMIT_TRANSACTION_AMOUNT;
+    public final double LIMIT_TRANSACTION_AMOUNT;
     public final double BINANCE_MIN_TRANSACTION;
+    public final double KUCOIN_MIN_TRANSACTION;
     public final List<String> BOT_NEVER_BUY_LIST_SYMBOLS;
     public final List<String> BOT_WHITE_LIST_SYMBOLS;
     public final double BOT_BUY_REDUCER;
@@ -123,7 +124,7 @@ public class CloudProperties {
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));
-        MIZAR_LIMIT_TRANSACTION_AMOUNT = Double.parseDouble(getProperty("mizar.limit.transaction.amount"));
+        LIMIT_TRANSACTION_AMOUNT = Double.parseDouble(getProperty("limit.transaction.amount"));
         String value = getProperty("bot.white.list");
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
@@ -136,6 +137,7 @@ public class CloudProperties {
         BOT_MIN_MAX_RELATION_BUY = Double.parseDouble(getProperty("bot.min.max.relation.buy"));
         BOT_HOURS_BACK_STATISTICS = Integer.parseInt(getProperty("bot.hours.back.statistics"));
         BOT_MONTHS_BACK_TRANSACTIONS = Integer.parseInt(getProperty("bot.months.back.transactions"));
+        KUCOIN_MIN_TRANSACTION = Double.parseDouble(getProperty("kucoin.min.transaction"));
         BINANCE_MIN_TRANSACTION = Double.parseDouble(getProperty("binance.min.transaction"));
         EWMA_CONSTANT = Double.parseDouble(getProperty("ewma.constant"));
         EWMA_2_CONSTANT = Double.parseDouble(getProperty("ewma.2.constant"));
@@ -206,7 +208,8 @@ public class CloudProperties {
 
     private  Map<String, Double> createMinSell(Properties properties) {
         Map<String, Double> minSell = new HashMap<>();
-        Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+        @SuppressWarnings("unchecked")
+		Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
         while (enums.hasMoreElements()) {
             String key = enums.nextElement();
             if (key.startsWith("bot.min.sell")) {
@@ -270,6 +273,11 @@ public class CloudProperties {
 			public List<Price> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
+
+			@Override
+			public double minTransaction(CloudProperties cloudProperties) {
+				return cloudProperties.BINANCE_MIN_TRANSACTION;
+			}
         }, MIZAR_KUCOIN("/kucoin/") {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
@@ -279,6 +287,11 @@ public class CloudProperties {
 			@Override
 			public List<Price> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
+			}
+
+			@Override
+			public double minTransaction(CloudProperties cloudProperties) {
+				return cloudProperties.KUCOIN_MIN_TRANSACTION;
 			}
         };
     	
@@ -295,5 +308,7 @@ public class CloudProperties {
 		public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
         
         public abstract List<Price> price(PublicAPI publicApi);
+        
+        public abstract double minTransaction(CloudProperties cloudProperties);
     }
 }
