@@ -105,12 +105,6 @@ public class SecuredMizarAPI implements SecuredAPI {
     	LOGGER.info(() -> "Response close position: " + response);
     	return response;
     }
-    
-    @Override
-    public Account account() {
-        // Not supported
-        return null;
-    }
 
     @Override
     public Map<String, String> wallet() {

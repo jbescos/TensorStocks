@@ -18,10 +18,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
-import com.jbescos.common.Account.Balances;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.SecuredMizarAPI.ClosePositionResponse;
 
@@ -209,31 +210,31 @@ public class Utils {
 	    return false;
 	}
 	
-	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Account account) {
+	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Map<String, String> wallet) {
+		Map<String, List<Price>> groupedPrices = prices.stream().collect(Collectors.groupingBy(Price::getSymbol));
 		List<Map<String, String>> rows = new ArrayList<>();
 		double totalUsdt = 0.0;
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);
-		for (Balances balance : account.getBalances()) {
-			double value = Double.parseDouble(balance.getFree()) + Double.parseDouble(balance.getLocked());
+		for (Entry<String, String> entry : wallet.entrySet()) {
+			double value = Double.parseDouble(entry.getValue());
 			Map<String, String> row = new LinkedHashMap<>();
 			row.put("DATE", dateStr);
-			row.put("SYMBOL", balance.getAsset());
-			row.put("SYMBOL_VALUE", Utils.format(value));
-			String symbol = balance.getAsset() + "USDT";
+			row.put("SYMBOL", entry.getKey());
+			row.put("SYMBOL_VALUE", entry.getValue());
+			String symbol = entry.getKey() + "USDT";
 			boolean isUsdtConvertible = false;
-			if (Utils.USDT.equals(balance.getAsset())) {
-				row.put(Utils.USDT, Utils.format(value));
+			if (Utils.USDT.equals(entry.getKey())) {
+				row.put(Utils.USDT, entry.getValue());
 				totalUsdt = totalUsdt + value;
 				isUsdtConvertible = true;
 			} else {
-				for (Price price : prices) {
-					if(symbol.equals(price.getSymbol())) {
-						double usdt = (value * price.getPrice());
-						row.put(Utils.USDT, Utils.format(usdt));
-						totalUsdt = totalUsdt + usdt;
-						isUsdtConvertible = true;
-						break;
-					}
+				List<Price> bySymbol = groupedPrices.get(symbol);
+				if (bySymbol != null && !bySymbol.isEmpty()) {
+					Price price = bySymbol.get(0);
+					double usdt = (value * price.getPrice());
+					row.put(Utils.USDT, Utils.format(usdt));
+					totalUsdt = totalUsdt + usdt;
+					isUsdtConvertible = true;
 				}
 			}
 			if (isUsdtConvertible) {

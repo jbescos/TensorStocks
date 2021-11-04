@@ -112,7 +112,6 @@ public class SecuredBinanceAPI implements SecuredAPI {
 		}
 	}
 
-	@Override
 	public Account account() {
 		Account account = get("/api/v3/account", new GenericType<Account>() {}, "timestamp", Long.toString(new Date().getTime()));
 		List<Balances> balances = account.getBalances().stream().filter(balance -> {

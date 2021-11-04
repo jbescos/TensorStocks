@@ -42,8 +42,8 @@ public final class PublicAPI {
 		List<Price> prices = get(BINANCE_URL, "/api/v3/ticker/price", new GenericType<List<Price>>() {});
 		prices = prices.stream()
 				.filter(price -> price.getSymbol().endsWith(Utils.USDT))
-				.filter(price -> !price.getSymbol().endsWith("UPUSDT"))
-				.filter(price -> !price.getSymbol().endsWith("DOWNUSDT"))
+				.filter(price -> !price.getSymbol().endsWith("UP" + Utils.USDT))
+				.filter(price -> !price.getSymbol().endsWith("DOWN" + Utils.USDT))
 				.collect(Collectors.toList());
 		return prices;
 	}
@@ -53,8 +53,8 @@ public final class PublicAPI {
 		List<Price> prices = allTickers.getData().getTicker().stream()
 				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
 				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())))
-				.filter(ticker -> !ticker.getSymbol().endsWith("3LUSDT"))
-				.filter(ticker -> !ticker.getSymbol().endsWith("3SUSDT"))
+				.filter(ticker -> !ticker.getSymbol().endsWith("3L" + Utils.USDT))
+				.filter(ticker -> !ticker.getSymbol().endsWith("3S" + Utils.USDT))
 				.collect(Collectors.toList());
 		return prices;
 	}

@@ -102,7 +102,7 @@ public class BotExecution {
 				LOGGER.info(() -> "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
 			}
 		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol, e);
+			LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol, e);
 		}
 	}
 

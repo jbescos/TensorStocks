@@ -5,8 +5,6 @@ import java.util.Map;
 import com.jbescos.common.Broker.Action;
 
 public interface SecuredAPI {
-
-    Account account();
     
     Map<String, String> wallet();
     

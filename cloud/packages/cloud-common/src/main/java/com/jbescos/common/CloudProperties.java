@@ -43,6 +43,11 @@ public class CloudProperties {
     public final Exchange USER_EXCHANGE;
     public final String BINANCE_PUBLIC_KEY;
     public final String BINANCE_PRIVATE_KEY;
+    public final String KUCOIN_PUBLIC_KEY;
+    public final String KUCOIN_PRIVATE_KEY;
+    public final String KUCOIN_API_PASSPHRASE;
+    public final String KUCOIN_COMMERCE_KEY;
+    public final String KUCOIN_API_VERSION;
     public final String MIZAR_API_KEY;
     public final int MIZAR_STRATEGY_ID;
     public final double LIMIT_TRANSACTION_AMOUNT;
@@ -122,6 +127,12 @@ public class CloudProperties {
         LOGGER.info(() -> "UserId: " + userId + ", ProjectId = " + PROJECT_ID + ", Exchange = " + USER_EXCHANGE.name());
         BINANCE_PUBLIC_KEY = getProperty("binance.public.key");
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
+        KUCOIN_PUBLIC_KEY = getProperty("kucoin.public.key");
+        KUCOIN_PRIVATE_KEY = getProperty("kucoin.private.key");
+        KUCOIN_API_PASSPHRASE = getProperty("kucoin.passphrase.key");
+        KUCOIN_COMMERCE_KEY = getProperty("kucoin.commerce.key");
+        KUCOIN_API_VERSION = getProperty("kucoin.version");
+        
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));
         LIMIT_TRANSACTION_RATIO_AMOUNT = Double.parseDouble(getProperty("limit.transaction.ratio.amount"));
@@ -277,6 +288,16 @@ public class CloudProperties {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
+            }
+
+			@Override
+			public List<Price> price(PublicAPI publicApi) {
+				return publicApi.priceKucoin();
+			}
+        }, KUCOIN("/kucoin/") {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredKucoinAPI.create(cloudProperties, client);
             }
 
 			@Override

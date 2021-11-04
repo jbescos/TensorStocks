@@ -15,7 +15,6 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.common.Account;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CsvUtil;
@@ -33,9 +32,9 @@ public class SecuredBinanceAPITest {
 	public void account() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		Client client = ClientBuilder.newClient();
 		SecuredBinanceAPI api = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
-		Account account = api.account();
+		Map<String,String> wallet = api.wallet();
 		List<Price> prices = Exchange.BINANCE.price(new PublicAPI(client));
-		List<Map<String, String>> rows = Utils.userUsdt(new Date(), prices, account);
+		List<Map<String, String>> rows = Utils.userUsdt(new Date(), prices, wallet);
 		System.out.println(CsvUtil.toString(rows));
 		client.close();
 	}
