@@ -57,6 +57,9 @@ public class BotExecution {
     		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
     		    buy = buy * stat.getFactor();
     		}
+    		if (cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT > 0) {
+    		    buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
+            }
     		if (cloudProperties.LIMIT_TRANSACTION_AMOUNT > 0 && buy > cloudProperties.LIMIT_TRANSACTION_AMOUNT) {
     			buy = cloudProperties.LIMIT_TRANSACTION_AMOUNT;
     		}
@@ -179,7 +182,7 @@ public class BotExecution {
 
 		@Override
 		public double minTransaction() {
-			return cloudProperties.USER_EXCHANGE.minTransaction(cloudProperties);
+			return cloudProperties.MIN_TRANSACTION;
 		}
 
 		@Override

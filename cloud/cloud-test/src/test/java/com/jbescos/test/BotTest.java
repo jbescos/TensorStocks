@@ -97,7 +97,7 @@ public class BotTest {
     		List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
     	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
     	    try {
-    	    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, new TestFileStorage("./target/total_"), wallet, transactions, walletHistorical, CLOUD_PROPERTIES.BINANCE_MIN_TRANSACTION);
+    	    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, new TestFileStorage("./target/total_"), wallet, transactions, walletHistorical, CLOUD_PROPERTIES.MIN_TRANSACTION);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();
