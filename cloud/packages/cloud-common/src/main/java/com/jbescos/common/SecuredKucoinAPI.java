@@ -122,17 +122,17 @@ public class SecuredKucoinAPI implements SecuredAPI {
 
 	@Override
 	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, Double currentUsdtPrice) {
-		return order(symbol, action, "funds", quoteOrderQty);
+		return order(symbol, action, currentUsdtPrice, BuySell.funds, quoteOrderQty);
 	}
 
 	@Override
 	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, Double currentUsdtPrice) {
 		SymbolLimits limits = getSymbolLimits(symbol);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, limits.baseMinSize, limits.baseMaxSize, limits.baseIncrement);
-		return order(symbol, action, "size", fixedQuantity);
+		return order(symbol, action, currentUsdtPrice, BuySell.size, fixedQuantity);
 	}
 	
-	private CsvTransactionRow order(String symbol, Action action, String key, String value) {
+	private CsvTransactionRow order(String symbol, Action action, Double currentUsdtPrice, BuySell key, String value) {
 		String kucoinSymbol = symbol.replaceFirst(Utils.USDT, "-" + Utils.USDT);
 		String side = action.side().toLowerCase();
 		String clientOid = UUID.randomUUID().toString();
@@ -141,7 +141,7 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		body.append("\"side\":").append("\"").append(side).append("\",");
 		body.append("\"symbol\":").append("\"").append(kucoinSymbol).append("\",");
 		body.append("\"type\":").append("\"").append("market").append("\",");
-		body.append("\""+ key +"\":").append("\"").append(value).append("\",");
+		body.append("\""+ key.name() +"\":").append("\"").append(value).append("\",");
 		body.append("\"symbol\":").append("\"").append(kucoinSymbol).append("\"");
 		body.append("}");
 		LOGGER.info(() -> "Prepared order: " + body.toString());
@@ -151,10 +151,31 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		Map<String, String> orderInfo = getOrder(orderId);
 		LOGGER.info(() -> "Order Info: " + orderInfo);
 		String totalUsdt = orderInfo.get("dealFunds");
+		if ("0".equals(totalUsdt)) {
+		    if (key == BuySell.funds) {
+		        totalUsdt = value;
+		    } else {
+		        totalUsdt = Utils.format(Utils.usdValue(Double.parseDouble(value), currentUsdtPrice));
+		    }
+		    LOGGER.warning("dealFunds response is 0. We have recalculated it to " + totalUsdt);
+		}
 		String totalQuantity = orderInfo.get("dealSize");
+		if ("0".equals(totalQuantity)) {
+            if (key == BuySell.funds) {
+                totalQuantity = Utils.format(Utils.symbolValue(Double.parseDouble(value), currentUsdtPrice));
+            } else {
+                totalQuantity = value;
+            }
+            LOGGER.warning("dealSize response is 0. We have recalculated it to " + totalQuantity);
+        }
 		double usdtUnit = Double.parseDouble(totalUsdt) / Double.parseDouble(totalQuantity);
 		CsvTransactionRow tx = new CsvTransactionRow(new Date(Long.parseLong(orderInfo.get("createdAt"))), orderId, action, symbol, totalUsdt, totalQuantity, usdtUnit);
 		return tx;
+	}
+	
+	private static enum BuySell {
+	    // Size is quantity of symbol, and funds is quantity of USD
+	    size, funds;
 	}
 	
 	private SymbolLimits getSymbolLimits(String symbol) {
