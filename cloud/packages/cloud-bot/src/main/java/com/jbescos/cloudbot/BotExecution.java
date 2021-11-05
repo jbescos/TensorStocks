@@ -175,7 +175,7 @@ public class BotExecution {
 				}
 				transactions.add(transaction);
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Cannot " + stat.getAction().name() + " " + quantity + " " + symbol, e);
+				LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot " + stat.getAction().name() + " " + quantity + " " + symbol + " (" + quantityUsd + " " + Utils.USDT + ")", e);
 			}
 			return transaction;
 		}

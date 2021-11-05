@@ -97,35 +97,35 @@ public class CautelousBroker implements Broker {
                             if (price < percentileMin) {
                                 action = Action.BUY;
                             } else {
-                                LOGGER.info(() -> newest + " buy discarded because the price is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
+//                                LOGGER.info(() -> newest + " buy discarded because the price is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                             }
                         } else {
-                            LOGGER.info(() -> newest + " buy discarded because it is not min.");
+//                            LOGGER.info(() -> newest + " buy discarded because it is not min.");
                         }
                     } else {
-                        LOGGER.info(() -> newest + " buy discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
+//                        LOGGER.info(() -> newest + " buy discarded to buy because factor (1 - min/max) = " + factor + " is lower than the configured " + comparedFactor + ". Min " + min + " Max " + max);
                     }
                 } else {
-                    LOGGER.info(() -> newest + " buy discarded because current price is higher than lowest purchase " + Utils.format(summary.getLowestPurchase()));
+//                    LOGGER.info(() -> newest + " buy discarded because current price is higher than lowest purchase " + Utils.format(summary.getLowestPurchase()));
                 }
             } else if (hasPreviousTransactions) {
                 if (Utils.isMax(values)) { // It is going down
                     double minSell = cloudProperties.minSell(this.symbol);
                     if (price < minSell) {
-                        LOGGER.info(() -> newest + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
+//                        LOGGER.info(() -> newest + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
                     } else if (price < minProfitableSellPrice) {
-                        LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
+//                        LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
                     } else {
                         double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL);
                         if (benefit >= expectedBenefit) {
                         	LOGGER.info(() -> newest + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit));
                             action = Action.SELL;
                         } else {
-                            LOGGER.info(() -> newest + " sell discarded because current benefit " + Utils.format(benefit) + " is lower than expected benefit " + Utils.format(expectedBenefit) + " calculated from last purchase " + Utils.fromDate(Utils.FORMAT_SECOND, lastPurchase));
+//                            LOGGER.info(() -> newest + " sell discarded because current benefit " + Utils.format(benefit) + " is lower than expected benefit " + Utils.format(expectedBenefit) + " calculated from last purchase " + Utils.fromDate(Utils.FORMAT_SECOND, lastPurchase));
                         }
                     }
                 } else {
-                    LOGGER.info(() -> newest + " sell discarded because it is not max.");
+//                    LOGGER.info(() -> newest + " sell discarded because it is not max.");
                 }
             } else {
     //            LOGGER.info(() -> newest + " discarded because it is not good for buying and there is nothing to sell.");

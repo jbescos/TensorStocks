@@ -125,7 +125,7 @@ public class BotUtils {
 		TransactionsSummary summary = Utils.minSellProfitable(symbolTransactions);
 		CsvRow newest = rows.get(rows.size() - 1);
 		if (summary.isHasTransactions()) {
-		    LOGGER.info(() -> symbol + " is " + Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())) + " compared with min profitable price");
+		    LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " is " + Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
 		CsvRow oldest = rows.get(0);
