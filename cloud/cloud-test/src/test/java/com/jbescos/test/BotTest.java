@@ -28,7 +28,6 @@ import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.Broker;
-import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.IRow;
@@ -37,20 +36,27 @@ import com.jbescos.test.util.TestFileStorage;
 
 public class BotTest {
 
+	// Binance test
+	private static final String START_DATE ="2021-05-20";
+    private static final String USER_ID ="binance";
+    
+	// Kucoin test
+//	private static final String START_DATE ="2021-10-25";
+//  private static final String USER_ID ="kucoin";
+   
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
-    private static final CloudProperties CLOUD_PROPERTIES = DataLoader.CLOUD_PROPERTIES;
     private static final long HOURS_MILLIS = 3600 * 1000;
     private static final long DAY_MILLIS = HOURS_MILLIS * 24;
     private static final long MONTH_MILLIS = DAY_MILLIS * 30;
-    private static final long HOURS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_HOURS_BACK_STATISTICS * HOURS_MILLIS;
-    private static final long TRANSACTIONS_BACK_MILLIS = CLOUD_PROPERTIES.BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
     private static final int TOP = 40;
-    private static final DataLoader LOADER = new DataLoader();
+    private static final DataLoader LOADER = new DataLoader(USER_ID);
+    private static long HOURS_BACK_MILLIS = LOADER.getCloudProperties().BOT_HOURS_BACK_STATISTICS * HOURS_MILLIS;
+    private static long TRANSACTIONS_BACK_MILLIS = LOADER.getCloudProperties().BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     
     @BeforeClass
     public static void beforeClass() throws IOException {
-        LOADER.loadData("2021-05-20", null);
+        LOADER.loadData(START_DATE, null);
     }
 
     private void printResult() {
@@ -95,9 +101,9 @@ public class BotTest {
     		List<CsvRow> segment = LOADER.get(previous, now);
     		Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
     		List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-    	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
+    	    List<Broker> stats = BotUtils.fromCsvRows(LOADER.getCloudProperties(), segment, tx);
     	    try {
-    	    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, new TestFileStorage("./target/total_"), wallet, transactions, walletHistorical, CLOUD_PROPERTIES.MIN_TRANSACTION);
+    	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), new TestFileStorage("./target/total_"), wallet, transactions, walletHistorical, LOADER.getCloudProperties().MIN_TRANSACTION);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -149,9 +155,9 @@ public class BotTest {
     	    List<CsvRow> segment = LOADER.get(symbol, previous, now);
     	    Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
     	    List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-    	    List<Broker> stats = BotUtils.fromCsvRows(CLOUD_PROPERTIES, segment, tx);
+    	    List<Broker> stats = BotUtils.fromCsvRows(LOADER.getCloudProperties(), segment, tx);
     	    try {
-    	    	BotExecution trader = BotExecution.test(CLOUD_PROPERTIES, new TestFileStorage("./target/" + symbol + "_"), wallet, transactions, walletHistorical, MIN_TX);
+    	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), new TestFileStorage("./target/" + symbol + "_"), wallet, transactions, walletHistorical, MIN_TX);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();

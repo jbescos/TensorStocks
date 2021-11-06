@@ -83,7 +83,7 @@ public class CloudProperties {
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
     public final Map<String, FixedBuySell> FIXED_BUY_SELL;
     private final Properties mainProperties;
-    private final Properties idProperties = new Properties();
+    private final Properties idProperties;
     
     public CloudProperties() {
         this(null);
@@ -94,6 +94,7 @@ public class CloudProperties {
         try {
             Properties mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
             if (mainProperties == null) {
+            	idProperties = new Properties();
                 PROJECT_ID = StorageOptions.getDefaultProjectId();
                 mainProperties = new Properties();
                 Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
@@ -113,6 +114,11 @@ public class CloudProperties {
                 PROJECT_ID = "test";
                 PROPERTIES_BUCKET = PREFIX_PROPERTIES_BUCKET;
                 BUCKET = PREFIX_STORAGE_BUCKET;
+                if (USER_ID != null) {
+                	idProperties = Utils.fromClasspath("/" + USER_ID + "/" + PROPERTIES_FILE);
+                } else {
+                	idProperties = new Properties();
+                }
             }
             this.mainProperties = mainProperties;
         } catch (IOException e) {

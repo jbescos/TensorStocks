@@ -21,8 +21,12 @@ import com.jbescos.common.Utils;
 public class DataLoader {
 
     private static final Logger LOGGER = Logger.getLogger(DataLoader.class.getName());
-    public static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+    public final CloudProperties cloudProperties;
     private final Map<String, List<CsvRow>> grouped = new HashMap<>();
+    
+    public DataLoader(String userId) {
+    	cloudProperties = new CloudProperties(userId);
+    }
 
     public List<String> resources(String path) throws IOException {
         List<String> filenames = new ArrayList<>();
@@ -44,7 +48,7 @@ public class DataLoader {
     public void loadData(String from, String to) throws IOException {
         grouped.clear();
         List<CsvRow> rows = new ArrayList<>();
-        List<String> resources = resources(CLOUD_PROPERTIES.USER_EXCHANGE.getFolder());
+        List<String> resources = resources(cloudProperties.USER_EXCHANGE.getFolder());
         Collections.sort(resources);
         boolean start = false;
         for (String resource : resources) {
@@ -58,9 +62,9 @@ public class DataLoader {
                 if (start) {
                     try {
                         Utils.fromString(Utils.FORMAT, date);
-                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataLoader.class.getResourceAsStream(CLOUD_PROPERTIES.USER_EXCHANGE.getFolder() + resource)))) {
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(DataLoader.class.getResourceAsStream(cloudProperties.USER_EXCHANGE.getFolder() + resource)))) {
                             List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
-                            dailyRows = dailyRows.stream().filter(r -> CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.isEmpty() || CLOUD_PROPERTIES.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
+                            dailyRows = dailyRows.stream().filter(r -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty() || cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol())).collect(Collectors.toList());
                             rows.addAll(dailyRows);
                         }
                     } catch (IllegalArgumentException e) {
@@ -116,4 +120,9 @@ public class DataLoader {
     public Collection<String> symbols() {
         return grouped.keySet();
     }
+
+	public CloudProperties getCloudProperties() {
+		return cloudProperties;
+	}
+    
 }

@@ -11,6 +11,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.Broker.Action;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.common.SecuredMizarAPI;
 import com.jbescos.common.SecuredMizarAPI.OpenPositionResponse;
 import com.jbescos.common.SecuredMizarAPI.OpenPositions;
@@ -19,7 +20,7 @@ import com.jbescos.common.Utils;
 public class SecuredMizarAPITest {
 
 	private final Client client = ClientBuilder.newClient();
-	private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(DataLoader.CLOUD_PROPERTIES, client);
+	private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(new CloudProperties(), client);
 	
 	@Test
 	@Ignore
