@@ -10,6 +10,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
@@ -201,12 +202,16 @@ public class SecuredMizarAPI implements SecuredAPI {
         }
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.MIZAR_API_KEY);
         try (Response response = builder.get()) {
+        	response.bufferEntity();
             if (response.getStatus() == 200) {
-            	return response.readEntity(type);
+            	try {
+            		return response.readEntity(type);
+            	} catch (ProcessingException e) {
+                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
+            	}
             } else {
-                response.bufferEntity();
                 throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
-                        + webTarget.getUri().toString() + " : " + response.readEntity(String.class));
+                        + webTarget.toString() + " : " + response.readEntity(String.class));
             }
         }
     }
@@ -215,12 +220,16 @@ public class SecuredMizarAPI implements SecuredAPI {
 		WebTarget webTarget = client.target(URL).path(path);;
 		Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.MIZAR_API_KEY);
 		try (Response response = builder.post(Entity.json(obj))) {
+			response.bufferEntity();
 			if (response.getStatus() == 200) {
-				return response.readEntity(responseType);
+				try {
+            		return response.readEntity(responseType);
+            	} catch (ProcessingException e) {
+                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
+            	}
 			} else {
-				response.bufferEntity();
 				throw new RuntimeException("HTTP response code " + response.getStatus() + " with " + obj + " from "
-						+ webTarget.getUri().toString() + " : " + response.readEntity(String.class));
+						+ webTarget.toString() + " : " + response.readEntity(String.class));
 			}
 		}
 	}

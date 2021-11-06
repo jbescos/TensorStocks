@@ -13,6 +13,7 @@ import java.util.logging.Logger;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
@@ -67,12 +68,16 @@ public class SecuredKucoinAPI implements SecuredAPI {
         		.header(HEADER_API_PASSPHRASE, sign(passphrase))
         		.header(HEADER_API_VERSION, version);
         try (Response response = builder.get()) {
+        	response.bufferEntity();
             if (response.getStatus() == 200) {
-            	return response.readEntity(type);
+            	try {
+            		return response.readEntity(type);
+            	} catch (ProcessingException e) {
+                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
+            	}
             } else {
-                response.bufferEntity();
                 throw new RuntimeException("HTTP response code " + response.getStatus() + " from "
-                        + webTarget.getUri().toString() + " : " + response.readEntity(String.class));
+                        + webTarget.toString() + " : " + response.readEntity(String.class));
             }
         }
 	}
@@ -87,12 +92,16 @@ public class SecuredKucoinAPI implements SecuredAPI {
         		.header(HEADER_API_PASSPHRASE, sign(passphrase))
         		.header(HEADER_API_VERSION, version);
 		try (Response response = builder.post(Entity.entity(body, "application/json"))) {
+			response.bufferEntity();
 			if (response.getStatus() == 200) {
-				return response.readEntity(type);
+				try {
+            		return response.readEntity(type);
+            	} catch (ProcessingException e) {
+                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
+            	}
 			} else {
-				response.bufferEntity();
                 throw new RuntimeException("HTTP response code " + response.getStatus() + " from "
-                        + webTarget.getUri().toString() + " " + body + ": " + response.readEntity(String.class));
+                        + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
 			}
 		}
 	}

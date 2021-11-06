@@ -80,7 +80,7 @@ public class SecuredBinanceAPI implements SecuredAPI {
 			} else {
 				response.bufferEntity();
 				throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
-						+ webTarget.getUri().toString() + " : " + response.readEntity(String.class));
+						+ webTarget.toString() + " : " + response.readEntity(String.class));
 			}
 		}
 	}
@@ -107,7 +107,7 @@ public class SecuredBinanceAPI implements SecuredAPI {
 			} else {
 				response.bufferEntity();
 				throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
-						+ webTarget.getUri().toString() + " : " + response.readEntity(String.class));
+						+ webTarget.toString() + " : " + response.readEntity(String.class));
 			}
 		}
 	}
