@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -122,7 +123,8 @@ public class SecuredKucoinAPI implements SecuredAPI {
 
 	@Override
 	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, Double currentUsdtPrice) {
-		return order(symbol, action, currentUsdtPrice, BuySell.funds, quoteOrderQty);
+		int rounded = new BigDecimal(quoteOrderQty).intValue();
+		return order(symbol, action, currentUsdtPrice, BuySell.funds, Integer.toString(rounded));
 	}
 
 	@Override
@@ -178,11 +180,11 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	    size, funds;
 	}
 	
-	private SymbolLimits getSymbolLimits(String symbol) {
+	public SymbolLimits getSymbolLimits(String symbol) {
 		String kukoinSymbol = symbol.replaceFirst(Utils.USDT, "-" + Utils.USDT);
 		List<Map<String, String>> data = get("/api/v1/symbols", new GenericType<KucoinResponse<List<Map<String, String>>>>() {}).getData();
 		return data.stream().filter(d -> kukoinSymbol.equals(d.get("symbol")))
-				.map(d -> new SymbolLimits(d.get("baseMinSize"), d.get("quoteMinSize"), d.get("baseMaxSize"), d.get("quoteMaxSize"), d.get("baseIncrement"), d.get("quoteIncrement")))
+				.map(d -> new SymbolLimits(d.get("baseMinSize"), d.get("quoteMinSize"), d.get("baseMaxSize"), d.get("quoteMaxSize"), d.get("baseIncrement"), d.get("quoteIncrement"), d.get("baseCurrency"), d.get("quoteCurrency")))
 				.findAny().get();
 	}
 	
@@ -197,14 +199,25 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		private final String quoteMaxSize;
 		private final String baseIncrement;
 		private final String quoteIncrement;
+		private final String baseCurrency;
+		private final String quoteCurrency;
 		public SymbolLimits(String baseMinSize, String quoteMinSize, String baseMaxSize, String quoteMaxSize,
-				String baseIncrement, String quoteIncrement) {
+				String baseIncrement, String quoteIncrement, String baseCurrency, String quoteCurrency) {
 			this.baseMinSize = baseMinSize;
 			this.quoteMinSize = quoteMinSize;
 			this.baseMaxSize = baseMaxSize;
 			this.quoteMaxSize = quoteMaxSize;
 			this.baseIncrement = baseIncrement;
 			this.quoteIncrement = quoteIncrement;
+			this.baseCurrency = baseCurrency;
+			this.quoteCurrency = quoteCurrency;
+		}
+		@Override
+		public String toString() {
+			return "SymbolLimits [baseMinSize=" + baseMinSize + ", quoteMinSize=" + quoteMinSize + ", baseMaxSize="
+					+ baseMaxSize + ", quoteMaxSize=" + quoteMaxSize + ", baseIncrement=" + baseIncrement
+					+ ", quoteIncrement=" + quoteIncrement + ", baseCurrency=" + baseCurrency + ", quoteCurrency="
+					+ quoteCurrency + "]";
 		}
 		
 	}
