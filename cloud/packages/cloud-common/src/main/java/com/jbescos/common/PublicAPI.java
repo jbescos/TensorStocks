@@ -2,8 +2,10 @@ package com.jbescos.common;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -17,6 +19,8 @@ public final class PublicAPI {
 
 	private static final String BINANCE_URL = "https://api.binance.com";
 	private static final String KUCOIN_URL = "https://api.kucoin.com";
+	private static final String OKEX_URL = "https://www.okex.com";
+	private static final String FTX_URL = "https://ftx.com";
 	private final Client client;
 	
 	public PublicAPI(Client client) {
@@ -52,11 +56,28 @@ public final class PublicAPI {
 		AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {});
 		List<Price> prices = allTickers.getData().getTicker().stream()
 				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
-				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3L" + Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3S" + Utils.USDT))
+				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())))
 				.collect(Collectors.toList());
 		return prices;
+	}
+	
+	public List<Price> priceOkex() {
+		return get(OKEX_URL, "/api/spot/v3/instruments/ticker", new GenericType<List<Map<String, String>>>() {}).stream()
+		.filter(ticker -> ticker.get("instrument_id").endsWith(Utils.USDT))
+		.map(ticker -> new Price(ticker.get("instrument_id").replaceFirst("-", ""), Double.parseDouble(ticker.get("last"))))
+		.collect(Collectors.toList());
+	}
+
+	public List<Price> priceFtx() {
+		return get(FTX_URL, "/api/markets", new GenericType<FtxResult<List<Map<String, String>>>>() {}).getResult().stream()
+		.filter(ticker -> ticker.get("type").equals("spot"))
+		.filter(ticker -> ticker.get("quoteCurrency").equals(Utils.USDT))
+		.map(ticker -> new Price(ticker.get("name").replaceFirst("/", ""), Double.parseDouble(ticker.get("price"))))
+		.filter(price -> !price.getSymbol().endsWith("BULL" + Utils.USDT))
+		.filter(price -> !price.getSymbol().endsWith("BEAR" + Utils.USDT))
+		.collect(Collectors.toList());
 	}
 	
 	public List<Kline> klines(Interval interval, String symbol, Integer limit, long startTime, Long endTime) {
@@ -99,14 +120,35 @@ public final class PublicAPI {
         }
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         try (Response response = builder.get()) {
+        	response.bufferEntity();
             if (response.getStatus() == 200) {
-                return response.readEntity(type);
+            	try {
+            		return response.readEntity(type);
+            	} catch (ProcessingException e) {
+                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " " + queryStr.toString() + ": " + response.readEntity(String.class));
+            	}
             } else {
-                response.bufferEntity();
                 throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
                         + webTarget.getUri().toString() + " : " + response.readEntity(String.class));
             }
         }
+    }
+    
+    public static class FtxResult<T>{
+    	private String success;
+    	private T result;
+		public String getSuccess() {
+			return success;
+		}
+		public void setSuccess(String success) {
+			this.success = success;
+		}
+		public T getResult() {
+			return result;
+		}
+		public void setResult(T result) {
+			this.result = result;
+		}
     }
     
     public static enum Interval {

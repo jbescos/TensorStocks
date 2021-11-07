@@ -2,8 +2,10 @@ package com.jbescos.cloudstorage;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
@@ -15,12 +17,12 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.PublicAPI;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.Price;
+import com.jbescos.common.PublicAPI;
 import com.jbescos.common.PublisherMgr;
 import com.jbescos.common.Utils;
 
@@ -50,19 +52,22 @@ public class StorageFunction implements HttpFunction {
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
 			if (!skip) {
+				Set<String> updatedExchanges = new HashSet<>();
 				for (Exchange exchange : Exchange.values()) {
-					String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
-					Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
-				    // Update current prices
-		    		List<Price> prices = exchange.price(publicAPI);
-		            String fileName = Utils.FORMAT.format(now) + ".csv";
-		    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice);
-		    		StringBuilder builder = new StringBuilder();
-		    		for (CsvRow row : updatedRows) {
-		    			builder.append(row.toCsvLine());
-		    		}
-		    		String downloadLink = storage.updateFile("data" + exchange.getFolder() + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
-		    		response.getWriter().write("<" + downloadLink + ">");
+					if (updatedExchanges.add(exchange.getFolder())) {
+						String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
+						Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
+					    // Update current prices
+			    		List<Price> prices = exchange.price(publicAPI);
+			            String fileName = Utils.FORMAT.format(now) + ".csv";
+			    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice);
+			    		StringBuilder builder = new StringBuilder();
+			    		for (CsvRow row : updatedRows) {
+			    			builder.append(row.toCsvLine());
+			    		}
+			    		String downloadLink = storage.updateFile("data" + exchange.getFolder() + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+			    		response.getWriter().write("<" + downloadLink + ">");
+					}
 				}
 			} else {
 				response.getWriter().write("Skipped");

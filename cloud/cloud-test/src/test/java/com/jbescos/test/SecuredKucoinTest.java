@@ -71,6 +71,6 @@ public class SecuredKucoinTest {
 	@Ignore
 	public void limits() throws InvalidKeyException, NoSuchAlgorithmException {
 		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
-		System.out.println("KUCOIN: " + api.getSymbolLimits("KRLUSDT"));
+		System.out.println("KUCOIN: " + api.getSymbolLimits("FLAMEUSDT"));
 	}
 }

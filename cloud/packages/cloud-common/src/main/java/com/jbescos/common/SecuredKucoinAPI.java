@@ -27,7 +27,6 @@ import com.jbescos.common.Broker.Action;
 public class SecuredKucoinAPI implements SecuredAPI {
 
 	private static final Logger LOGGER = Logger.getLogger(SecuredKucoinAPI.class.getName());
-	private static final String KUCOIN_SANDBOX = "https://openapi-sandbox.kucoin.com";
 	private static final String KUCOIN_PRODUCTION = "https://api.kucoin.com";
 	private static final String API_URL = KUCOIN_PRODUCTION;
 	private static final String HMAC_SHA_256 = "HmacSHA256";

@@ -70,7 +70,6 @@ public class BotFunction implements HttpFunction {
 					String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
 					CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty, null) : api.orderSymbol(symbol, Action.valueOf(side), quantity, null);
 					String month = Utils.thisMonth(apiResponse.getDate());
-					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					if (apiResponse.getSide() == Action.SELL || apiResponse.getSide() == Action.SELL_PANIC) {
 						Broker broker = BotUtils.loadStatistics(cloudProperties, publicApi, true).stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
 						CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), apiResponse);
@@ -78,6 +77,7 @@ public class BotFunction implements HttpFunction {
 						profitData.append(row.toCsvLine());
 						storage.updateFile(cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
 					}
+					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					response.getWriter().write(apiResponse.toString());
 				}
 			} else {

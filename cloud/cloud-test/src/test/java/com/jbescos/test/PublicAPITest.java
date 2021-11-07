@@ -22,6 +22,10 @@ public class PublicAPITest {
         System.out.println("Kucoin " + prices.size() + " size: " + prices );
         prices = publicAPI.priceBinance();
         System.out.println("Binance " + prices.size() + " size: " + prices );
+        prices = publicAPI.priceOkex();
+        System.out.println("Okex " + prices.size() + " size: " + prices );
+        prices = publicAPI.priceFtx();
+        System.out.println("Ftx " + prices.size() + " size: " + prices );
         client.close();
 	}
 }

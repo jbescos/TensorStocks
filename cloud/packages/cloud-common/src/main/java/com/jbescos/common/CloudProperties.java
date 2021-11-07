@@ -290,6 +290,16 @@ public class CloudProperties {
 			public List<Price> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
+        }, KUCOIN("/kucoin/") {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredKucoinAPI.create(cloudProperties, client);
+            }
+
+			@Override
+			public List<Price> price(PublicAPI publicApi) {
+				return publicApi.priceKucoin();
+			}
         }, MIZAR_KUCOIN("/kucoin/") {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
@@ -300,15 +310,25 @@ public class CloudProperties {
 			public List<Price> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
-        }, KUCOIN("/kucoin/") {
+        }, MIZAR_OKEX("/okex/") {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-                return SecuredKucoinAPI.create(cloudProperties, client);
+                return SecuredMizarAPI.create(cloudProperties, client);
             }
 
 			@Override
 			public List<Price> price(PublicAPI publicApi) {
-				return publicApi.priceKucoin();
+				return publicApi.priceOkex();
+			}
+        }, MIZAR_FTX("/ftx/") {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredMizarAPI.create(cloudProperties, client);
+            }
+
+			@Override
+			public List<Price> price(PublicAPI publicApi) {
+				return publicApi.priceFtx();
 			}
         };
     	
