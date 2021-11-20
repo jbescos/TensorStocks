@@ -26,7 +26,6 @@ import com.jbescos.common.CloudProperties.FixedBuySell;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.GreedyBroker;
 import com.jbescos.common.LimitsBroker;
 import com.jbescos.common.PanicBroker;
 import com.jbescos.common.PublicAPI;
@@ -133,8 +132,6 @@ public class BotUtils {
 		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell, summary);
 	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, summary.getMinProfitable())) {
 			return new PanicBroker(symbol, newest, summary);
-		} else if (cloudProperties.GREEDY_BROKER_ENABLE && newest.getPrice() > newest.getAvg2() && newest.getAvg2() > oldest.getAvg2()) {
-			return new GreedyBroker(cloudProperties, symbol, rows, summary, symbolTransactions);
 		} else {
 			return new CautelousBroker(cloudProperties, symbol, rows, summary);
 		}
