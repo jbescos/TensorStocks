@@ -47,8 +47,8 @@ public class SecuredMizarAPITest {
 	@Test
 	@Ignore
 	public void createStrategy() {
-		String name = "Kucoin";
-		String description = "Automated strategy creator";
+		String name = "Botijo-Pijo";
+		String description = "Bot will try to buy cheap and will sell with some profit. It is recommended to invest 1% each time, for example if you have 100.000$, invest 1.000$ in each transaction. It will never sell losses. In worst scenario, the bot will not have enough USDT to continue buying, in this case try to add more USDT or sell something.";
 		List<String> exchanges = Arrays.asList("kucoin");
 		List<String> symbols = mizarApi.compatibleSymbols("kucoin", "SPOT");
 		String market = "SPOT";
