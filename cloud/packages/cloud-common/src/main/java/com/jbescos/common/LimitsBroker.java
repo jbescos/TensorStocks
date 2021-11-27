@@ -30,16 +30,16 @@ public class LimitsBroker implements Broker {
             if (Utils.isMax(values)) {
                 action = Action.SELL;
             } else {
-                LOGGER.info(() -> newest + " discarded to sell because it is not a max");
+//                LOGGER.info(() -> newest + " discarded to sell because it is not a max");
             }
         } else if (price <= fixedBuySell.getFixedBuy()) {
             if (Utils.isMin(values)) {
                 action = Action.BUY;
             } else {
-                LOGGER.info(() -> newest + " discarded to buy because it is not a min");
+//                LOGGER.info(() -> newest + " discarded to buy because it is not a min");
             }
         } else {
-            LOGGER.info(() -> newest + " discarded to buy because price is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));
+//            LOGGER.info(() -> newest + " discarded to buy because price is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));
         }
     }
     
