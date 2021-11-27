@@ -85,7 +85,7 @@ public class CautelousBroker implements Broker {
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
-        if (hasPreviousTransactions && Utils.isMax(values) && benefit >= cloudProperties.BOT_MAX_PROFIT_SELL) {
+        if (hasPreviousTransactions && Utils.isMax(values) && benefit >= Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MAX_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL)) {
             action = Action.SELL;
         } else {
             if (price < avg) {
@@ -116,7 +116,7 @@ public class CautelousBroker implements Broker {
                     } else if (price < minProfitableSellPrice) {
 //                        LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
                     } else {
-                        double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL);
+                        double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL);
                         if (benefit >= expectedBenefit) {
                         	LOGGER.info(() -> newest + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit));
                             action = Action.SELL;

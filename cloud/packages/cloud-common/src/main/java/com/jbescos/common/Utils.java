@@ -357,11 +357,11 @@ public class Utils {
         return false;
 	}
 	
-	public static double minProfitSellAfterDays(Date lastPurchase, Date now, double minProfitBenefit, double substractor, double limit) {
+	public static double minProfitSellAfterDays(Date lastPurchase, Date now, double minProfitBenefit, double substractor, double limit, double lowestLimit) {
 	    int daysInBetween = (int)( (now.getTime() - lastPurchase.getTime()) / MILLIS_IN_DAY);
 	    double result = minProfitBenefit + (substractor * daysInBetween);
-	    if (result <= 0) {
-	        return 0;
+	    if (result <= lowestLimit) {
+	        return lowestLimit;
 	    } else if (result >= limit){
 	        return limit;
 	    }else {

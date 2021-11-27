@@ -227,13 +227,13 @@ public class UtilsTest {
 	
 	@Test
 	public void minProfitSellAfterDays() {
-	    double result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:46:01"), 0.08, -0.01, 0.2);
+	    double result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:46:01"), 0.08, -0.01, 0.2, 0);
 	    assertEquals(0.07, result, 0.001);
-	    result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:45:01"), 0.08, -0.01, 0.2);
+	    result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:45:01"), 0.08, -0.01, 0.2, 0);
         assertEquals(0.08, result, 0.001);
-        result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2022-05-02 00:45:01"), 0.08, -0.01, 0.2);
+        result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2022-05-02 00:45:01"), 0.08, -0.01, 0.2, 0);
         assertEquals(0.0, result, 0.001);
-        result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2022-05-02 00:45:01"), 0.08, 0.01, 0.2);
+        result = Utils.minProfitSellAfterDays(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2022-05-02 00:45:01"), 0.08, 0.01, 0.2, 0);
         assertEquals(0.2, result, 0.001);
 	}
 	
