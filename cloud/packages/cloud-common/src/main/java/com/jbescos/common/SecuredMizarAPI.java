@@ -50,8 +50,10 @@ public class SecuredMizarAPI implements SecuredAPI {
     	MizarSymbols response = get("/symbols", new GenericType<MizarSymbols>(){}, "exchange", exchange, "market", market);
     	Stream<String> stream = response.symbols.stream()
     			.filter(mizarSymbol -> mizarSymbol.symbol.endsWith(Utils.USDT))
-    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("3LUSDT"))
-    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("3SUSDT"))
+    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("3L" + Utils.USDT))
+    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("3S" + Utils.USDT))
+    			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("UP" + Utils.USDT))
+				.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("DOWN" + Utils.USDT))
     			.map(mizarSymbol -> mizarSymbol.symbol);
     	if (!cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty()) {
     	    stream = stream.filter(symbol -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(symbol));

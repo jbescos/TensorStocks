@@ -21,6 +21,8 @@ public class SecuredMizarAPITest {
 
 	private final Client client = ClientBuilder.newClient();
 	private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(new CloudProperties(), client);
+	private static final String EXCHANGE = "kucoin";
+//	private static final String EXCHANGE = "binance";
 	
 	@Test
 	@Ignore
@@ -31,7 +33,7 @@ public class SecuredMizarAPITest {
 	@Test
 	@Ignore
 	public void symbols() {
-		List<String> compatibleSymbols = mizarApi.compatibleSymbols("kucoin", "SPOT");
+		List<String> compatibleSymbols = mizarApi.compatibleSymbols(EXCHANGE, "SPOT");
 		StringBuilder builder = new StringBuilder();
 		for (String symbol : compatibleSymbols) {
 			if (builder.length() == 0) {
@@ -49,8 +51,8 @@ public class SecuredMizarAPITest {
 	public void createStrategy() {
 		String name = "Botijo-Pijo";
 		String description = "Bot will try to buy cheap and will sell with some profit. It is recommended to invest 1% each time, for example if you have 100.000$, invest 1.000$ in each transaction. It will never sell losses. In worst scenario, the bot will not have enough USDT to continue buying, in this case try to add more USDT or sell something.";
-		List<String> exchanges = Arrays.asList("kucoin");
-		List<String> symbols = mizarApi.compatibleSymbols("kucoin", "SPOT");
+		List<String> exchanges = Arrays.asList(EXCHANGE);
+		List<String> symbols = mizarApi.compatibleSymbols(EXCHANGE, "SPOT");
 		String market = "SPOT";
 		int strategyId = mizarApi.publishSelfHostedStrategy(name, description, exchanges, symbols, market);
 		System.out.println("StrategyId: " + strategyId);
