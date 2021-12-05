@@ -49,7 +49,7 @@ public class BotTest {
     private static final long DAY_MILLIS = HOURS_MILLIS * 24;
     private static final long MONTH_MILLIS = DAY_MILLIS * 30;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
-    private static final int TOP = 40;
+    private static final int TOP = 250;
     private static final DataLoader LOADER = new DataLoader(USER_ID);
     private static long HOURS_BACK_MILLIS = LOADER.getCloudProperties().BOT_HOURS_BACK_STATISTICS * HOURS_MILLIS;
     private static long TRANSACTIONS_BACK_MILLIS = LOADER.getCloudProperties().BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
