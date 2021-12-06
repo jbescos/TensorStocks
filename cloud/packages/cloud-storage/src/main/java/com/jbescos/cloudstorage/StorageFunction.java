@@ -2,11 +2,14 @@ package com.jbescos.cloudstorage;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -40,11 +43,22 @@ public class StorageFunction implements HttpFunction {
 		Client client = ClientBuilder.newClient();
 		PublicAPI publicAPI = new PublicAPI(client);
 		BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
-		List<String> userIds = new ArrayList<>();
+		Map<String, List<String>> groupedFolder = new HashMap<>();
 		Page<Blob> files = storage.list(cloudProperties.PROPERTIES_BUCKET);
 		for (Blob blob : files.iterateAll()) {
 			if (blob.isDirectory()) {
-				userIds.add(blob.getName().replaceAll("/", ""));
+				String userId = blob.getName().replaceAll("/", "");
+				try {
+					CloudProperties user = new CloudProperties(userId);
+					List<String> usersByFolder = groupedFolder.get(user.USER_EXCHANGE.getFolder());
+					if (usersByFolder == null) {
+						usersByFolder = new ArrayList<>();
+						groupedFolder.put(user.USER_EXCHANGE.getFolder(), usersByFolder);
+					}
+					usersByFolder.add(userId);
+				} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, "Cannot load user " + userId, e);
+				}
 			}
 		}
 		long time = publicAPI.time();
@@ -55,26 +69,34 @@ public class StorageFunction implements HttpFunction {
 				Set<String> updatedExchanges = new HashSet<>();
 				for (Exchange exchange : Exchange.values()) {
 					if (updatedExchanges.add(exchange.getFolder())) {
-						String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
-						Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
-					    // Update current prices
-			    		List<Price> prices = exchange.price(publicAPI);
-			            String fileName = Utils.FORMAT.format(now) + ".csv";
-			    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice);
-			    		StringBuilder builder = new StringBuilder();
-			    		for (CsvRow row : updatedRows) {
-			    			builder.append(row.toCsvLine());
-			    		}
-			    		String downloadLink = storage.updateFile("data" + exchange.getFolder() + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
-			    		response.getWriter().write("<" + downloadLink + ">");
+						try {
+							String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
+							Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
+						    // Update current prices
+				    		List<Price> prices = exchange.price(publicAPI);
+				            String fileName = Utils.FORMAT.format(now) + ".csv";
+				    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice);
+				    		StringBuilder builder = new StringBuilder();
+				    		for (CsvRow row : updatedRows) {
+				    			builder.append(row.toCsvLine());
+				    		}
+				    		String downloadLink = storage.updateFile("data" + exchange.getFolder() + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+				    		// Notify bot
+				    		List<String> userIds = groupedFolder.get(exchange.getFolder());
+				    		if (userIds != null) {
+					    		LOGGER.info("Sending bot messages to " + userIds + " for " + exchange.getFolder());
+					    		publisher.publish(userIds.toArray(new String[0]));
+				    		}
+				    		response.getWriter().write("<" + downloadLink + ">");
+						} catch (Exception e) {
+							response.getWriter().write("<ERROR: " + exchange.name() + ". " + e.getMessage() + ">");
+							LOGGER.log(Level.SEVERE, "Cannot process " + exchange.name(), e);
+						}
 					}
 				}
 			} else {
 				response.getWriter().write("Skipped");
 			}
-    		// Notify bot
-    		LOGGER.info("Sending bot messages to " + userIds);
-    		publisher.publish(userIds.toArray(new String[0]));
             client.close();
             response.setStatusCode(200);
         }

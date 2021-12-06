@@ -74,9 +74,10 @@ public final class PublicAPI {
 		return get(FTX_URL, "/api/markets", new GenericType<FtxResult<List<Map<String, String>>>>() {}).getResult().stream()
 		.filter(ticker -> ticker.get("type").equals("spot"))
 		.filter(ticker -> ticker.get("quoteCurrency").equals(Utils.USDT))
+		.filter(ticker -> ticker.get("name") != null)
+		.filter(ticker -> !ticker.get("name").endsWith("BULL/" + Utils.USDT))
+		.filter(ticker -> !ticker.get("name").endsWith("BEAR/" + Utils.USDT))
 		.map(ticker -> new Price(ticker.get("name").replaceFirst("/", ""), Double.parseDouble(ticker.get("price"))))
-		.filter(price -> !price.getSymbol().endsWith("BULL" + Utils.USDT))
-		.filter(price -> !price.getSymbol().endsWith("BEAR" + Utils.USDT))
 		.collect(Collectors.toList());
 	}
 	

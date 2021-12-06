@@ -310,16 +310,16 @@ public class CloudProperties {
 			public List<Price> price(PublicAPI publicApi) {
 				return publicApi.priceOkex();
 			}
-//        }, MIZAR_FTX("/ftx/") {
-//            @Override
-//            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-//                return SecuredMizarAPI.create(cloudProperties, client);
-//            }
-//
-//			@Override
-//			public List<Price> price(PublicAPI publicApi) {
-//				return publicApi.priceFtx();
-//			}
+        }, MIZAR_FTX("/ftx/") {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredMizarAPI.create(cloudProperties, client);
+            }
+
+			@Override
+			public List<Price> price(PublicAPI publicApi) {
+				return publicApi.priceFtx();
+			}
         }, MIZAR_BINANCE("/binance/") {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
