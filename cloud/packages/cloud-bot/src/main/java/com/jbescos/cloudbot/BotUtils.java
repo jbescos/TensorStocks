@@ -95,7 +95,7 @@ public class BotUtils {
 		Map<String, List<CsvRow>> grouped = csv.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
-		LOGGER.info(() -> "There is data for: " + grouped.keySet());
+		StringBuilder log = new StringBuilder(cloudProperties.USER_ID).append(": There is data for ").append(grouped.keySet());
 		Date deadLine = Utils.getDateOfDaysBack(new Date(), cloudProperties.BOT_PANIC_DAYS);
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
@@ -103,11 +103,12 @@ public class BotUtils {
     			if (symbolTransactions != null) {
     				symbolTransactions = filterLastBuys(symbolTransactions);
     			}
-    			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions));
+    			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions, log));
 			} else {
 			    LOGGER.info(() -> entry.getKey() + " skipped because there was a SELL_PANIC recently");
 			}
 		}
+		LOGGER.info(() -> log.toString());
 		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
 				.collect(Collectors.toList());
 	}
@@ -120,11 +121,11 @@ public class BotUtils {
 	    }
 	}
 	
-	private static Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
+	private static Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions, StringBuilder log) {
 		TransactionsSummary summary = Utils.minSellProfitable(symbolTransactions);
 		CsvRow newest = rows.get(rows.size() - 1);
 		if (summary.isHasTransactions()) {
-		    LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " is " + Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())) + " compared with min profitable price");
+			log.append("\n").append(symbol + " is " + Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
 	    if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuySell != null) {
