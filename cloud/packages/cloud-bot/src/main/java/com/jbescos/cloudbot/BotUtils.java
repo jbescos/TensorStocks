@@ -72,8 +72,8 @@ public class BotUtils {
 		}
 		LOGGER.info(() -> "Transactions loaded: " + transactions.size() + " from " + months);
 		if (requestLatestPrices) {
-			List<CsvRow> latestCsv = cloudProperties.USER_EXCHANGE.price(publicApi).stream()
-					.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
+			List<CsvRow> latestCsv = cloudProperties.USER_EXCHANGE.price(publicApi).entrySet().stream()
+					.map(entry -> new CsvRow(now, entry.getKey(), entry.getValue()))
 					.filter(row -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(row.getSymbol()))
 					.collect(Collectors.toList());
 			for (CsvRow last : latestCsv) {
@@ -127,7 +127,6 @@ public class BotUtils {
 		    LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " is " + Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())) + " compared with min profitable price");
 		}
 		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
-		CsvRow oldest = rows.get(0);
 	    if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuySell != null) {
 		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell, summary);
 	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, summary.getMinProfitable())) {

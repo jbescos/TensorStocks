@@ -16,11 +16,9 @@ import com.google.cloud.storage.StorageOptions;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
-import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.Price;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.Utils;
@@ -49,9 +47,9 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         BotExecution bot = BotExecution.production(cloudProperties, securedApi, storage);
         bot.execute(stats);
         // Update wallet in case the exchange supports it
-        if (cloudProperties.USER_EXCHANGE != Exchange.MIZAR_KUCOIN) {
+        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
 	        Map<String, String> wallet = securedApi.wallet();
-	        List<Price> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
+	        Map<String, Double> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
 	        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
 	        storage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
         }

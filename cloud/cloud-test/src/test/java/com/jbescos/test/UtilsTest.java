@@ -7,15 +7,17 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.Test;
 
-import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
@@ -274,6 +276,45 @@ public class UtilsTest {
 		profitRow = CsvProfitRow.build("0.03", summary, sell);
 		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
 		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,999.7,3%,2.973,99.1,96.127,11.00377526%" + Utils.NEW_LINE, profitRow.toCsvLine());
+	}
+	
+	@Test
+	public void walletInSymbolUsdt() {
+		Map<String, Double> prices = new LinkedHashMap<>();
+		prices.put("BTCUSDT", 49076.53);
+		prices.put("ETHUSDT", 4172.53);
+		prices.put("FAKEUSDT", 9999999.9);
+		Map<String, String> wallet = new LinkedHashMap<>();
+		wallet.put("BTC", "2");
+		wallet.put("ETH", "1");
+		wallet.put(Utils.USDT, "10");
+		Map<String, String> walletInUsdt = Utils.walletInSymbolUsdt(prices, wallet);
+		assertEquals("98153.06", walletInUsdt.get("BTCUSDT"));
+		assertEquals("4172.53", walletInUsdt.get("ETHUSDT"));
+		assertEquals("10", walletInUsdt.get(Utils.USDT));
+		assertEquals("102335.59", walletInUsdt.get(Utils.TOTAL_USDT));
+		String date = "2021-06-18 14:05:14";
+		List<Map<String, String>> rows = Utils.userUsdt(Utils.fromString(Utils.FORMAT_SECOND, date), prices, wallet);
+		Map<String, String> userWallet = rows.get(0);
+		assertEquals(date, userWallet.get("DATE"));
+		assertEquals("BTC", userWallet.get("SYMBOL"));
+		assertEquals("2", userWallet.get("SYMBOL_VALUE"));
+		assertEquals("98153.06", userWallet.get(Utils.USDT));
+		userWallet = rows.get(1);
+		assertEquals(date, userWallet.get("DATE"));
+		assertEquals("ETH", userWallet.get("SYMBOL"));
+		assertEquals("1", userWallet.get("SYMBOL_VALUE"));
+		assertEquals("4172.53", userWallet.get(Utils.USDT));
+		userWallet = rows.get(2);
+		assertEquals(date, userWallet.get("DATE"));
+		assertEquals(Utils.USDT, userWallet.get("SYMBOL"));
+		assertEquals("10", userWallet.get("SYMBOL_VALUE"));
+		assertEquals("10", userWallet.get(Utils.USDT));
+		userWallet = rows.get(3);
+		assertEquals(date, userWallet.get("DATE"));
+		assertEquals(Utils.TOTAL_USDT, userWallet.get("SYMBOL"));
+		assertEquals("102335.59", userWallet.get("SYMBOL_VALUE"));
+		assertEquals("102335.59", userWallet.get(Utils.USDT));
 	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {

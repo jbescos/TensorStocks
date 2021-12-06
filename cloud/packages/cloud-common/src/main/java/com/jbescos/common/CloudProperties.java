@@ -270,81 +270,87 @@ public class CloudProperties {
     }
     
     public static enum Exchange {
-        BINANCE("/binance/") {
+        BINANCE("/binance/", true) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredBinanceAPI.create(cloudProperties, client);
             }
 
 			@Override
-			public List<Price> price(PublicAPI publicApi) {
+			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
-        }, KUCOIN("/kucoin/") {
+        }, KUCOIN("/kucoin/", true) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredKucoinAPI.create(cloudProperties, client);
             }
 
 			@Override
-			public List<Price> price(PublicAPI publicApi) {
+			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
-        }, MIZAR_KUCOIN("/kucoin/") {
+        }, MIZAR_KUCOIN("/kucoin/", false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
 
 			@Override
-			public List<Price> price(PublicAPI publicApi) {
+			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
-        }, MIZAR_OKEX("/okex/") {
+        }, MIZAR_OKEX("/okex/", false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
 
 			@Override
-			public List<Price> price(PublicAPI publicApi) {
+			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceOkex();
 			}
-        }, MIZAR_FTX("/ftx/") {
+        }, MIZAR_FTX("/ftx/", false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
 
 			@Override
-			public List<Price> price(PublicAPI publicApi) {
+			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceFtx();
 			}
-        }, MIZAR_BINANCE("/binance/") {
+        }, MIZAR_BINANCE("/binance/", false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
             	return SecuredMizarAPI.create(cloudProperties, client);
             }
 
 			@Override
-			public List<Price> price(PublicAPI publicApi) {
+			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
         };
     	
     	private final String folder;
+    	private final boolean supportWallet;
     	
-    	private Exchange(String folder) {
+    	private Exchange(String folder, boolean supportWallet) {
     		this.folder = folder;
+    		this.supportWallet = supportWallet;
     	}
         
-        public String getFolder() {
+        public boolean isSupportWallet() {
+			return supportWallet;
+		}
+
+		public String getFolder() {
 			return folder;
 		}
 
 		public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
         
-        public abstract List<Price> price(PublicAPI publicApi);
+        public abstract Map<String, Double> price(PublicAPI publicApi);
 
     }
 }

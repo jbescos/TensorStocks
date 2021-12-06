@@ -1,6 +1,6 @@
 package com.jbescos.test;
 
-import java.util.List;
+import java.util.Map;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -8,7 +8,6 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.common.Price;
 import com.jbescos.common.PublicAPI;
 
 public class PublicAPITest {
@@ -18,7 +17,7 @@ public class PublicAPITest {
     public void allPrices() {
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
-        List<Price> prices = publicAPI.priceKucoin();
+        Map<String, Double> prices = publicAPI.priceKucoin();
         System.out.println("Kucoin " + prices.size() + " size: " + prices );
         prices = publicAPI.priceBinance();
         System.out.println("Binance " + prices.size() + " size: " + prices );

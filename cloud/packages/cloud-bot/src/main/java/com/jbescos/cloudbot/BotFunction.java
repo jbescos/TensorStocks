@@ -1,6 +1,5 @@
 package com.jbescos.cloudbot;
 
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
@@ -18,12 +17,9 @@ import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvProfitRow;
-import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.PanicBroker;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
-import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
@@ -55,15 +51,7 @@ public class BotFunction implements HttpFunction {
 				LOGGER.info(() -> "Actively invoked " + side);
 				if (Action.SELL_PANIC == action) {
 					Date now = new Date();
-					
-					List<Broker> stats = cloudProperties.USER_EXCHANGE.price(publicApi).stream()
-							.filter(price -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(price.getSymbol()))
-							.map(price -> new CsvRow(now, price.getSymbol(), price.getPrice()))
-							.map(row -> new PanicBroker(row.getSymbol(), row, new TransactionsSummary(false, 0, Double.MAX_VALUE, null, Collections.emptyList(), Collections.emptyList())))
-							.collect(Collectors.toList());
-					BotExecution bot = BotExecution.production(cloudProperties, api, storage);
-					bot.execute(stats);
-					response.getWriter().write(stats.toString());
+					// FIXME
 				} else {
 					String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 					String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());

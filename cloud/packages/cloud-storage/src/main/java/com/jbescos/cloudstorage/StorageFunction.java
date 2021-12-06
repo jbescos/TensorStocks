@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -24,7 +23,6 @@ import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CsvRow;
-import com.jbescos.common.Price;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.PublisherMgr;
 import com.jbescos.common.Utils;
@@ -73,7 +71,7 @@ public class StorageFunction implements HttpFunction {
 							String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
 							Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
 						    // Update current prices
-				    		List<Price> prices = exchange.price(publicAPI);
+				    		Map<String, Double> prices = exchange.price(publicAPI);
 				            String fileName = Utils.FORMAT.format(now) + ".csv";
 				    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice);
 				    		StringBuilder builder = new StringBuilder();

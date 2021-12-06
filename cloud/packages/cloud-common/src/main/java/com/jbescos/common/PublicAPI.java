@@ -1,9 +1,9 @@
 package com.jbescos.common;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -42,43 +42,46 @@ public final class PublicAPI {
 		return exchangeInfo;
 	}
 	
-	public List<Price> priceBinance() {
+	public Map<String, Double> priceBinance() {
 		List<Price> prices = get(BINANCE_URL, "/api/v3/ticker/price", new GenericType<List<Price>>() {});
-		prices = prices.stream()
+		Map<String, Double> pricesBySymbol = new HashMap<>();
+		prices.stream()
 				.filter(price -> price.getSymbol().endsWith(Utils.USDT))
 				.filter(price -> !price.getSymbol().endsWith("UP" + Utils.USDT))
 				.filter(price -> !price.getSymbol().endsWith("DOWN" + Utils.USDT))
-				.collect(Collectors.toList());
-		return prices;
+				.forEach(price -> pricesBySymbol.put(price.getSymbol(), price.getPrice()));
+		return pricesBySymbol;
 	}
 	
-	public List<Price> priceKucoin() {
+	public Map<String, Double> priceKucoin() {
 		AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {});
-		List<Price> prices = allTickers.getData().getTicker().stream()
+		Map<String, Double> pricesBySymbol = new HashMap<>();
+		allTickers.getData().getTicker().stream()
 				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
-				.filter(ticker -> !ticker.getSymbol().endsWith("3L" + Utils.USDT))
-				.filter(ticker -> !ticker.getSymbol().endsWith("3S" + Utils.USDT))
-				.map(ticker -> new Price(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())))
-				.collect(Collectors.toList());
-		return prices;
+				.filter(ticker -> !ticker.getSymbol().endsWith("3L-" + Utils.USDT))
+				.filter(ticker -> !ticker.getSymbol().endsWith("3S-" + Utils.USDT))
+				.forEach(ticker -> pricesBySymbol.put(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())));
+		return pricesBySymbol;
 	}
 	
-	public List<Price> priceOkex() {
-		return get(OKEX_URL, "/api/spot/v3/instruments/ticker", new GenericType<List<Map<String, String>>>() {}).stream()
+	public Map<String, Double> priceOkex() {
+		Map<String, Double> pricesBySymbol = new HashMap<>();
+		get(OKEX_URL, "/api/spot/v3/instruments/ticker", new GenericType<List<Map<String, String>>>() {}).stream()
 		.filter(ticker -> ticker.get("instrument_id").endsWith(Utils.USDT))
-		.map(ticker -> new Price(ticker.get("instrument_id").replaceFirst("-", ""), Double.parseDouble(ticker.get("last"))))
-		.collect(Collectors.toList());
+		.forEach(ticker -> pricesBySymbol.put(ticker.get("instrument_id").replaceFirst("-", ""), Double.parseDouble(ticker.get("last"))));
+		return pricesBySymbol;
 	}
 
-	public List<Price> priceFtx() {
-		return get(FTX_URL, "/api/markets", new GenericType<FtxResult<List<Map<String, String>>>>() {}).getResult().stream()
+	public Map<String, Double> priceFtx() {
+		Map<String, Double> pricesBySymbol = new HashMap<>();
+		get(FTX_URL, "/api/markets", new GenericType<FtxResult<List<Map<String, String>>>>() {}).getResult().stream()
 		.filter(ticker -> ticker.get("type").equals("spot"))
 		.filter(ticker -> ticker.get("quoteCurrency").equals(Utils.USDT))
 		.filter(ticker -> ticker.get("name") != null)
 		.filter(ticker -> !ticker.get("name").endsWith("BULL/" + Utils.USDT))
 		.filter(ticker -> !ticker.get("name").endsWith("BEAR/" + Utils.USDT))
-		.map(ticker -> new Price(ticker.get("name").replaceFirst("/", ""), Double.parseDouble(ticker.get("price"))))
-		.collect(Collectors.toList());
+		.forEach(ticker -> pricesBySymbol.put(ticker.get("name").replaceFirst("/", ""), Double.parseDouble(ticker.get("price"))));
+		return pricesBySymbol;
 	}
 	
 	public List<Kline> klines(Interval interval, String symbol, Integer limit, long startTime, Long endTime) {

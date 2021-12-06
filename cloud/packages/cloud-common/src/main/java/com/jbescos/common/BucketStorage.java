@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import com.google.api.gax.paging.Page;
@@ -54,16 +55,16 @@ public class BucketStorage implements FileUpdater {
 		return previousRows;
 	}
 
-	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, List<Price> prices, Date now, String lastPriceCsv) {
+	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Double> prices, Date now, String lastPriceCsv) {
 	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 	    List<CsvRow> newRows = new ArrayList<>();
-        for (Price price : prices) {
-            CsvRow previous = previousRows.get(price.getSymbol());
+        for (Entry<String, Double> price : prices.entrySet()) {
+            CsvRow previous = previousRows.get(price.getKey());
             CsvRow newRow = null;
             if (previous != null) {
-                newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getPrice(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getPrice(), previous.getAvg2()));
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getValue(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()));
             } else {
-                newRow = new CsvRow(now, price.getSymbol(), price.getPrice(), price.getPrice(), price.getPrice());
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue());
             }
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());

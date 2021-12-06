@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.SecuredMizarAPI.ClosePositionResponse;
@@ -36,6 +35,7 @@ public class Utils {
 	public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	public static final Charset UTF8 = Charset.forName("UTF-8");
 	public static final String USDT = "USDT";
+	public static final String TOTAL_USDT = "TOTAL_USDT";
 	public static final String NEW_LINE = "\r\n";
 	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2" + NEW_LINE;
 	public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
@@ -210,35 +210,20 @@ public class Utils {
 	    return false;
 	}
 	
-	public static List<Map<String, String>> userUsdt(Date now, List<Price> prices, Map<String, String> wallet) {
-		Map<String, List<Price>> groupedPrices = prices.stream().collect(Collectors.groupingBy(Price::getSymbol));
-		List<Map<String, String>> rows = new ArrayList<>();
-		double totalUsdt = 0.0;
+	public static List<Map<String, String>> userUsdt(Date now, Map<String, Double> prices, Map<String, String> wallet) {
+		Map<String, String> walletInUsdt = walletInSymbolUsdt(prices, wallet);
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);
+		List<Map<String, String>> rows = new ArrayList<>();
 		for (Entry<String, String> entry : wallet.entrySet()) {
-			double value = Double.parseDouble(entry.getValue());
+			String symbol = Utils.USDT.equals(entry.getKey()) ? Utils.USDT : entry.getKey() + Utils.USDT;
 			Map<String, String> row = new LinkedHashMap<>();
 			row.put("DATE", dateStr);
 			row.put("SYMBOL", entry.getKey());
 			row.put("SYMBOL_VALUE", entry.getValue());
-			String symbol = entry.getKey() + "USDT";
-			boolean isUsdtConvertible = false;
-			if (Utils.USDT.equals(entry.getKey())) {
-				row.put(Utils.USDT, entry.getValue());
-				totalUsdt = totalUsdt + value;
-				isUsdtConvertible = true;
-			} else {
-				List<Price> bySymbol = groupedPrices.get(symbol);
-				if (bySymbol != null && !bySymbol.isEmpty()) {
-					Price price = bySymbol.get(0);
-					double usdt = (value * price.getPrice());
-					row.put(Utils.USDT, Utils.format(usdt));
-					totalUsdt = totalUsdt + usdt;
-					isUsdtConvertible = true;
-				}
-			}
-			if (isUsdtConvertible) {
-			    double val = Double.parseDouble(row.get(Utils.USDT));
+			String usdt = walletInUsdt.get(symbol);
+			if (usdt != null) {
+				row.put(Utils.USDT, usdt);
+				double val = Double.parseDouble(usdt);
 			    // Don't save very small values
 			    if (val > MIN_WALLET_VALUE_TO_RECORD) {
 			        rows.add(row);
@@ -247,11 +232,34 @@ public class Utils {
 		}
 		Map<String, String> row = new LinkedHashMap<>();
 		row.put("DATE", dateStr);
-		row.put("SYMBOL", "TOTAL_USDT");
-		row.put("SYMBOL_VALUE", Double.toString(totalUsdt));
-		row.put(Utils.USDT, Double.toString(totalUsdt));
+		row.put("SYMBOL", TOTAL_USDT);
+		row.put("SYMBOL_VALUE", walletInUsdt.get(TOTAL_USDT));
+		row.put(Utils.USDT, walletInUsdt.get(TOTAL_USDT));
 		rows.add(row);
 		return rows;
+	}
+	
+	public static Map<String, String> walletInSymbolUsdt(Map<String, Double> prices, Map<String, String> wallet) {
+		Map<String, String> walletUsdt = new LinkedHashMap<>();
+		double totalUsdt = 0;
+		for (Entry<String, String> entry : wallet.entrySet()) {
+			double value = Double.parseDouble(entry.getValue());
+			if (Utils.USDT.equals(entry.getKey())) {
+				totalUsdt = totalUsdt + value;
+				walletUsdt.put(Utils.USDT, entry.getValue());
+			} else {
+				String symbol = entry.getKey() + Utils.USDT;
+				Double price = prices.get(symbol);
+				if (price != null) {
+					// Some wallets have some coins that does not exist in the prices. For example in Binance: NFTUSDT or LDBNBUSDT
+					double usdt = (value * price);
+					totalUsdt = totalUsdt + usdt;
+					walletUsdt.put(symbol, Utils.format(usdt));
+				}
+			}
+		}
+		walletUsdt.put(TOTAL_USDT, Utils.format(totalUsdt));
+		return walletUsdt;
 	}
 	
 	/*
