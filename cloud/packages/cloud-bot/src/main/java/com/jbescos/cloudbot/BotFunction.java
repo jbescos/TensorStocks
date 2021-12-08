@@ -1,9 +1,7 @@
 package com.jbescos.cloudbot;
 
 import java.util.Date;
-import java.util.List;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -14,11 +12,12 @@ import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
+import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.PublicAPI;
+import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.Utils;
 
@@ -43,37 +42,29 @@ public class BotFunction implements HttpFunction {
 			CloudProperties cloudProperties = new CloudProperties(userId);
 			Client client = ClientBuilder.newClient();
 			BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
-			PublicAPI publicApi = new PublicAPI(client);
+			BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, storage);
 			SecuredAPI api = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
 			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
-			if (side != null) {
-				Action action = Action.valueOf(side) ;
-				LOGGER.info(() -> "Actively invoked " + side);
-				if (Action.SELL_PANIC == action) {
-					Date now = new Date();
-					// FIXME
-				} else {
-					String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
-					String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
-					String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
-					CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty, null) : api.orderSymbol(symbol, Action.valueOf(side), quantity, null);
-					String month = Utils.thisMonth(apiResponse.getDate());
-					if (apiResponse.getSide() == Action.SELL || apiResponse.getSide() == Action.SELL_PANIC) {
-						Broker broker = BotUtils.loadStatistics(cloudProperties, publicApi, true).stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
-						CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), apiResponse);
-						StringBuilder profitData = new StringBuilder();
-						profitData.append(row.toCsvLine());
-						storage.updateFile(cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
-					}
-					storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
-					response.getWriter().write(apiResponse.toString());
-				}
+			Action action = Action.valueOf(side) ;
+			LOGGER.info(() -> "Actively invoked " + side);
+			if (Action.SELL_PANIC == action) {
+				Date now = new Date();
+				// FIXME
 			} else {
-				List<Broker> stats = BotUtils.loadStatistics(cloudProperties, publicApi, true).stream()
-						.filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-				BotExecution bot = BotExecution.production(cloudProperties, api, storage);
-				bot.execute(stats);
-				response.getWriter().write(stats.toString());
+				String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
+				String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
+				String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
+				CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty, null) : api.orderSymbol(symbol, Action.valueOf(side), quantity, null);
+				String month = Utils.thisMonth(apiResponse.getDate());
+				if (apiResponse.getSide() == Action.SELL) {
+					Broker broker = brokerManager.loadBrokers().stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
+					CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), apiResponse);
+					StringBuilder profitData = new StringBuilder();
+					profitData.append(row.toCsvLine());
+					storage.updateFile(cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+				}
+				storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+				response.getWriter().write(apiResponse.toString());
 			}
 			response.setStatusCode(200);
 			response.setContentType("text/plain");

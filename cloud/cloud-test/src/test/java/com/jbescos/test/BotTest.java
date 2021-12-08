@@ -21,7 +21,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.cloudbot.BotExecution;
-import com.jbescos.cloudbot.BotUtils;
 import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.DateChart;
@@ -30,6 +29,7 @@ import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.Broker;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
 import com.jbescos.test.util.TestFileStorage;
@@ -101,9 +101,10 @@ public class BotTest {
     		List<CsvRow> segment = LOADER.get(previous, now);
     		Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
     		List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-    	    List<Broker> stats = BotUtils.fromCsvRows(LOADER.getCloudProperties(), segment, tx);
+    		TestFileStorage fileManager = new TestFileStorage("./target/total_", tx, segment);
+    	    List<Broker> stats = new DefaultBrokerManager(LOADER.getCloudProperties(), fileManager).loadBrokers();
     	    try {
-    	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), new TestFileStorage("./target/total_"), wallet, transactions, walletHistorical, LOADER.getCloudProperties().MIN_TRANSACTION);
+    	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, LOADER.getCloudProperties().MIN_TRANSACTION);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -155,9 +156,10 @@ public class BotTest {
     	    List<CsvRow> segment = LOADER.get(symbol, previous, now);
     	    Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
     	    List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-    	    List<Broker> stats = BotUtils.fromCsvRows(LOADER.getCloudProperties(), segment, tx);
+    	    TestFileStorage fileManager = new TestFileStorage("./target/total_", tx, segment);
     	    try {
-    	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), new TestFileStorage("./target/" + symbol + "_"), wallet, transactions, walletHistorical, MIN_TX);
+    	    	List<Broker> stats = new DefaultBrokerManager(LOADER.getCloudProperties(), fileManager).loadBrokers();
+    	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, MIN_TX);
                 trader.execute(stats);
             } catch (IOException e) {
                 e.printStackTrace();

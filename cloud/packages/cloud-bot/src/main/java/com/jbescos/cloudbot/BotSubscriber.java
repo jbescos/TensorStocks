@@ -12,13 +12,16 @@ import javax.ws.rs.client.ClientBuilder;
 
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
+import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
+import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
+import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.Utils;
@@ -40,18 +43,20 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         long time = publicAPI.time();
         LOGGER.info(() -> "Server time is: " + time);
         Date now = new Date(time);
-        BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
+        Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
+        BucketStorage bucketStorage = new BucketStorage(cloudProperties, storage);
+        BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
-        List<Broker> stats = BotUtils.loadStatistics(cloudProperties, publicAPI, false).stream()
+        List<Broker> stats = brokerManager.loadBrokers().stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
-        BotExecution bot = BotExecution.production(cloudProperties, securedApi, storage);
+        BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage);
         bot.execute(stats);
         // Update wallet in case the exchange supports it
         if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
 	        Map<String, String> wallet = securedApi.wallet();
 	        Map<String, Double> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
 	        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
-	        storage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
         }
         client.close();
     }

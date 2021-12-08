@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
@@ -26,7 +27,7 @@ import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 
-public class BucketStorage implements FileUpdater {
+public class BucketStorage implements FileManager {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
 	private final Storage storage;
@@ -101,6 +102,49 @@ public class BucketStorage implements FileUpdater {
 	
 	public Page<Blob> list(String bucket) {
 		return storage.list(bucket, BlobListOption.currentDirectory());
+	}
+
+	@Override
+	public List<CsvTransactionRow> loadTransactions() throws IOException {
+		List<CsvTransactionRow> transactions = new ArrayList<>();
+		List<String> months = Utils.monthsBack(new Date(), cloudProperties.BOT_MONTHS_BACK_TRANSACTIONS, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+		Page<Blob> transactionFiles = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
+		for (Blob transactionFile : transactionFiles.iterateAll()) {
+		    if (months.contains(transactionFile.getName())) {
+		        try (ReadChannel readChannel = transactionFile.reader();
+                        BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+                    List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
+                    transactions.addAll(csv);
+                }
+		    }
+		}
+		LOGGER.info(() -> "Transactions loaded: " + transactions.size() + " from " + months);
+		return transactions;
+	}
+
+	@Override
+	public List<CsvRow> loadPreviousRows() throws IOException {
+		// Get 1 day more and compare dates later
+		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data" + cloudProperties.USER_EXCHANGE.getFolder(), ".csv");
+		List<CsvRow> rows = new ArrayList<>();
+		Date now = new Date();
+		Date from = Utils.getHoursOfDaysBack(now, cloudProperties.BOT_HOURS_BACK_STATISTICS);
+		List<CsvRow> csvInDay = null;
+		for (String day : days) {
+			try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, day);
+					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+				csvInDay = CsvUtil.readCsvRows(true, ",", reader, cloudProperties.BOT_WHITE_LIST_SYMBOLS);
+				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime())
+						.collect(Collectors.toList());
+				rows.addAll(csvInDay);
+				LOGGER.info("Loaded " + csvInDay.size() + " rows from " + day);
+			}
+		}
+		if (!rows.isEmpty()) {
+			LOGGER.info(() -> "Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to "
+					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
+		}
+		return rows;
 	}
 
 }

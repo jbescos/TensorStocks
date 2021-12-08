@@ -7,15 +7,22 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.List;
 
-import com.jbescos.common.FileUpdater;
+import com.jbescos.common.CsvRow;
+import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.FileManager;
 
-public class TestFileStorage implements FileUpdater {
+public class TestFileStorage implements FileManager {
 
 	private final String filePath;
+	private final List<CsvTransactionRow> transactions;
+	private final List<CsvRow> previousRows;
 	
-	public TestFileStorage(String filePath) {
+	public TestFileStorage(String filePath, List<CsvTransactionRow> transactions, List<CsvRow> previousRows) {
 		this.filePath = filePath;
+		this.transactions = transactions;
+		this.previousRows = previousRows;
 	}
 	
 	@Override
@@ -27,6 +34,16 @@ public class TestFileStorage implements FileUpdater {
 		}
 		Files.write(path, content, StandardOpenOption.APPEND);
 		return file.getAbsolutePath();
+	}
+
+	@Override
+	public List<CsvTransactionRow> loadTransactions() throws IOException {
+		return transactions;
+	}
+
+	@Override
+	public List<CsvRow> loadPreviousRows() throws IOException {
+		return previousRows;
 	}
 
 }
