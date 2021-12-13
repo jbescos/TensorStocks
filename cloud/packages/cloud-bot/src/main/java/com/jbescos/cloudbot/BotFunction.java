@@ -19,6 +19,7 @@ import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.SecuredAPI;
+import com.jbescos.common.SellPanicBrokerManager;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
@@ -42,15 +43,17 @@ public class BotFunction implements HttpFunction {
 			CloudProperties cloudProperties = new CloudProperties(userId);
 			Client client = ClientBuilder.newClient();
 			BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
-			BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, storage);
+			BrokerManager brokerManager;
 			SecuredAPI api = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
 			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
 			Action action = Action.valueOf(side) ;
 			LOGGER.info(() -> "Actively invoked " + side);
 			if (Action.SELL_PANIC == action) {
-				Date now = new Date();
-				// FIXME
+			    brokerManager = new SellPanicBrokerManager(cloudProperties, storage);
+			    BotExecution bot = BotExecution.production(cloudProperties, api, storage);
+		        bot.execute(brokerManager.loadBrokers());
 			} else {
+			    brokerManager = new DefaultBrokerManager(cloudProperties, storage);
 				String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 				String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
 				String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
