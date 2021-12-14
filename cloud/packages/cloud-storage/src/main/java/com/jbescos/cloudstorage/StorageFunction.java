@@ -48,12 +48,16 @@ public class StorageFunction implements HttpFunction {
 				String userId = blob.getName().replaceAll("/", "");
 				try {
 					CloudProperties user = new CloudProperties(userId);
-					List<String> usersByFolder = groupedFolder.get(user.USER_EXCHANGE.getFolder());
-					if (usersByFolder == null) {
-						usersByFolder = new ArrayList<>();
-						groupedFolder.put(user.USER_EXCHANGE.getFolder(), usersByFolder);
+					if (user.USER_ACTIVE) {
+    					List<String> usersByFolder = groupedFolder.get(user.USER_EXCHANGE.getFolder());
+    					if (usersByFolder == null) {
+    						usersByFolder = new ArrayList<>();
+    						groupedFolder.put(user.USER_EXCHANGE.getFolder(), usersByFolder);
+    					}
+    					usersByFolder.add(userId);
+					} else {
+					    LOGGER.log(Level.WARNING, userId + " is not active. Skipping notifications.");
 					}
-					usersByFolder.add(userId);
 				} catch (Exception e) {
 					LOGGER.log(Level.SEVERE, "Cannot load user " + userId, e);
 				}

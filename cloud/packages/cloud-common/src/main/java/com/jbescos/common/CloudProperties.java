@@ -37,7 +37,7 @@ public class CloudProperties {
     public final String USER_ID;
     public final String EMAIL;
     public final String BROKER_COMMISSION;
-    private final boolean USER_ACTIVE;
+    public final boolean USER_ACTIVE;
     private final String PROPERTIES_FILE = "cloud.properties";
     public final String GOOGLE_TOPIC_ID;
     public final String PROJECT_ID;
@@ -121,9 +121,6 @@ public class CloudProperties {
             throw new IllegalStateException("Cannot load properties file", e);
         }
         USER_ACTIVE = Boolean.valueOf(getProperty("user.active"));
-        if (!USER_ACTIVE) {
-            throw new IllegalStateException("User ID " + USER_ID + " is not active");
-        }
         EMAIL = getProperty("user.email");
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
         USER_EXCHANGE = Exchange.valueOf(getProperty("user.exchange"));

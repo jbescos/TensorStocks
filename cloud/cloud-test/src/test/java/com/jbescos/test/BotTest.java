@@ -37,12 +37,12 @@ import com.jbescos.test.util.TestFileStorage;
 public class BotTest {
 
 	// Binance test
-	private static final String START_DATE ="2021-05-20";
-    private static final String USER_ID ="binance";
+//	private static final String START_DATE ="2021-05-20";
+//  private static final String USER_ID ="binance";
     
 	// Kucoin test
-//	private static final String START_DATE ="2021-10-25";
-//  private static final String USER_ID ="kucoin";
+	private static final String START_DATE ="2021-10-25";
+    private static final String USER_ID ="kucoin";
    
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
     private static final long HOURS_MILLIS = 3600 * 1000;
