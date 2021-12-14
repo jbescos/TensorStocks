@@ -23,6 +23,11 @@ public interface Broker {
             public String side() {
                 return "SELL";
             }
+        }, SELL_PANIC {
+            @Override
+            public String side() {
+                return "SELL";
+            }
         }, NOTHING {
             @Override
             public String side() {

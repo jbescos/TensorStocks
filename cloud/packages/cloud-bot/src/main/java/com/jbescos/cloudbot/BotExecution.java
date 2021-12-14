@@ -41,7 +41,7 @@ public class BotExecution {
 			LOGGER.info(() -> "Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
 				buy(stat.getSymbol(), stat);
-			} else if (stat.getAction() == Action.SELL) {
+			} else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 				sell(stat.getSymbol(), stat);
 			}
 		}
@@ -166,7 +166,7 @@ public class BotExecution {
 		    CsvTransactionRow transaction = null;
 			try {
 				double currentUsdtPrice = stat.getNewest().getPrice();
-				if (stat.getAction() == Action.SELL) {
+				if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 					String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 					// FIXME Sell only what was bought before to avoid selling external user purchases
 					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol), currentUsdtPrice);
@@ -200,7 +200,7 @@ public class BotExecution {
                     LOGGER.log(Level.SEVERE, "Cannot save " + transactionsCsv + ": " + data, e);
                 }
 		        StringBuilder profitData = new StringBuilder();
-		        transactions.stream().filter(tx -> tx.getSide() == Action.SELL).forEach(tx -> {
+		        transactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
 		        	for (Broker broker : stats) {
 		        		if (tx.getSymbol().equals(broker.getSymbol())) {
 		        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
@@ -301,7 +301,7 @@ public class BotExecution {
 					newTransactions.stream().forEach(r -> data.append(r.toCsvLine()));
 					storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					StringBuilder profitData = new StringBuilder();
-					newTransactions.stream().filter(tx -> tx.getSide() == Action.SELL).forEach(tx -> {
+					newTransactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
 			        	for (Broker broker : stats) {
 			        		if (tx.getSymbol().equals(broker.getSymbol())) {
 			        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);

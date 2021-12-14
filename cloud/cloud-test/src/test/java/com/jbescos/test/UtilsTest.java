@@ -164,6 +164,26 @@ public class UtilsTest {
 	}
 	
 	@Test
+	public void isPanicSellInDays() {
+	    Date dateLimit = Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:00:01");
+	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-02 00:00:00", Action.SELL_PANIC, "1", "1")), dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, "1", "1")), dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(
+	            createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, "1", "1"),
+	            createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, "1", "1"))
+	            , dateLimit));
+	    assertFalse(Utils.isPanicSellInDays(Arrays.asList(
+	            createCsvTransactionRow("2021-04-30 00:00:00", Action.BUY, "1", "1"),
+                createCsvTransactionRow("2021-05-01 00:00:00", Action.SELL_PANIC, "1", "1"),
+                createCsvTransactionRow("2021-05-02 00:00:00", Action.BUY, "1", "1"))
+                , dateLimit));
+	    assertTrue(Utils.isPanicSellInDays(Arrays.asList(
+                createCsvTransactionRow("2021-05-05 00:00:00", Action.BUY, "1", "1"),
+                createCsvTransactionRow("2021-05-05 00:00:01", Action.SELL_PANIC, "1", "1"))
+                , dateLimit));
+	}
+	
+	@Test
 	public void inPercentile() {
 	    assertTrue(Utils.inPercentile(0.9, 0.95, 0, 1));
 	    assertFalse(Utils.inPercentile(0.9, 0.89, 0, 1));

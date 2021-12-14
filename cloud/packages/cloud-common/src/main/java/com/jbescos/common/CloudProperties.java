@@ -67,11 +67,14 @@ public class CloudProperties {
     public final double EWMA_CONSTANT;
     public final double EWMA_2_CONSTANT;
     public final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
+    public final boolean PANIC_BROKER_ENABLE;
     public final boolean LIMITS_BROKER_ENABLE;
     public final double BOT_MAX_PROFIT_SELL;
+    public final double BOT_PANIC_RATIO;
     public final double BOT_MIN_PROFIT_SELL;
     public final double BOT_PROFIT_DAYS_SUBSTRACTOR;
     public final double BOT_LOWEST_ALLOWED_PROFIT_SELL;
+    public final int BOT_PANIC_DAYS;
     public final int MAX_OPEN_POSITIONS;
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
     public final Map<String, FixedBuySell> FIXED_BUY_SELL;
@@ -152,7 +155,10 @@ public class CloudProperties {
         BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(getProperty("bot.buy.ignore.factor.reducer"));
         BOT_MAX_PROFIT_SELL = Double.parseDouble(getProperty("bot.max.profit.sell"));
         BOT_MIN_PROFIT_SELL = Double.parseDouble(getProperty("bot.min.profit.sell"));
+        BOT_PANIC_RATIO = Double.parseDouble(getProperty("bot.panic.ratio"));
+        BOT_PANIC_DAYS = Integer.parseInt(getProperty("bot.panic.days"));
         MAX_OPEN_POSITIONS = Integer.parseInt(getProperty("bot.max.open.positions"));
+        PANIC_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.panic.enable"));
         LIMITS_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.limits.enable"));
         BOT_LOWEST_ALLOWED_PROFIT_SELL = Double.parseDouble(getProperty("bot.lowest.allowed.profit.sell"));
         BOT_PROFIT_DAYS_SUBSTRACTOR = Double.parseDouble(getProperty("bot.profit.days.substractor"));
