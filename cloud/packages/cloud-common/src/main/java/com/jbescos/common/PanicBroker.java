@@ -18,7 +18,7 @@ public class PanicBroker implements Broker {
 
 	@Override
 	public Action getAction() {
-		return Action.SELL_PANIC;
+		return Action.SELL;
 	}
 
 	@Override
@@ -41,11 +41,4 @@ public class PanicBroker implements Broker {
 		return summary;
 	}
 
-	public static boolean isPanic(CloudProperties cloudProperties, CsvRow newest, double minProfitableSellPrice) {
-		if (newest.getPrice() < minProfitableSellPrice) {
-			double factor = 1 - (newest.getPrice() / minProfitableSellPrice);
-			return factor > cloudProperties.BOT_PANIC_RATIO;
-		}
-		return false;
-	}
 }

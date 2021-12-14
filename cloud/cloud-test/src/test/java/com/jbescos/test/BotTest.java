@@ -86,7 +86,6 @@ public class BotTest {
     }
 
 	@Test
-	@Ignore
     public void allTogether() throws IOException {
 		final double INITIAL_USDT = 1000;
 		Map<String, Double> wallet = new HashMap<>();
@@ -132,6 +131,7 @@ public class BotTest {
 	}
 
     @Test
+    @Ignore
     public void separately() throws IOException {
         LOADER.symbols().parallelStream().forEach(symbol -> {
             CsvRow first = LOADER.first(symbol);

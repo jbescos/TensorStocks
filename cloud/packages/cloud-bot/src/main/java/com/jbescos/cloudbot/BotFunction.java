@@ -1,6 +1,5 @@
 package com.jbescos.cloudbot;
 
-import java.util.Date;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
@@ -26,6 +25,7 @@ import com.jbescos.common.Utils;
 public class BotFunction implements HttpFunction {
 
 	private static final Logger LOGGER = Logger.getLogger(BotFunction.class.getName());
+	private static final String SELL_PANIC = "SELL_PANIC";
 	private static final String USER_ID_PARAM = "userId";
 	private static final String SIDE_PARAM = "side";
 	private static final String SYMBOL_PARAM = "symbol";
@@ -46,9 +46,8 @@ public class BotFunction implements HttpFunction {
 			BrokerManager brokerManager;
 			SecuredAPI api = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
 			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());
-			Action action = Action.valueOf(side) ;
 			LOGGER.info(() -> "Actively invoked " + side);
-			if (Action.SELL_PANIC == action) {
+			if (SELL_PANIC.equals(side)) {
 			    brokerManager = new SellPanicBrokerManager(cloudProperties, storage);
 			    BotExecution bot = BotExecution.production(cloudProperties, api, storage);
 		        bot.execute(brokerManager.loadBrokers());

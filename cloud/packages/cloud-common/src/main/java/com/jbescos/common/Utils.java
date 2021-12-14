@@ -194,22 +194,6 @@ public class Utils {
 		return new TransactionsSummary(hasTransactions, minProfitable, lowestPurchase, lastPurchase, buys, sells);
 	}
 	
-	public static boolean isPanicSellInDays(List<CsvTransactionRow> previousTransactions, Date deadLine) {
-	    if (previousTransactions == null || previousTransactions.isEmpty()) {
-            return false;
-        } else {
-            for (int i = previousTransactions.size() - 1; i >= 0; i--) {
-                CsvTransactionRow tx = previousTransactions.get(i);
-                if (deadLine.getTime() > tx.getDate().getTime()) {
-                    return false;
-                } else if (tx.getSide() == Action.SELL_PANIC) {
-                    return true;
-                }
-            }
-        }
-	    return false;
-	}
-	
 	public static List<Map<String, String>> userUsdt(Date now, Map<String, Double> prices, Map<String, String> wallet) {
 		Map<String, String> walletInUsdt = walletInSymbolUsdt(prices, wallet);
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);

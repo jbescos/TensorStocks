@@ -40,7 +40,6 @@ public class BarChart implements IChart<IRow> {
 				walletPrice = 0.0;
 			}
 			String label = first.getLabel();
-			label = label.replaceAll(Action.SELL_PANIC.name(), Action.SELL.name());
 			if (first.getSide() == Action.BUY) {
                 dataset.addValue(sum, "SUM_" + label, symbol);
             } else {
