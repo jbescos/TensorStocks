@@ -8,17 +8,18 @@ public class PanicBroker implements Broker {
 	private final String symbol;
 	private final CsvRow newest;
 	private final TransactionsSummary summary;
+	private final Action action;
 
-	public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary) {
+	public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, Action action) {
 		this.symbol = symbol;
 		this.newest = newest;
 		this.summary = summary;
-		LOGGER.warning(() -> symbol + " selling because of panic. Current price is " + Utils.format(newest.getPrice()) + " USDT and the min profitable is " +  Utils.format(summary.getMinProfitable()) + " USDT");
+		this.action = action;
 	}
 
 	@Override
 	public Action getAction() {
-		return Action.SELL_PANIC;
+		return action;
 	}
 
 	@Override
@@ -41,11 +42,4 @@ public class PanicBroker implements Broker {
 		return summary;
 	}
 
-	public static boolean isPanic(CloudProperties cloudProperties, CsvRow newest, double minProfitableSellPrice) {
-		if (newest.getPrice() < minProfitableSellPrice) {
-			double factor = 1 - (newest.getPrice() / minProfitableSellPrice);
-			return factor > cloudProperties.BOT_PANIC_RATIO;
-		}
-		return false;
-	}
 }

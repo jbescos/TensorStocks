@@ -19,6 +19,7 @@ public class DefaultBrokerManager implements BrokerManager {
 	private static final Logger LOGGER = Logger.getLogger(DefaultBrokerManager.class.getName());
 	private final CloudProperties cloudProperties;
 	private final FileManager fileManager;
+	private boolean panicPeriod;
 	
 	public DefaultBrokerManager(CloudProperties cloudProperties, FileManager fileManager) {
 		this.cloudProperties = cloudProperties;
@@ -29,26 +30,54 @@ public class DefaultBrokerManager implements BrokerManager {
 	public List<Broker> loadBrokers() throws IOException {
 		List<CsvTransactionRow> transactions = fileManager.loadTransactions();
 		List<CsvRow> lastData = fileManager.loadPreviousRows();
-		Map<String, Broker> minMax = new LinkedHashMap<>();
 		Map<String, List<CsvRow>> grouped = lastData.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
-		Date deadLine = Utils.getDateOfDaysBack(new Date(), cloudProperties.BOT_PANIC_DAYS);
+		panicPeriod = false;
+		if (cloudProperties.PANIC_BROKER_ENABLE) {
+			Date deadLine = Utils.getDateOfDaysBack(lastData.get(lastData.size() - 1).getDate(), cloudProperties.BOT_PANIC_DAYS);
+			for (Entry<String, List<CsvTransactionRow>> entry : groupedTransactions.entrySet()) {
+				if (Utils.isPanicSellInDays(entry.getValue(), deadLine)) {
+					panicPeriod = true;
+					LOGGER.warning("It is in panic period till " + Utils.fromDate(Utils.FORMAT_SECOND, deadLine));
+					break;
+				}
+			}
+		}
+		Map<String, Broker> minMax = new LinkedHashMap<>();
 		Map<String, String> benefits = new HashMap<>();
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
-			if (!Utils.isPanicSellInDays(symbolTransactions, deadLine)) {
-    			if (symbolTransactions != null) {
-    				symbolTransactions = filterLastBuys(symbolTransactions);
-    			}
-    			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions, benefits));
-			} else {
-			    LOGGER.info(() -> entry.getKey() + " skipped because there was a SELL_PANIC recently");
+			if (symbolTransactions != null) {
+				symbolTransactions = filterLastBuys(symbolTransactions);
 			}
+			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions, benefits));
 		}
 		LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
-		return minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
+		List<Broker> brokers = minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
 				.collect(Collectors.toList());
+		if (startPanicPeriod(grouped)) {
+			return new SellPanicBrokerManager(cloudProperties, fileManager).loadBrokers(brokers, Action.SELL_PANIC);
+		} else {
+			return brokers;
+		}
+	}
+	
+	private boolean startPanicPeriod(Map<String, List<CsvRow>> grouped) {
+		if (cloudProperties.PANIC_BROKER_ENABLE) {
+			String btcSymbol = "BTC" + Utils.USDT;
+			List<CsvRow> btcRows = grouped.get(btcSymbol);
+			if (btcRows == null) {
+				LOGGER.warning("BTC is not in the white list. It is important to evaluate the panic in the market");
+			} else {
+				CautelousBroker btc = new CautelousBroker(cloudProperties, btcSymbol, btcRows);
+				if (btc.getFactor() >= cloudProperties.BOT_PANIC_RATIO && btc.inPercentileMin()) {
+					LOGGER.warning(btc.getNewest() + ": BTC is too low, selling everything and starting panic period of " + cloudProperties.BOT_PANIC_DAYS + " days");
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 	
 	private Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions, Map<String, String> benefits) {
@@ -60,10 +89,8 @@ public class DefaultBrokerManager implements BrokerManager {
 		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
 	    if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuySell != null) {
 		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell, summary);
-	    } else if (cloudProperties.PANIC_BROKER_ENABLE && PanicBroker.isPanic(cloudProperties, newest, summary.getMinProfitable())) {
-			return new PanicBroker(symbol, newest, summary);
-		} else {
-			return new CautelousBroker(cloudProperties, symbol, rows, summary);
+	    } else {
+			return new CautelousBroker(cloudProperties, symbol, rows, summary, panicPeriod);
 		}
 	}
 

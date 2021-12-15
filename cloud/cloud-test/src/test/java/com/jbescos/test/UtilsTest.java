@@ -251,8 +251,8 @@ public class UtilsTest {
 	
 	@Test
 	public void getHoursOfDaysBack() {
-		assertEquals("2021-04-30 22:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getHoursOfDaysBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), 2)));
-		assertEquals("2021-05-06 00:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getHoursOfDaysBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-08 00:46:01"), 48)));
+		assertEquals("2021-04-30 22:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getDateOfHoursBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), 2)));
+		assertEquals("2021-05-06 00:46:01", Utils.fromDate(Utils.FORMAT_SECOND, Utils.getDateOfHoursBack(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-08 00:46:01"), 48)));
 	}
 
 	@Test

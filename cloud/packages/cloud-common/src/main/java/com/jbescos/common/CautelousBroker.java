@@ -21,8 +21,11 @@ public class CautelousBroker implements Broker {
     private final Date lastPurchase;
     private final TransactionsSummary summary;
     private final CloudProperties cloudProperties;
+    private final boolean percentileMin;
+    private final boolean panicPeriod;
 
-    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, TransactionsSummary summary) {
+    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, TransactionsSummary summary, boolean panicPeriod) {
+    	this.panicPeriod = panicPeriod;
     	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
@@ -38,11 +41,13 @@ public class CautelousBroker implements Broker {
         this.hasPreviousTransactions = summary.isHasTransactions();
         this.minProfitableSellPrice = summary.getMinProfitable();
         this.lastPurchase = summary.getLastPurchase();
+        double percentileMin = ((avg - min.getPrice()) * cloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
+        this.percentileMin = newest.getPrice() < percentileMin;
         this.action = evaluate(newest.getPrice(), values);
     }
     
     public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
-        this(cloudProperties, symbol, values, new TransactionsSummary(false, 0, Double.MAX_VALUE, null, Collections.emptyList(), Collections.emptyList()));
+        this(cloudProperties, symbol, values, new TransactionsSummary(false, 0, Double.MAX_VALUE, null, Collections.emptyList(), Collections.emptyList()), false);
     }
     
     public CsvRow getMin() {
@@ -82,6 +87,10 @@ public class CautelousBroker implements Broker {
 		return summary;
 	}
 
+	public boolean inPercentileMin() {
+		return percentileMin;
+	}
+	
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
@@ -89,12 +98,11 @@ public class CautelousBroker implements Broker {
             action = Action.SELL;
         } else {
             if (price < avg) {
-                double comparedFactor = cloudProperties.BOT_MIN_MAX_RELATION_BUY;
+                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : cloudProperties.BOT_MIN_MAX_RELATION_BUY;
                 if (!hasPreviousTransactions || (hasPreviousTransactions && price < summary.getLowestPurchase())) {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
-                            double percentileMin = ((avg - min.getPrice()) * cloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
-                            if (price < percentileMin) {
+                            if (percentileMin) {
                             	if (summary.getPreviousBuys() == null || summary.getPreviousBuys().size() <= cloudProperties.MAX_OPEN_POSITIONS) {
                             		action = Action.BUY;
                             	}

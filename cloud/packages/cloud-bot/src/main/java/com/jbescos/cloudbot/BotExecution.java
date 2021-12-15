@@ -317,7 +317,6 @@ public class BotExecution {
                     LOGGER.log(Level.SEVERE, "Cannot save csv ", e);
                 }
 			}
-
 		}
 		
 	}

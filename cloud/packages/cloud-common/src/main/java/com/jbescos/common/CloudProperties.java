@@ -70,6 +70,7 @@ public class CloudProperties {
     public final boolean PANIC_BROKER_ENABLE;
     public final boolean LIMITS_BROKER_ENABLE;
     public final double BOT_MAX_PROFIT_SELL;
+    public final double BOT_PANIC_FACTOR;
     public final double BOT_PANIC_RATIO;
     public final double BOT_MIN_PROFIT_SELL;
     public final double BOT_PROFIT_DAYS_SUBSTRACTOR;
@@ -156,6 +157,7 @@ public class CloudProperties {
         BOT_MAX_PROFIT_SELL = Double.parseDouble(getProperty("bot.max.profit.sell"));
         BOT_MIN_PROFIT_SELL = Double.parseDouble(getProperty("bot.min.profit.sell"));
         BOT_PANIC_RATIO = Double.parseDouble(getProperty("bot.panic.ratio"));
+        BOT_PANIC_FACTOR = Double.parseDouble(getProperty("bot.panic.factor"));
         BOT_PANIC_DAYS = Integer.parseInt(getProperty("bot.panic.days"));
         MAX_OPEN_POSITIONS = Integer.parseInt(getProperty("bot.max.open.positions"));
         PANIC_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.panic.enable"));

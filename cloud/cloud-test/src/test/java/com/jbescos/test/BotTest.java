@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +22,6 @@ import org.junit.Test;
 import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
-import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.Broker;
@@ -46,13 +44,10 @@ public class BotTest {
    
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
     private static final long HOURS_MILLIS = 3600 * 1000;
-    private static final long DAY_MILLIS = HOURS_MILLIS * 24;
-    private static final long MONTH_MILLIS = DAY_MILLIS * 30;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
     private static final int TOP = 250;
     private static final DataLoader LOADER = new DataLoader(USER_ID);
     private static long HOURS_BACK_MILLIS = LOADER.getCloudProperties().BOT_HOURS_BACK_STATISTICS * HOURS_MILLIS;
-    private static long TRANSACTIONS_BACK_MILLIS = LOADER.getCloudProperties().BOT_MONTHS_BACK_TRANSACTIONS * MONTH_MILLIS;
     
     @BeforeClass
     public static void beforeClass() throws IOException {
@@ -86,7 +81,6 @@ public class BotTest {
     }
 
 	@Test
-	@Ignore
     public void allTogether() throws IOException {
 		final double INITIAL_USDT = 1000;
 		Map<String, Double> wallet = new HashMap<>();
@@ -99,9 +93,7 @@ public class BotTest {
     	while (now <= last) {
     		long previous = now - HOURS_BACK_MILLIS;
     		List<CsvRow> segment = LOADER.get(previous, now);
-    		Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
-    		List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-    		TestFileStorage fileManager = new TestFileStorage("./target/total_", tx, segment);
+    		TestFileStorage fileManager = new TestFileStorage("./target/total_", transactions, segment);
     	    List<Broker> stats = new DefaultBrokerManager(LOADER.getCloudProperties(), fileManager).loadBrokers();
     	    try {
     	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, LOADER.getCloudProperties().MIN_TRANSACTION);
@@ -125,13 +117,14 @@ public class BotTest {
     	LOGGER.info(() -> ((totalPrice * 100) / INITIAL_USDT) + "%, " + Utils.format(totalPrice) + " " + Utils.USDT);
     	File chartFile = new File("./target/total.png");
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
-        	IChart<IRow> chart = new DateChart();
+        	IChart<IRow> chart = new XYChart();
         	ChartGenerator.writeChart(walletHistorical, output, chart);
             ChartGenerator.save(output, chart);
         }
 	}
 
     @Test
+    @Ignore
     public void separately() throws IOException {
         LOADER.symbols().parallelStream().forEach(symbol -> {
             CsvRow first = LOADER.first(symbol);
@@ -154,9 +147,7 @@ public class BotTest {
     	while (now <= last) {
     	    long previous = now - HOURS_BACK_MILLIS;
     	    List<CsvRow> segment = LOADER.get(symbol, previous, now);
-    	    Date fromTx = new Date(now - TRANSACTIONS_BACK_MILLIS);
-    	    List<CsvTransactionRow> tx = transactions.stream().filter(row -> row.getDate().getTime() >= fromTx.getTime()).collect(Collectors.toList());
-    	    TestFileStorage fileManager = new TestFileStorage("./target/total_", tx, segment);
+    	    TestFileStorage fileManager = new TestFileStorage("./target/total_", transactions, segment);
     	    try {
     	    	List<Broker> stats = new DefaultBrokerManager(LOADER.getCloudProperties(), fileManager).loadBrokers();
     	    	BotExecution trader = BotExecution.test(LOADER.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, MIN_TX);

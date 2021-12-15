@@ -128,7 +128,7 @@ public class BucketStorage implements FileManager {
 		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data" + cloudProperties.USER_EXCHANGE.getFolder(), ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
-		Date from = Utils.getHoursOfDaysBack(now, cloudProperties.BOT_HOURS_BACK_STATISTICS);
+		Date from = Utils.getDateOfHoursBack(now, cloudProperties.BOT_HOURS_BACK_STATISTICS);
 		List<CsvRow> csvInDay = null;
 		for (String day : days) {
 			try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, day);
