@@ -20,6 +20,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.jbescos.common.Broker.Action;
@@ -165,23 +166,27 @@ public class Utils {
 				} else if (!symbol.equals(transaction.getSymbol())) {
 					throw new IllegalArgumentException("Every CsvAccountRow must contain the same symbol. It was found " + symbol + " and " + transaction.getSymbol());
 				}
-				double quantity = Double.parseDouble(transaction.getQuantity());
-				double usdt = Double.parseDouble(transaction.getUsdt());
-				if (transaction.getSide() == Action.BUY) {
-					if (lastPurchase == null) {
-						lastPurchase = transaction.getDate();
+				try {
+					double quantity = Double.parseDouble(transaction.getQuantity());
+					double usdt = Double.parseDouble(transaction.getUsdt());
+					if (transaction.getSide() == Action.BUY) {
+						if (lastPurchase == null) {
+							lastPurchase = transaction.getDate();
+						}
+						double usdtUnit = usdt / quantity;
+						if (usdtUnit < lowestPurchase) {
+						    lowestPurchase = usdtUnit;
+						}
+						totalQuantity = totalQuantity + quantity;
+						accumulated = accumulated + usdt;
+						buys.add(transaction);
+					} else {
+						accumulated = accumulated - usdt;
+						totalQuantity = totalQuantity - quantity;
+						sells.add(transaction);
 					}
-					double usdtUnit = usdt / quantity;
-					if (usdtUnit < lowestPurchase) {
-					    lowestPurchase = usdtUnit;
-					}
-					totalQuantity = totalQuantity + quantity;
-					accumulated = accumulated + usdt;
-					buys.add(transaction);
-				} else {
-					accumulated = accumulated - usdt;
-					totalQuantity = totalQuantity - quantity;
-					sells.add(transaction);
+				} catch (NumberFormatException e) {
+					LOGGER.log(Level.SEVERE, "Wrong transaction detected, find it and remove it from the csv " + transaction, e);
 				}
 			}
 			if (totalQuantity > 0) {

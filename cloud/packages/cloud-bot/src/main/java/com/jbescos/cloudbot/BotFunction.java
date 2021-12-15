@@ -1,6 +1,5 @@
 package com.jbescos.cloudbot;
 
-import java.util.Date;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
