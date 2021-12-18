@@ -119,7 +119,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     	CsvTransactionRow transaction = null;
     	if (action == Action.BUY) {
     		double quoteOrderQtyD = Double.parseDouble(quoteOrderQty);
-    		transaction = buy(symbol, quoteOrderQtyD / Double.parseDouble(DEFAULT_WALLET_CONTENT));
+    		transaction = buy(symbol, quoteOrderQtyD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
         } else {
         	transaction = sell(symbol, action);
         }
@@ -131,14 +131,14 @@ public class SecuredMizarAPI implements SecuredAPI {
     	CsvTransactionRow transaction = null;
     	if (action == Action.BUY) {
     		double quantityD = Double.parseDouble(quantity);
-    		transaction = buy(symbol, quantityD / Double.parseDouble(DEFAULT_WALLET_CONTENT));
+    		transaction = buy(symbol, quantityD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
         } else {
         	transaction = sell(symbol, action);
         }
         return transaction;
     }
     
-    private CsvTransactionRow buy(String symbol, double factor) {
+    private CsvTransactionRow buy(String symbol, double factor, Double currentUsdtPrice) {
     	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
     		throw new IllegalStateException("For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
@@ -148,7 +148,12 @@ public class SecuredMizarAPI implements SecuredAPI {
     	String asset = symbol.replaceFirst(Utils.USDT, "");
     	double usdtToBuy = cloudProperties.LIMIT_TRANSACTION_AMOUNT * factor;
     	OpenPositionResponse open = openPosition(asset, Utils.USDT, factor);
-    	double quantity = Utils.symbolValue(usdtToBuy, Double.parseDouble(open.open_price));
+    	Double currentPrice = Double.parseDouble(open.open_price);
+    	if (currentUsdtPrice != null && (currentPrice.isNaN() || currentPrice.isInfinite() || currentPrice == 0)) {
+    		LOGGER.warning("Current open price from Mizar is not a valid number in " + open + ". Taking our value of " + Utils.format(currentUsdtPrice));
+    		currentPrice = currentUsdtPrice;
+    	}
+    	double quantity = Utils.symbolValue(usdtToBuy, currentPrice);
     	CsvTransactionRow transaction = new CsvTransactionRow(new Date(open.open_timestamp), Integer.toString(open.position_id), Action.BUY, symbol, Utils.format(usdtToBuy), Utils.format(quantity), Double.parseDouble(open.open_price));
     	return transaction;
     }
