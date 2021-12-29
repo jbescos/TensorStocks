@@ -5,9 +5,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,15 +39,30 @@ public class BotExecution {
 	}
 	
 	public void execute(List<Broker> stats) throws IOException  {
+		int purchases = 0;
+		Set<String> openSymbolPositions = openPositionSymbols(stats);
 		for (Broker stat : stats) {
 			LOGGER.info(() -> "Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
-				buy(stat.getSymbol(), stat);
+				if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
+					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() <= cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
+						buy(stat.getSymbol(), stat);
+						openSymbolPositions.add(stat.getSymbol());
+					}
+				}
+				purchases++;
 			} else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
 				sell(stat.getSymbol(), stat);
+				openSymbolPositions.remove(stat.getSymbol());
 			}
 		}
 		connectAPI.postActions(stats);
+	}
+	
+	private Set<String> openPositionSymbols(List<Broker> stats){
+		Set<String> openSymbols = new HashSet<>();
+		stats.stream().filter(broker -> broker.getPreviousTransactions().isHasTransactions()).forEach(broker -> openSymbols.add(broker.getSymbol()));
+		return openSymbols;
 	}
 	
 	private void buy(String symbol, Broker stat) throws FileNotFoundException, IOException {

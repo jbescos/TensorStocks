@@ -7,15 +7,18 @@ import static org.junit.Assert.assertTrue;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
 
+import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvProfitRow;
+import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.TransactionsSummary;
@@ -316,6 +319,29 @@ public class UtilsTest {
 		assertEquals("102335.59", userWallet.get("SYMBOL_VALUE"));
 		assertEquals("102335.59", userWallet.get(Utils.USDT));
 	}
+	
+	@Test
+	public void sortBrokers() {
+		Map<String, Broker> brokers = new HashMap<>();
+		TestBroker a = new TestBroker(Action.SELL, 0.1, true);
+		TestBroker b = new TestBroker(Action.SELL, 0.2, true);
+		brokers.put("a", a);
+		brokers.put("b", b);
+		assertEquals(Arrays.asList(b, a), Utils.sortBrokers(brokers));
+		brokers.clear();
+		a = new TestBroker(Action.SELL, 0.1, true);
+		b = new TestBroker(Action.SELL, 0.2, false);
+		brokers.put("a", a);
+		brokers.put("b", b);
+		assertEquals(Arrays.asList(a, b), Utils.sortBrokers(brokers));
+		brokers.clear();
+		a = new TestBroker(Action.SELL, 0.1, false);
+		b = new TestBroker(Action.SELL, 0.2, false);
+		brokers.put("a", a);
+		brokers.put("b", b);
+		assertEquals(Arrays.asList(b, a), Utils.sortBrokers(brokers));
+		brokers.clear();
+	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
@@ -324,5 +350,44 @@ public class UtilsTest {
     private CsvTransactionRow createCsvTransactionRow(String date, Action side, String usdt, String quantity) {
         double result = Double.parseDouble(usdt) / Double.parseDouble(quantity);
         return new CsvTransactionRow(Utils.fromString(Utils.FORMAT_SECOND, date), "", side, "any", usdt, quantity, result);
+    }
+    
+    private static final  class TestBroker implements Broker {
+
+    	private final Action action;
+    	private final double factor;
+    	private final boolean hasPreviousTransactions;
+    	
+    	private TestBroker(Action action, double factor, boolean hasPreviousTransactions) {
+    		this.action = action;
+    		this.factor = factor;
+    		this.hasPreviousTransactions = hasPreviousTransactions;
+    	}
+
+		@Override
+		public Action getAction() {
+			return action;
+		}
+
+		@Override
+		public CsvRow getNewest() {
+			return null;
+		}
+
+		@Override
+		public String getSymbol() {
+			return null;
+		}
+
+		@Override
+		public double getFactor() {
+			return factor;
+		}
+
+		@Override
+		public TransactionsSummary getPreviousTransactions() {
+			return new TransactionsSummary(hasPreviousTransactions, 0, 0, null, null, null);
+		}
+    	
     }
 }

@@ -77,6 +77,8 @@ public class CloudProperties {
     public final double BOT_LOWEST_ALLOWED_PROFIT_SELL;
     public final int BOT_PANIC_DAYS;
     public final int MAX_OPEN_POSITIONS;
+    public final int MAX_OPEN_POSITIONS_SYMBOLS;
+    public final int MAX_PURCHASES_PER_ITERATION;
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
     public final Map<String, FixedBuySell> FIXED_BUY_SELL;
     private final Properties mainProperties;
@@ -160,6 +162,8 @@ public class CloudProperties {
         BOT_PANIC_FACTOR = Double.parseDouble(getProperty("bot.panic.factor"));
         BOT_PANIC_DAYS = Integer.parseInt(getProperty("bot.panic.days"));
         MAX_OPEN_POSITIONS = Integer.parseInt(getProperty("bot.max.open.positions"));
+        MAX_OPEN_POSITIONS_SYMBOLS = Integer.parseInt(getProperty("bot.max.open.positions.symbols"));
+        MAX_PURCHASES_PER_ITERATION = Integer.parseInt(getProperty("bot.max.purchases.per.iteration"));
         PANIC_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.panic.enable"));
         LIMITS_BROKER_ENABLE = Boolean.valueOf(getProperty("bot.limits.enable"));
         BOT_LOWEST_ALLOWED_PROFIT_SELL = Double.parseDouble(getProperty("bot.lowest.allowed.profit.sell"));

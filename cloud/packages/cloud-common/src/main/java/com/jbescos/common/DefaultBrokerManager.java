@@ -54,8 +54,7 @@ public class DefaultBrokerManager implements BrokerManager {
 			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions, benefits));
 		}
 		LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
-		List<Broker> brokers = minMax.values().stream().sorted((e2, e1) -> Double.compare(e1.getFactor(), e2.getFactor()))
-				.collect(Collectors.toList());
+		List<Broker> brokers = Utils.sortBrokers(minMax);
 		if (startPanicPeriod(grouped)) {
 			return new SellPanicBrokerManager(cloudProperties, fileManager).loadBrokers(brokers, Action.SELL_PANIC);
 		} else {
