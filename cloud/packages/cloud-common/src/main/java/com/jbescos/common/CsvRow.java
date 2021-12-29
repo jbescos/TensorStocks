@@ -9,17 +9,19 @@ public class CsvRow implements IRow {
 	private double price;
 	private Double avg;
 	private Double avg2;
+	private int fearGreedIndex;
 	
-	public CsvRow(Date date, String symbol, double price, Double avg, Double avg2) {
+	public CsvRow(Date date, String symbol, double price, Double avg, Double avg2, int fearGreedIndex) {
 		this.date = date;
 		this.symbol = symbol;
 		this.price = price;
 		this.avg = avg;
 		this.avg2 = avg2;
+		this.fearGreedIndex = fearGreedIndex;
 	}
 	
 	public CsvRow(Date date, String symbol, double price) {
-		this(date, symbol, price, null, null);
+		this(date, symbol, price, null, null, 50);
 	}
 
 	public void setDate(Date date) {
@@ -76,10 +78,18 @@ public class CsvRow implements IRow {
 		this.avg2 = avg2;
 	}
 	
+	public int getFearGreedIndex() {
+		return fearGreedIndex;
+	}
+
+	public void setFearGreedIndex(int fearGreedIndex) {
+		this.fearGreedIndex = fearGreedIndex;
+	}
+
 	public String toCsvLine() {
 		StringBuilder builder = new StringBuilder();
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, date);
-		builder.append(dateStr).append(",").append(getSymbol()).append(",").append(getPrice()).append(",").append(getAvg()).append(",").append(getAvg2())
+		builder.append(dateStr).append(",").append(getSymbol()).append(",").append(getPrice()).append(",").append(getAvg()).append(",").append(getAvg2()).append(",").append(getFearGreedIndex())
 		.append(Utils.NEW_LINE);
 		return builder.toString();
 	}

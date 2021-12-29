@@ -18,9 +18,14 @@ import java.util.Map;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
+import com.jbescos.common.FearGreedIndex;
+import com.jbescos.common.PublicAPI;
 import com.jbescos.common.Utils;
 
 public class CsvUpdater {
@@ -29,7 +34,10 @@ public class CsvUpdater {
 	private static final CloudProperties cloudProperties = new CloudProperties();
 
 	public static void main(String args[]) throws IOException {
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\\\test\\resources\\binance", "2021-05-08.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\binance", "2021-05-08.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\kucoin", "2021-10-23.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\ftx", "2021-11-07.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\okex", "2021-11-07.csv");
 		LOGGER.info(() -> "Finished");
 	}
 	
@@ -53,7 +61,30 @@ public class CsvUpdater {
 		}
 	}
 	
+	private static List<FearGreedIndex> fearGreedIndex(String startIn) {
+		Date beginningDate = Utils.fromString(Utils.FORMAT, startIn.replace(".csv", ""));
+		Date now = new Date();
+		int daysInBetween = (int) ((now.getTime() - beginningDate.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+		System.out.println("Calculating fearGreedIndex " + daysInBetween + " days");
+		Client client = ClientBuilder.newClient();
+		PublicAPI publicAPI = new PublicAPI(client);
+		List<FearGreedIndex> values = publicAPI.getFearGreedIndex(Integer.toString(daysInBetween));
+		client.close();
+		return values;
+	}
+	
+	private static int find(Date date, List<FearGreedIndex> fearGreedIndex) {
+		for (int i = 0; i < fearGreedIndex.size() - 1; i++) {
+			if ((date.getTime() >= fearGreedIndex.get(i + 1).getTimestamp() && date.getTime() <= fearGreedIndex.get(i).getTimestamp())) {
+				return i;
+			}
+		}
+		return 0;
+	}
+	
 	private static void updateCsv(String rootFolder, String startIn) throws IOException {
+		List<FearGreedIndex> fearGreedIndex = fearGreedIndex(startIn);
+		int fearGreedIdx = -1;
 		File rootCsvFolder = new File(rootFolder);
 		List<String> files = new ArrayList<>(Arrays.asList(rootCsvFolder.list()));
 		Collections.sort(files);
@@ -90,6 +121,8 @@ public class CsvUpdater {
 								}
 								row.setAvg(avg);
 								row.setAvg2(avg2);
+								fearGreedIdx = find(row.getDate(), fearGreedIndex);
+								row.setFearGreedIndex(fearGreedIndex.get(fearGreedIdx).getValue());
 								last = row;
 							}
 							lastPrices.put(last.getSymbol(), last);

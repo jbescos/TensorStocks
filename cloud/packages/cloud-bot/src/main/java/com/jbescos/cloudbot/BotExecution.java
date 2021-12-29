@@ -309,7 +309,7 @@ public class BotExecution {
 			Map<String, Double> symbolSnapshot = usdtSnappshot(stats);
 			CsvRow newest = stats.get(0).getNewest();
 			for (Entry<String, Double> entry : symbolSnapshot.entrySet()) {
-				CsvRow walletUsdt = new CsvRow(newest.getDate(), entry.getKey(), entry.getValue(), null, null);
+				CsvRow walletUsdt = new CsvRow(newest.getDate(), entry.getKey(), entry.getValue(), null, null, 50);
 				walletHistorical.add(walletUsdt);
 			}
 			if (!newTransactions.isEmpty()) {

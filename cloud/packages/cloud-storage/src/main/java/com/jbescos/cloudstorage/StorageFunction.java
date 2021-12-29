@@ -23,6 +23,7 @@ import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CsvRow;
+import com.jbescos.common.FearGreedIndex;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.PublisherMgr;
 import com.jbescos.common.Utils;
@@ -66,6 +67,7 @@ public class StorageFunction implements HttpFunction {
 		long time = publicAPI.time();
 		Date now = new Date(time);
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
+		FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
 		try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
 			if (!skip) {
 				Set<String> updatedExchanges = new HashSet<>();
@@ -77,7 +79,7 @@ public class StorageFunction implements HttpFunction {
 						    // Update current prices
 				    		Map<String, Double> prices = exchange.price(publicAPI);
 				            String fileName = Utils.FORMAT.format(now) + ".csv";
-				    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice);
+				    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice, fearGreedIndex.getValue());
 				    		StringBuilder builder = new StringBuilder();
 				    		for (CsvRow row : updatedRows) {
 				    			builder.append(row.toCsvLine());

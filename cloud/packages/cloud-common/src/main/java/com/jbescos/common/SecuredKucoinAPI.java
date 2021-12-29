@@ -160,6 +160,12 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		String orderId = response.get("orderId");
 		Map<String, String> orderInfo = getOrder(orderId);
 		LOGGER.info(() -> "Order Info: " + orderInfo);
+		/* FIXME Sometimes dealFunds and dealSize comes much lower than it should be, for example: side=SELL&quantity=45459.00811599 -> 
+		* Order Info: {id=xxxxxx, symbol=AI-USDT, opType=DEAL, type=market, side=sell, price=0, size=45459.0081, funds=0, dealFunds=259.209449966, 
+		* dealSize=11166.3079, fee=0.518418899932, feeCurrency=USDT, stp=, stop=, stopTriggered=false, stopPrice=0, timeInForce=GTC, postOnly=false, 
+		* hidden=false, iceberg=false, visibleSize=0, cancelAfter=0, channel=API, clientOid=373fd711-ceee-49db-96a4-575dfe305ac3, remark=null, tags=null, 
+		* isActive=true, cancelExist=false, createdAt=1640789169018, tradeType=TRADE}
+		*/
 		String totalUsdt = orderInfo.get("dealFunds");
 		if ("0".equals(totalUsdt)) {
 		    if (key == BuySell.funds) {

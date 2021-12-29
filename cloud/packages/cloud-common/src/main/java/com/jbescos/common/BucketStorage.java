@@ -56,16 +56,16 @@ public class BucketStorage implements FileManager {
 		return previousRows;
 	}
 
-	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Double> prices, Date now, String lastPriceCsv) {
+	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Double> prices, Date now, String lastPriceCsv, int fearGreedIndex) {
 	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 	    List<CsvRow> newRows = new ArrayList<>();
         for (Entry<String, Double> price : prices.entrySet()) {
             CsvRow previous = previousRows.get(price.getKey());
             CsvRow newRow = null;
             if (previous != null) {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getValue(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()));
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getValue(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()), fearGreedIndex);
             } else {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue());
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue(), fearGreedIndex);
             }
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());

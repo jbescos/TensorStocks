@@ -131,21 +131,17 @@ public class CsvUtil {
 				if (symbols.isEmpty() || symbols.contains(symbol)) {
 					Double avg = null;
 					Double longAvg = null;
-					Kline kline = null;
+					int fearGreedIndex = 50;
 					if (columns.length > 3) {
 						avg = Double.parseDouble(columns[3]);
 						if (columns.length > 4) {
 							longAvg = Double.parseDouble(columns[4]);
 							if (columns.length > 5) {
-								String takerBuyBaseAssetVolume = columns[5];
-								String volume = columns[6];
-								String open = columns[7];
-								String close = columns[8];
-								kline = new Kline(-1, open, null, null, close, volume, -1, null, -1, takerBuyBaseAssetVolume, null);
+								fearGreedIndex = Integer.parseInt(columns[5]);
 							}
 						}
 					}
-					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg);
+					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg, fearGreedIndex);
 					return row;
 				}
 			}

@@ -1,9 +1,12 @@
 package com.jbescos.common;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -17,6 +20,8 @@ import com.jbescos.common.kucoin.AllTickers;
 
 public final class PublicAPI {
 
+	private static final Logger LOGGER = Logger.getLogger(PublicAPI.class.getName());
+	private static final String FEAR_GREEDY_URL = "https://api.alternative.me/fng/";
 	private static final String BINANCE_URL = "https://api.binance.com";
 	private static final String KUCOIN_URL = "https://api.kucoin.com";
 	private static final String OKEX_URL = "https://www.okex.com";
@@ -40,6 +45,23 @@ public final class PublicAPI {
 	    }
 		ExchangeInfo exchangeInfo = get(BINANCE_URL, "/api/v3/exchangeInfo", new GenericType<ExchangeInfo>() {}, query);
 		return exchangeInfo;
+	}
+	
+	public List<FearGreedIndex> getFearGreedIndex(String days){
+		List<FearGreedIndex> list = new ArrayList<>();
+		try {
+			Map<String, Object> result = get(FEAR_GREEDY_URL, "", new GenericType<Map<String, Object>>() {}, "limit", days);
+			List<Map<String, String>> data = (List<Map<String, String>>) result.get("data");
+			for (Map<String, String> obj : data) {
+				FearGreedIndex fearGreed = new FearGreedIndex(obj.get("value_classification"), Integer.parseInt(obj.get("value")), Long.parseLong(obj.get("timestamp")) * 1000);
+				list.add(fearGreed);
+			}
+		} catch (Exception e) {
+			FearGreedIndex fearGreed = new FearGreedIndex("Error", 50, new Date().getTime());
+			LOGGER.log(Level.SEVERE, "Cannot obtain the FearGreedIndex. Setting default value to " + fearGreed, e);
+			list.add(fearGreed);
+		}
+		return list;
 	}
 	
 	public Map<String, Double> priceBinance() {

@@ -39,7 +39,7 @@ public class Utils {
 	public static final String USDT = "USDT";
 	public static final String TOTAL_USDT = "TOTAL_USDT";
 	public static final String NEW_LINE = "\r\n";
-	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2" + NEW_LINE;
+	public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX" + NEW_LINE;
 	public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
 	public static final String LAST_PRICE = "last_price.csv";
 	public static final String EMPTY_STR = "";
