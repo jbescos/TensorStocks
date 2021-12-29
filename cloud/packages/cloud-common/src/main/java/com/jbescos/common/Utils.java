@@ -430,4 +430,15 @@ public class Utils {
 				})
 				.collect(Collectors.toList());
 	}
+	
+	public static boolean isFearMode(int fearGreedIndex) {
+		return fearGreedIndex < 30;
+	}
+	
+	public static double factorFearGreedAdjusted(double factorBase, int fearGreedIndex) {
+		if (isFearMode(fearGreedIndex)) {
+			return factorBase + 0.1;
+		}
+		return factorBase;
+	}
 }

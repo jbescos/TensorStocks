@@ -30,8 +30,8 @@ public class CautelousBroker implements Broker {
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
         this.max = Utils.getMinMax(values, false);
-        this.factor = Utils.calculateFactor(min, max);
         this.newest = values.get(values.size() - 1);
+        this.factor = Utils.factorFearGreedAdjusted(Utils.calculateFactor(min, max), newest.getFearGreedIndex());
         if (newest.getAvg() == null) {
             throw new IllegalArgumentException("Row does not contain AVG. It needs it to work: " + newest);
         } else {
