@@ -45,7 +45,7 @@ public class BotTest {
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
     private static final long HOURS_MILLIS = 3600 * 1000;
     private static final List<TestResult> results = Collections.synchronizedList(new ArrayList<>());
-    private static final int TOP = 250;
+    private static final int TOP = 400;
     private static final DataLoader LOADER = new DataLoader(USER_ID);
     private static long HOURS_BACK_MILLIS = LOADER.getCloudProperties().BOT_HOURS_BACK_STATISTICS * HOURS_MILLIS;
     
