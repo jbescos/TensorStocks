@@ -63,7 +63,7 @@ public class DefaultBrokerManager implements BrokerManager {
 	}
 	
 	private boolean startPanicPeriod(Map<String, List<CsvRow>> grouped) {
-		if (cloudProperties.PANIC_BROKER_ENABLE) {
+		if (!panicPeriod && cloudProperties.PANIC_BROKER_ENABLE) {
 			String btcSymbol = "BTC" + Utils.USDT;
 			List<CsvRow> btcRows = grouped.get(btcSymbol);
 			if (btcRows == null) {

@@ -31,7 +31,7 @@ public class CautelousBroker implements Broker {
         this.min = Utils.getMinMax(values, true);
         this.max = Utils.getMinMax(values, false);
         this.newest = values.get(values.size() - 1);
-        this.factor = Utils.factorFearGreedAdjusted(Utils.calculateFactor(min, max), newest.getFearGreedIndex());
+        this.factor = Utils.calculateFactor(min, max);
         if (newest.getAvg() == null) {
             throw new IllegalArgumentException("Row does not contain AVG. It needs it to work: " + newest);
         } else {
@@ -94,11 +94,12 @@ public class CautelousBroker implements Broker {
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
-        if (hasPreviousTransactions && Utils.isMax(values) && benefit >= Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MAX_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL)) {
+        double maxProfitSell = panicPeriod || Utils.isFearMode(newest.getFearGreedIndex()) ? cloudProperties.BOT_MIN_PROFIT_SELL : cloudProperties.BOT_MAX_PROFIT_SELL;
+        if (hasPreviousTransactions && Utils.isMax(values) && benefit >= Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), maxProfitSell, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, maxProfitSell, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL)) {
             action = Action.SELL;
         } else {
             if (price < avg) {
-                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : cloudProperties.BOT_MIN_MAX_RELATION_BUY;
+                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest.getFearGreedIndex());
                 if (!hasPreviousTransactions || (hasPreviousTransactions && price < summary.getLowestPurchase())) {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
@@ -126,7 +127,7 @@ public class CautelousBroker implements Broker {
                     } else if (price < minProfitableSellPrice) {
 //                        LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
                     } else {
-                        double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, cloudProperties.BOT_MAX_PROFIT_SELL, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL);
+                        double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, maxProfitSell, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL);
                         if (benefit >= expectedBenefit) {
                         	LOGGER.info(() -> newest + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit));
                             action = Action.SELL;
