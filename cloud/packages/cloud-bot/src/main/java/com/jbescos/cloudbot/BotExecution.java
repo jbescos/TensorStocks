@@ -221,7 +221,9 @@ public class BotExecution {
 		        	for (Broker broker : stats) {
 		        		if (tx.getSymbol().equals(broker.getSymbol())) {
 		        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
-		        			profitData.append(row.toCsvLine());
+		        			if (row != null) {
+		        				profitData.append(row.toCsvLine());
+		        			}
 		        			break;
 		        		}
 		        	}

@@ -61,9 +61,11 @@ public class BotFunction implements HttpFunction {
 				if (apiResponse.getSide() == Action.SELL) {
 					Broker broker = brokerManager.loadBrokers().stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();
 					CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), apiResponse);
-					StringBuilder profitData = new StringBuilder();
-					profitData.append(row.toCsvLine());
-					storage.updateFile(cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+					if (row != null) {
+						StringBuilder profitData = new StringBuilder();
+						profitData.append(row.toCsvLine());
+						storage.updateFile(cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX + month + ".csv", profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+					}
 				}
 				storage.updateFile(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv", apiResponse.toCsvLine().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 				response.getWriter().write(apiResponse.toString());

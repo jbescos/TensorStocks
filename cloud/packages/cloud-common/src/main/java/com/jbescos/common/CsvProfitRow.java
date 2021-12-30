@@ -48,46 +48,50 @@ public class CsvProfitRow {
 	}
 	
 	public static CsvProfitRow build(String commission, TransactionsSummary summary, CsvTransactionRow sell) {
-		CsvTransactionRow firstBuy = summary.getPreviousBuys().get(summary.getPreviousBuys().size() - 1);
-		Date firstBuyDate = firstBuy.getDate();
-		Date sellDate = sell.getDate();
-		String symbol = sell.getSymbol();
-		BigDecimal d100 = new BigDecimal(100);
-		BigDecimal quantityBuy = new BigDecimal("0");
-		BigDecimal quantityUsdtBuy = new BigDecimal("0");
-		for (CsvTransactionRow tx : summary.getPreviousBuys()) {
-			quantityBuy = quantityBuy.add(new BigDecimal(tx.getQuantity()));
-			quantityUsdtBuy = quantityUsdtBuy.add(new BigDecimal(tx.getUsdt()));
-		}
-		String quantitySell = sell.getQuantity();
-		String quantityUsdtSell = sell.getUsdt();
-		BigDecimal quantityUsdtSellbd = new BigDecimal(quantityUsdtSell);
-		/*
-		 *  Normalize SELL quantity to match the BUY quantity.
-		 *  It could happen that the user did a purchase out of the system. It takes the current price from newest
-		 */
-		BigDecimal quantitySellbd = new BigDecimal(quantitySell);
-		if (quantitySellbd.compareTo(quantityBuy) > 0) {
-			quantitySell = Utils.format(quantityBuy);
+		if (!summary.getPreviousBuys().isEmpty()) {
+			CsvTransactionRow firstBuy = summary.getPreviousBuys().get(summary.getPreviousBuys().size() - 1);
+			Date firstBuyDate = firstBuy.getDate();
+			Date sellDate = sell.getDate();
+			String symbol = sell.getSymbol();
+			BigDecimal d100 = new BigDecimal(100);
+			BigDecimal quantityBuy = new BigDecimal("0");
+			BigDecimal quantityUsdtBuy = new BigDecimal("0");
+			for (CsvTransactionRow tx : summary.getPreviousBuys()) {
+				quantityBuy = quantityBuy.add(new BigDecimal(tx.getQuantity()));
+				quantityUsdtBuy = quantityUsdtBuy.add(new BigDecimal(tx.getUsdt()));
+			}
+			String quantitySell = sell.getQuantity();
+			String quantityUsdtSell = sell.getUsdt();
+			BigDecimal quantityUsdtSellbd = new BigDecimal(quantityUsdtSell);
 			/*
-			 *  Recalculate USDT from new quantity with the current price.
+			 *  Normalize SELL quantity to match the BUY quantity.
+			 *  It could happen that the user did a purchase out of the system. It takes the current price from newest
 			 */
-			quantityUsdtSellbd = new BigDecimal(Utils.usdValue(quantityBuy.doubleValue(), sell.getUsdtUnit()));
-			quantityUsdtSell = Utils.format(quantityUsdtSellbd);
+			BigDecimal quantitySellbd = new BigDecimal(quantitySell);
+			if (quantitySellbd.compareTo(quantityBuy) > 0) {
+				quantitySell = Utils.format(quantityBuy);
+				/*
+				 *  Recalculate USDT from new quantity with the current price.
+				 */
+				quantityUsdtSellbd = new BigDecimal(Utils.usdValue(quantityBuy.doubleValue(), sell.getUsdtUnit()));
+				quantityUsdtSell = Utils.format(quantityUsdtSellbd);
+			}
+			// FIXME What to do if he sold out of the system?.
+			BigDecimal usdtProfit = quantityUsdtSellbd.subtract(quantityUsdtBuy);
+			BigDecimal commissionUsdt = new BigDecimal(commission).multiply(usdtProfit);
+			BigDecimal netUsdtProfit = usdtProfit.subtract(commissionUsdt);
+			String commissionPercentage = Utils.format(new BigDecimal(commission).multiply(d100)) + "%";
+			/*
+			 * quantityUsdtBuy -> 100
+			 * usdtProfit -> X
+			 * 
+			 * profitPercentage = usdtProfit * 100 / quantityUsdtBuy
+			 */
+			String profitPercentage = Utils.format(usdtProfit.multiply(d100).divide(quantityUsdtBuy, 8, RoundingMode.DOWN)) + "%";
+			return new CsvProfitRow(firstBuyDate, sellDate, symbol, Utils.format(quantityBuy), Utils.format(quantityUsdtBuy), quantitySell, quantityUsdtSell,
+					commissionPercentage, Utils.format(commissionUsdt), Utils.format(usdtProfit), Utils.format(netUsdtProfit), profitPercentage);
+		} else {
+			return null;
 		}
-		// FIXME What to do if he sold out of the system?.
-		BigDecimal usdtProfit = quantityUsdtSellbd.subtract(quantityUsdtBuy);
-		BigDecimal commissionUsdt = new BigDecimal(commission).multiply(usdtProfit);
-		BigDecimal netUsdtProfit = usdtProfit.subtract(commissionUsdt);
-		String commissionPercentage = Utils.format(new BigDecimal(commission).multiply(d100)) + "%";
-		/*
-		 * quantityUsdtBuy -> 100
-		 * usdtProfit -> X
-		 * 
-		 * profitPercentage = usdtProfit * 100 / quantityUsdtBuy
-		 */
-		String profitPercentage = Utils.format(usdtProfit.multiply(d100).divide(quantityUsdtBuy, 8, RoundingMode.DOWN)) + "%";
-		return new CsvProfitRow(firstBuyDate, sellDate, symbol, Utils.format(quantityBuy), Utils.format(quantityUsdtBuy), quantitySell, quantityUsdtSell,
-				commissionPercentage, Utils.format(commissionUsdt), Utils.format(usdtProfit), Utils.format(netUsdtProfit), profitPercentage);
 	}
 }
