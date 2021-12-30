@@ -35,7 +35,7 @@ import com.jbescos.test.util.TestFileStorage;
 public class BotTest {
 
 	// Binance test
-//	private static final String START_DATE ="2021-05-20";
+//	private static final String START_DATE ="2021-05-08";
 //  private static final String USER_ID ="binance";
     
 	// Kucoin test

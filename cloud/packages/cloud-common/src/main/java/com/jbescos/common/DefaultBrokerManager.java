@@ -39,7 +39,7 @@ public class DefaultBrokerManager implements BrokerManager {
 			for (Entry<String, List<CsvTransactionRow>> entry : groupedTransactions.entrySet()) {
 				if (Utils.isPanicSellInDays(entry.getValue(), deadLine)) {
 					panicPeriod = true;
-					LOGGER.warning("It is in panic period till " + Utils.fromDate(Utils.FORMAT_SECOND, deadLine));
+					LOGGER.warning("It is in panic period because there are panic transactions after " + Utils.fromDate(Utils.FORMAT_SECOND, deadLine));
 					break;
 				}
 			}
