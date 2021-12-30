@@ -165,20 +165,23 @@ public class SecuredMizarAPI implements SecuredAPI {
     	}
     	ClosePositionsResponse response = closeAllBySymbol(symbol);
     	if (response.closed_positions == null || response.closed_positions.isEmpty()) {
-    		throw new IllegalArgumentException("It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + response);
+    		LOGGER.severe("It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + response + ". Returning a fake transaction to bypass this.");
+    		CsvTransactionRow transaction = new CsvTransactionRow(new Date(), "ERROR", action, symbol, "0.000001", "0.000001", 0.000001);
+    		return transaction;
+    	} else {
+	    	StringBuilder orderIds = new StringBuilder();
+	    	double totalQuantity = Utils.totalQuantity(cloudProperties.LIMIT_TRANSACTION_AMOUNT, response.closed_positions);
+	    	for (ClosePositionResponse position : response.closed_positions) {
+	    		if (orderIds.length() != 0) {
+	    			orderIds.append("-");
+	    		}
+	    		orderIds.append(position.position_id);
+	    	}
+	    	ClosePositionResponse last = response.closed_positions.get(response.closed_positions.size() - 1);
+	    	double totalUsdt = Double.parseDouble(last.close_price) * totalQuantity;
+	    	CsvTransactionRow transaction = new CsvTransactionRow(new Date(last.close_timestamp), orderIds.toString(), action, symbol, Utils.format(totalUsdt), Utils.format(totalQuantity), Double.parseDouble(last.close_price));
+	    	return transaction;
     	}
-    	StringBuilder orderIds = new StringBuilder();
-    	double totalQuantity = Utils.totalQuantity(cloudProperties.LIMIT_TRANSACTION_AMOUNT, response.closed_positions);
-    	for (ClosePositionResponse position : response.closed_positions) {
-    		if (orderIds.length() != 0) {
-    			orderIds.append("-");
-    		}
-    		orderIds.append(position.position_id);
-    	}
-    	ClosePositionResponse last = response.closed_positions.get(response.closed_positions.size() - 1);
-    	double totalUsdt = Double.parseDouble(last.close_price) * totalQuantity;
-    	CsvTransactionRow transaction = new CsvTransactionRow(new Date(last.close_timestamp), orderIds.toString(), action, symbol, Utils.format(totalUsdt), Utils.format(totalQuantity), Double.parseDouble(last.close_price));
-    	return transaction;
     }
     
     public ClosePositionsResponse closeAllBySymbol(String symbol) {
