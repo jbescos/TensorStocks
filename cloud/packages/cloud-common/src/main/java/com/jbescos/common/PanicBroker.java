@@ -14,7 +14,11 @@ public class PanicBroker implements Broker {
 		this.symbol = symbol;
 		this.newest = newest;
 		this.summary = summary;
-		this.action = action;
+		if (!summary.isHasTransactions() && (action == Action.SELL || action == Action.SELL_PANIC)) {
+			this.action = Action.NOTHING;
+		} else {
+			this.action = action;
+		}
 	}
 
 	@Override
