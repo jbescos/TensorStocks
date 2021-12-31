@@ -436,8 +436,14 @@ public class Utils {
 	}
 	
 	public static double factorFearGreedAdjusted(double factorBase, int fearGreedIndex) {
-		if (isFearMode(fearGreedIndex)) {
+		if (fearGreedIndex < 10) {
+			return factorBase + 0.4;
+		} else if (fearGreedIndex < 15) {
+			return factorBase + 0.3;
+		} else if (fearGreedIndex < 20) {
 			return factorBase + 0.2;
+		} else if (fearGreedIndex < 30) {
+			return factorBase + 0.15;
 		}
 		return factorBase;
 	}
