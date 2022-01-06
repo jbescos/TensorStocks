@@ -165,6 +165,17 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		* dealSize=11166.3079, fee=0.518418899932, feeCurrency=USDT, stp=, stop=, stopTriggered=false, stopPrice=0, timeInForce=GTC, postOnly=false, 
 		* hidden=false, iceberg=false, visibleSize=0, cancelAfter=0, channel=API, clientOid=373fd711-ceee-49db-96a4-575dfe305ac3, remark=null, tags=null, 
 		* isActive=true, cancelExist=false, createdAt=1640789169018, tradeType=TRADE}
+		* 
+		* This is example of buy:
+		* {id=xxxxxx, symbol=POLX-USDT, opType=DEAL, type=market, side=buy, price=0, size=0, funds=200, dealFunds=0, dealSize=0,
+		* fee=0, feeCurrency=USDT, stp=, stop=, stopTriggered=false, stopPrice=0, timeInForce=GTC, postOnly=false, hidden=false,
+		* iceberg=false, visibleSize=0, cancelAfter=0, channel=API, clientOid=3b93210b-c2b3-42a3-9c9b-937b212e89ed, remark=null,
+		* tags=null, isActive=true, cancelExist=false, createdAt=1641423626808, tradeType=TRADE}
+		* 
+		* {id=xxxxxx, symbol=POLX-USDT, opType=DEAL, type=market, side=buy, price=0, size=0, funds=200, dealFunds=199.9999999999942037,
+		* dealSize=289140.80359094, fee=0.3999999999999884074, feeCurrency=USDT, stp=, stop=, stopTriggered=false, stopPrice=0, timeInForce=GTC, postOnly=false,
+		* hidden=false, iceberg=false, visibleSize=0, cancelAfter=0, channel=API, clientOid=eacfd6b6-a274-45c2-9482-79d8e71afa20, remark=null, tags=null,
+		* isActive=true, cancelExist=false, createdAt=1641420043454, tradeType=TRADE}
 		*/
 		String totalUsdt = orderInfo.get("dealFunds");
 		if ("0".equals(totalUsdt)) {
@@ -175,14 +186,18 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		    }
 		    LOGGER.warning("dealFunds response is 0. We have recalculated it to " + totalUsdt);
 		}
-		String totalQuantity = orderInfo.get("dealSize");
+
+		String totalQuantity = orderInfo.get("size");
 		if ("0".equals(totalQuantity)) {
-            if (key == BuySell.funds) {
-                totalQuantity = Utils.format(Utils.symbolValue(Double.parseDouble(value), currentUsdtPrice));
-            } else {
-                totalQuantity = value;
-            }
-            LOGGER.warning("dealSize response is 0. We have recalculated it to " + totalQuantity);
+		    totalQuantity = orderInfo.get("dealSize");
+		    if ("0".equals(totalQuantity)) {
+                if (key == BuySell.funds) {
+                    totalQuantity = Utils.format(Utils.symbolValue(Double.parseDouble(value), currentUsdtPrice));
+                } else {
+                    totalQuantity = value;
+                }
+                LOGGER.warning("dealSize and size response is 0. We have recalculated it to " + totalQuantity);
+		    }
         }
 		double usdtUnit = Double.parseDouble(totalUsdt) / Double.parseDouble(totalQuantity);
 		CsvTransactionRow tx = new CsvTransactionRow(new Date(Long.parseLong(orderInfo.get("createdAt"))), orderId, action, symbol, totalUsdt, totalQuantity, usdtUnit);
