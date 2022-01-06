@@ -8,6 +8,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,7 @@ import org.junit.Test;
 import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
+import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.Broker;
@@ -121,6 +123,13 @@ public class BotTest {
         	ChartGenerator.writeChart(walletHistorical, output, chart);
             ChartGenerator.save(output, chart);
         }
+        chartFile = new File("./target/fearGreed.png");
+        List<IRow> fears = LOADER.get(first.getSymbol()).stream().map(row -> new FearGreedRow(row)).collect(Collectors.toList());
+        try (FileOutputStream output = new FileOutputStream(chartFile)) {
+            IChart<IRow> chart = new DateChart();
+            ChartGenerator.writeChart(fears, output, chart);
+            ChartGenerator.save(output, chart);
+        }
 	}
 
     @Test
@@ -183,16 +192,16 @@ public class BotTest {
             ChartGenerator.writeChart(walletHistorical, output, chart);
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
-        File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");
-        try (FileOutputStream output = new FileOutputStream(barChartFile)) {
-            Map<String, Double> walletUsdt = new HashMap<>();
-            for (Entry<String, Double> entry : wallet.entrySet()) {
-                walletUsdt.put(entry.getKey(),  entry.getValue() * last.getPrice());
-            }
-            IChart<IRow> chart = new BarChart(walletUsdt);
-            ChartGenerator.writeChart(transactions, output, chart);
-            ChartGenerator.save(output, chart);
-        } catch (IOException e) {}
+//        File barChartFile = new File("./target/" + last.getSymbol() + subfix + "_bar.png");
+//        try (FileOutputStream output = new FileOutputStream(barChartFile)) {
+//            Map<String, Double> walletUsdt = new HashMap<>();
+//            for (Entry<String, Double> entry : wallet.entrySet()) {
+//                walletUsdt.put(entry.getKey(),  entry.getValue() * last.getPrice());
+//            }
+//            IChart<IRow> chart = new BarChart(walletUsdt);
+//            ChartGenerator.writeChart(transactions, output, chart);
+//            ChartGenerator.save(output, chart);
+//        } catch (IOException e) {}
     }
 
     @Test
@@ -239,4 +248,37 @@ public class BotTest {
 
     }
 
+    private static class FearGreedRow implements IRow {
+
+        private final CsvRow row;
+
+        public FearGreedRow(CsvRow row) {
+            this.row = row;
+        }
+        @Override
+        public Date getDate() {
+            return row.getDate();
+        }
+
+        @Override
+        public double getPrice() {
+            return row.getFearGreedIndex();
+        }
+
+        @Override
+        public String getLabel() {
+            return "FEAR-GREED-INDEX";
+        }
+
+        @Override
+        public Double getAvg() {
+            return null;
+        }
+
+        @Override
+        public Double getAvg2() {
+            return null;
+        }
+        
+    }
 }
