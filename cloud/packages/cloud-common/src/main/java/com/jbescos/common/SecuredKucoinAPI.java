@@ -187,17 +187,14 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		    LOGGER.warning("dealFunds response is 0. We have recalculated it to " + totalUsdt);
 		}
 
-		String totalQuantity = orderInfo.get("size");
+		String totalQuantity = orderInfo.get("dealSize");
 		if ("0".equals(totalQuantity)) {
-		    totalQuantity = orderInfo.get("dealSize");
-		    if ("0".equals(totalQuantity)) {
-                if (key == BuySell.funds) {
-                    totalQuantity = Utils.format(Utils.symbolValue(Double.parseDouble(value), currentUsdtPrice));
-                } else {
-                    totalQuantity = value;
-                }
-                LOGGER.warning("dealSize and size response is 0. We have recalculated it to " + totalQuantity);
-		    }
+            if (key == BuySell.funds) {
+                totalQuantity = Utils.format(Utils.symbolValue(Double.parseDouble(value), currentUsdtPrice));
+            } else {
+                totalQuantity = value;
+            }
+            LOGGER.warning("dealSize response is 0. We have recalculated it to " + totalQuantity);
         }
 		double usdtUnit = Double.parseDouble(totalUsdt) / Double.parseDouble(totalQuantity);
 		CsvTransactionRow tx = new CsvTransactionRow(new Date(Long.parseLong(orderInfo.get("createdAt"))), orderId, action, symbol, totalUsdt, totalQuantity, usdtUnit);
