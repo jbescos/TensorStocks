@@ -12,7 +12,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.jbescos.common.Broker.Action;
-import com.jbescos.common.CloudProperties.FixedBuySell;
 
 public class DefaultBrokerManager implements BrokerManager {
 
@@ -85,9 +84,9 @@ public class DefaultBrokerManager implements BrokerManager {
 		if (summary.isHasTransactions()) {
 		    benefits.put(symbol, Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())));
 		}
-		FixedBuySell fixedBuySell = cloudProperties.FIXED_BUY_SELL.get(symbol);
-	    if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuySell != null) {
-		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuySell, summary);
+		Double fixedBuy = cloudProperties.FIXED_BUY.get(symbol);
+	    if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuy != null) {
+		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuy, summary);
 	    } else {
 			return new CautelousBroker(cloudProperties, symbol, rows, summary, panicPeriod);
 		}

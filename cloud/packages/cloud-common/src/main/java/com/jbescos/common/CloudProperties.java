@@ -80,7 +80,8 @@ public class CloudProperties {
     public final int MAX_OPEN_POSITIONS_SYMBOLS;
     public final int MAX_PURCHASES_PER_ITERATION;
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
-    public final Map<String, FixedBuySell> FIXED_BUY_SELL;
+    public final double BOT_LIMITS_FACTOR_PROFIT_SELL;
+    public final Map<String, Double> FIXED_BUY;
     private final Properties mainProperties;
     private final Properties idProperties;
     
@@ -169,16 +170,17 @@ public class CloudProperties {
         BOT_LOWEST_ALLOWED_PROFIT_SELL = Double.parseDouble(getProperty("bot.lowest.allowed.profit.sell"));
         BOT_PROFIT_DAYS_SUBSTRACTOR = Double.parseDouble(getProperty("bot.profit.days.substractor"));
         BOT_LIMITS_FACTOR_MULTIPLIER = Double.parseDouble(getProperty("bot.limits.factor.multiplier"));
+        BOT_LIMITS_FACTOR_PROFIT_SELL = Double.parseDouble(getProperty("bot.limits.factor.profit.sell"));
         Map<String, Double> minSell = createMinSell(idProperties);
         if (minSell.isEmpty()) {
             minSell = createMinSell(mainProperties);
         }
         MIN_SELL = minSell;
-        Map<String, FixedBuySell> fixedBuySell = fixedBuySell(idProperties);
-        if (fixedBuySell.isEmpty()) {
-            fixedBuySell = fixedBuySell(mainProperties);
+        Map<String, Double> fixedBuy = fixedBuy(idProperties);
+        if (fixedBuy.isEmpty()) {
+            fixedBuy = fixedBuy(mainProperties);
         }
-        FIXED_BUY_SELL = fixedBuySell;
+        FIXED_BUY = fixedBuy;
     }
     
     private String findByPrefix(Storage storage, String prefix) {
@@ -233,8 +235,8 @@ public class CloudProperties {
         return Collections.unmodifiableMap(minSell);
     }
     
-    private  Map<String, FixedBuySell> fixedBuySell(Properties properties) {
-        Map<String, FixedBuySell> fixedBuySell = new HashMap<>();
+    private  Map<String, Double> fixedBuy(Properties properties) {
+        Map<String, Double> fixedBuy = new HashMap<>();
         if (LIMITS_BROKER_ENABLE) {
 	        @SuppressWarnings("unchecked")
 			Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
@@ -242,38 +244,21 @@ public class CloudProperties {
 	            String key = enums.nextElement();
 	            if (key.startsWith("bot.limits.fixed")) {
 	                String symbol = key.split("\\.")[4];
-	                if (!fixedBuySell.containsKey(symbol)) {
-	                    double fixedSell = Double.parseDouble(properties.getProperty("bot.limits.fixed.sell." + symbol));
-	                    double fixedBuy = Double.parseDouble(properties.getProperty("bot.limits.fixed.buy." + symbol));
-	                    FixedBuySell content = new FixedBuySell(fixedSell, fixedBuy);
-	                    fixedBuySell.put(symbol, content);
+	                if (!fixedBuy.containsKey(symbol)) {
+	                    double buy = Double.parseDouble(properties.getProperty("bot.limits.fixed.buy." + symbol));
+	                    fixedBuy.put(symbol, buy);
 	                }
 	            }
 	        }
         }
-        return Collections.unmodifiableMap(fixedBuySell);
+        return Collections.unmodifiableMap(fixedBuy);
     }
 
     public double minSell(String symbol) {
         Double value = MIN_SELL.get(symbol);
         return value == null ? 0.0 : value;
     }
-    
-    public static class FixedBuySell {
-        private final double fixedSell;
-        private final double fixedBuy;
-        public FixedBuySell(double fixedSell, double fixedBuy) {
-            this.fixedSell = fixedSell;
-            this.fixedBuy = fixedBuy;
-        }
-        public double getFixedSell() {
-            return fixedSell;
-        }
-        public double getFixedBuy() {
-            return fixedBuy;
-        }
-    }
-    
+
     public static enum Exchange {
         BINANCE("/binance/", true) {
             @Override

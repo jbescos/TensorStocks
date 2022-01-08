@@ -12,7 +12,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -21,7 +20,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.cloudbot.BotExecution;
-import com.jbescos.cloudchart.BarChart;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;

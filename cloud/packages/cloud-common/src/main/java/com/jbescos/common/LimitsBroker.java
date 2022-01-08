@@ -3,8 +3,6 @@ package com.jbescos.common;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.jbescos.common.CloudProperties.FixedBuySell;
-
 public class LimitsBroker implements Broker {
     
     private static final Logger LOGGER = Logger.getLogger(LimitsBroker.class.getName());
@@ -15,9 +13,9 @@ public class LimitsBroker implements Broker {
     private final CsvRow max;
     private final double minMaxFactor;
     private final TransactionsSummary summary;
-    private Action action = Action.NOTHING;
+    private final Action action;
 
-    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, FixedBuySell fixedBuySell, TransactionsSummary summary) {
+    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double fixedBuy, TransactionsSummary summary) {
     	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.newest = values.get(values.size() - 1);
@@ -26,20 +24,13 @@ public class LimitsBroker implements Broker {
         this.minMaxFactor = Utils.calculateFactor(min, max);
         this.summary = summary;
         double price = newest.getPrice();
-        if (price >= fixedBuySell.getFixedSell()) {
-            if (Utils.isMax(values)) {
-                action = Action.SELL;
-            } else {
-//                LOGGER.info(() -> newest + " discarded to sell because it is not a max");
-            }
-        } else if (price <= fixedBuySell.getFixedBuy() && price < summary.getLowestPurchase()) {
-            if (Utils.isMin(values)) {
-                action = Action.BUY;
-            } else {
-//                LOGGER.info(() -> newest + " discarded to buy because it is not a min");
-            }
+        double benefit = 1 - (summary.getMinProfitable() / newest.getPrice());
+        if (summary.isHasTransactions() && Utils.isMax(values) && benefit >= cloudProperties.BOT_LIMITS_FACTOR_PROFIT_SELL) {
+            action = Action.SELL;
+        } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && price < summary.getLowestPurchase()))) {
+            action = Action.BUY;
         } else {
-//            LOGGER.info(() -> newest + " discarded to buy because price is between fixed limits " + Utils.format(fixedBuySell.getFixedBuy()) + " and " + Utils.format(fixedBuySell.getFixedSell()));
+        	action = Action.NOTHING;
         }
     }
     
