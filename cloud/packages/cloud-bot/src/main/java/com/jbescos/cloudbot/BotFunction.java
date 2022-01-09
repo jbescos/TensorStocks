@@ -1,5 +1,6 @@
 package com.jbescos.cloudbot;
 
+import java.util.Map;
 import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
@@ -17,6 +18,7 @@ import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.DefaultBrokerManager;
+import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.SellPanicBrokerManager;
 import com.jbescos.common.Utils;
@@ -56,7 +58,10 @@ public class BotFunction implements HttpFunction {
 				String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());
 				String quantity = Utils.getParam(QUANTITY_PARAM, null, request.getQueryParameters());
 				String quoteOrderQty = Utils.getParam(QUANTITY_USDT_PARAM, null, request.getQueryParameters());
-				CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty, null) : api.orderSymbol(symbol, Action.valueOf(side), quantity, null);
+				PublicAPI publicApi = new PublicAPI(client);
+				Map<String, Double> prices = cloudProperties.USER_EXCHANGE.price(publicApi);
+				double currentUsdtPrice = prices.get(symbol);
+				CsvTransactionRow apiResponse = quoteOrderQty != null ? api.orderUSDT(symbol, Action.valueOf(side), quoteOrderQty, currentUsdtPrice) : api.orderSymbol(symbol, Action.valueOf(side), quantity, currentUsdtPrice);
 				String month = Utils.thisMonth(apiResponse.getDate());
 				if (apiResponse.getSide() == Action.SELL) {
 					Broker broker = brokerManager.loadBrokers().stream().filter(b -> symbol.equals(b.getSymbol())).findFirst().get();

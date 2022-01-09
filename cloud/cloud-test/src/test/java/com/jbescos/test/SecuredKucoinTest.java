@@ -53,22 +53,6 @@ public class SecuredKucoinTest {
 	
 	@Test
 	@Ignore
-	public void orderSymbol() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		// {"code":"200000","data":{"orderId":"6184220f35ed8b00017a4940"}}
-		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
-		System.out.println(api.orderSymbol("VIDTUSDT", Action.BUY, "1", null));
-	}
-	
-	@Test
-	@Ignore
-	public void orderUsdt() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		// {"code":"200000","data":{"orderId":"6184220f35ed8b00017a4940"}}
-		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
-		System.out.println(api.orderUSDT("VIDTUSDT", Action.BUY, "2", null));
-	}
-	
-	@Test
-	@Ignore
 	public void limits() throws InvalidKeyException, NoSuchAlgorithmException {
 		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
 		System.out.println("KUCOIN: " + api.getSymbolLimits("FLAMEUSDT"));

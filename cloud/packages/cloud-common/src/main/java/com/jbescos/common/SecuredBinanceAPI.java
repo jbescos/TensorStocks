@@ -134,7 +134,7 @@ public class SecuredBinanceAPI implements SecuredAPI {
 	
 	// quoteOrderQty in USDT
 	@Override
-	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, Double currentUsdtPrice) {
+	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quoteOrderQty", quoteOrderQty, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
@@ -146,7 +146,7 @@ public class SecuredBinanceAPI implements SecuredAPI {
 	
 	// quantity in units of symbol
 	@Override
-	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, Double currentUsdtPrice) {
+	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
 		ExchangeInfo exchange = new PublicAPI(client).exchangeInfo(symbol);

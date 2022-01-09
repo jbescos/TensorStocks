@@ -130,13 +130,13 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	}
 
 	@Override
-	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, Double currentUsdtPrice) {
+	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
 		int rounded = new BigDecimal(quoteOrderQty).intValue();
 		return order(symbol, action, currentUsdtPrice, BuySell.funds, Integer.toString(rounded));
 	}
 
 	@Override
-	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, Double currentUsdtPrice) {
+	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
 		SymbolLimits limits = getSymbolLimits(symbol);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, limits.baseMinSize, limits.baseMaxSize, limits.baseIncrement);
 		return order(symbol, action, currentUsdtPrice, BuySell.size, fixedQuantity);
