@@ -99,7 +99,7 @@ public class CautelousBroker implements Broker {
             action = Action.SELL;
         } else {
             if (price < avg) {
-                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest.getFearGreedIndex());
+                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest.getFearGreedIndex(), cloudProperties.BOT_FEAR_FACTOR_ADJUSTED);
                 if (!hasPreviousTransactions || (hasPreviousTransactions && price < summary.getLowestPurchase())) {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
