@@ -42,7 +42,7 @@ public class BotExecution {
 		int purchases = 0;
 		Set<String> openSymbolPositions = openPositionSymbols(stats);
 		for (Broker stat : stats) {
-			LOGGER.info(() -> "Processing " + stat);
+			LOGGER.info(() -> cloudProperties.USER_ID + ": Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
 				if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
 					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() <= cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
@@ -85,7 +85,7 @@ public class BotExecution {
     		}
     		double buySymbol = Utils.symbolValue(buy, stat.getNewest().getPrice());
     		try {
-	    		LOGGER.info("Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
+	    		LOGGER.info(cloudProperties.USER_ID + ": Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
 	    		if (updateWallet(Utils.USDT, buy * -1)) {
     			    CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
     			    if (transaction != null) {
@@ -94,10 +94,10 @@ public class BotExecution {
     			    }
 	    		}
 	    	} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol, e);
+				LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol, e);
 			}
 	    } else {
-	        LOGGER.info(() -> symbol + " discarded to buy because it is in bot.never.buy");
+	        LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " discarded to buy because it is in bot.never.buy");
 	    }
 	}
 	
@@ -108,7 +108,7 @@ public class BotExecution {
 		double usdtOfSymbol = Utils.usdValue(sell, stat.getNewest().getPrice());
 		try {
 			if (usdtOfSymbol >= connectAPI.minTransaction()) {
-				LOGGER.info(() -> "Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
+				LOGGER.info(() -> cloudProperties.USER_ID + ": Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
 				CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(sell), Utils.format(usdtOfSymbol));
 				if (transaction != null) {
 					updateWallet(Utils.USDT, transaction.getPrice());
@@ -116,7 +116,7 @@ public class BotExecution {
 			} else {
 				// Restore wallet
 				wallet.put(walletSymbol, sell);
-				LOGGER.info(() -> "Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
+				LOGGER.info(() -> cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
 			}
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol, e);
@@ -130,7 +130,7 @@ public class BotExecution {
 			wallet.put(symbol, accumulated);
 			return true;
 		} else {
-			LOGGER.info(() -> "There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
+			LOGGER.info(() -> cloudProperties.USER_ID + ": There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
 		}
 		return false;
 	}
@@ -205,7 +205,7 @@ public class BotExecution {
 		@Override
 		public void postActions(List<Broker> stats) {
 		    if (!transactions.isEmpty()) {
-		        LOGGER.info(() -> "Persisting " + transactions.size() + " transactions");
+		        LOGGER.info(() -> cloudProperties.USER_ID + ": Persisting " + transactions.size() + " transactions");
 		        Date now = transactions.get(0).getDate();
 		        String month = Utils.thisMonth(now);
 		        StringBuilder data = new StringBuilder();
@@ -214,7 +214,7 @@ public class BotExecution {
 		        try {
                     storage.updateFile(transactionsCsv, data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
                 } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "Cannot save " + transactionsCsv + ": " + data, e);
+                    LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot save " + transactionsCsv + ": " + data, e);
                 }
 		        StringBuilder profitData = new StringBuilder();
 		        transactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
@@ -233,7 +233,7 @@ public class BotExecution {
 			        try {
 	                    storage.updateFile(profitCsv, profitData.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
 	                } catch (IOException e) {
-	                    LOGGER.log(Level.SEVERE, "Cannot save " + profitCsv + ": " + profitData, e);
+	                    LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot save " + profitCsv + ": " + profitData, e);
 	                }
 		        }
 		    }

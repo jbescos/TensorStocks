@@ -118,7 +118,6 @@ public class BucketStorage implements FileManager {
                 }
 		    }
 		}
-		LOGGER.info(() -> "Transactions loaded: " + transactions.size() + " from " + months);
 		return transactions;
 	}
 
@@ -137,12 +136,7 @@ public class BucketStorage implements FileManager {
 				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime())
 						.collect(Collectors.toList());
 				rows.addAll(csvInDay);
-				LOGGER.info("Loaded " + csvInDay.size() + " rows from " + day);
 			}
-		}
-		if (!rows.isEmpty()) {
-			LOGGER.info(() -> "Data is obtained from " + Utils.fromDate(Utils.FORMAT_SECOND, rows.get(0).getDate()) + " to "
-					+ Utils.fromDate(Utils.FORMAT_SECOND, now));
 		}
 		return rows;
 	}

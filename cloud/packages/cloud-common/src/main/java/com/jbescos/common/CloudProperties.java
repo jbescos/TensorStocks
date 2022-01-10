@@ -129,7 +129,7 @@ public class CloudProperties {
         EMAIL = getProperty("user.email");
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
         USER_EXCHANGE = Exchange.valueOf(getProperty("user.exchange"));
-        LOGGER.info(() -> "UserId: " + userId + ", ProjectId = " + PROJECT_ID + ", Exchange = " + USER_EXCHANGE.name());
+//        LOGGER.info(() -> "UserId: " + userId + ", ProjectId = " + PROJECT_ID + ", Exchange = " + USER_EXCHANGE.name());
         BINANCE_PUBLIC_KEY = getProperty("binance.public.key");
         BINANCE_PRIVATE_KEY = getProperty("binance.private.key");
         KUCOIN_PUBLIC_KEY = getProperty("kucoin.public.key");

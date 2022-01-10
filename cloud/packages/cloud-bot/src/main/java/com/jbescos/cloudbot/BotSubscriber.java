@@ -35,13 +35,10 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     @Override
     public void accept(PubSubMessage payload, Context context) throws Exception {
         String userId = new String(Base64.getDecoder().decode(payload.data));
-        LOGGER.info(() -> "Received: " + userId);
         CloudProperties cloudProperties = new CloudProperties(userId);
-        LOGGER.info(() -> "Openning HTTP client in: " + userId);
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
         long time = publicAPI.time();
-        LOGGER.info(() -> "Server time is: " + time);
         Date now = new Date(time);
         Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
         BucketStorage bucketStorage = new BucketStorage(cloudProperties, storage);
