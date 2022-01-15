@@ -72,10 +72,10 @@ public class SecuredKucoinAPI implements SecuredAPI {
             	try {
             		return response.readEntity(type);
             	} catch (ProcessingException e) {
-                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
+                    throw new RuntimeException("SecuredKucoinAPI> Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
             	}
             } else {
-                throw new RuntimeException("HTTP response code " + response.getStatus() + " from "
+                throw new RuntimeException("SecuredKucoinAPI> HTTP response code " + response.getStatus() + " from "
                         + webTarget.toString() + " : " + response.readEntity(String.class));
             }
         }
@@ -96,10 +96,10 @@ public class SecuredKucoinAPI implements SecuredAPI {
 				try {
             		return response.readEntity(type);
             	} catch (ProcessingException e) {
-                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
+                    throw new RuntimeException("SecuredKucoinAPI> Cannot deserialize " + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
             	}
 			} else {
-                throw new RuntimeException("HTTP response code " + response.getStatus() + " from "
+                throw new RuntimeException("SecuredKucoinAPI> HTTP response code " + response.getStatus() + " from "
                         + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
 			}
 		}
@@ -139,7 +139,15 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
 		SymbolLimits limits = getSymbolLimits(symbol);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, limits.baseMinSize, limits.baseMaxSize, limits.baseIncrement);
-		return order(symbol, action, currentUsdtPrice, BuySell.size, fixedQuantity);
+		CsvTransactionRow tx = order(symbol, action, currentUsdtPrice, BuySell.size, fixedQuantity);
+		double txQuantity = Double.parseDouble(tx.getQuantity());
+		double desiredQuantity = Double.parseDouble(fixedQuantity);
+		if (txQuantity < (desiredQuantity * 0.95)) {
+			LOGGER.warning("SecuredKucoinAPI> Fixing the transaction because current quantity " + quantity + " does not match with received " + tx);
+			// FIXME we should apply commission here
+			tx = new CsvTransactionRow(tx.getDate(), tx.getOrderId(), tx.getSide(), symbol, Utils.format(Utils.usdValue(desiredQuantity, tx.getUsdtUnit())), fixedQuantity, tx.getUsdtUnit());
+		}
+		return tx;
 	}
 	
 	private CsvTransactionRow order(String symbol, Action action, Double currentUsdtPrice, BuySell key, String value) {
@@ -154,12 +162,12 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		body.append("\""+ key.name() +"\":").append("\"").append(value).append("\",");
 		body.append("\"symbol\":").append("\"").append(kucoinSymbol).append("\"");
 		body.append("}");
-		LOGGER.info(() -> "Prepared order: " + body.toString());
+		LOGGER.info(() -> "SecuredKucoinAPI> Prepared order: " + body.toString());
 		Map<String, String> response = post("/api/v1/orders", new GenericType<KucoinResponse<Map<String, String>>>() {}, body.toString()).getData();
-		LOGGER.info(() -> "Completed order: " + response);
+		LOGGER.info(() -> "SecuredKucoinAPI> Completed order: " + response);
 		String orderId = response.get("orderId");
 		Map<String, String> orderInfo = getOrder(orderId);
-		LOGGER.info(() -> "Order Info: " + orderInfo);
+		LOGGER.info(() -> "SecuredKucoinAPI> Order Info: " + orderInfo);
 		/* FIXME Sometimes dealFunds and dealSize comes much lower than it should be, for example: side=SELL&quantity=45459.00811599 -> 
 		* Order Info: {id=xxxxxx, symbol=AI-USDT, opType=DEAL, type=market, side=sell, price=0, size=45459.0081, funds=0, dealFunds=259.209449966, 
 		* dealSize=11166.3079, fee=0.518418899932, feeCurrency=USDT, stp=, stop=, stopTriggered=false, stopPrice=0, timeInForce=GTC, postOnly=false, 

@@ -94,18 +94,18 @@ public class SecuredMizarAPI implements SecuredAPI {
     	obj.put("quote_asset", quote_asset);
     	obj.put("is_long", true);
     	obj.put("size", size);
-    	LOGGER.info(() -> "Open position: " + obj);
+    	LOGGER.info(() -> "SecuredMizarAPI> Open position: " + obj);
     	OpenPositionResponse response = post("/open-position", obj, new GenericType<OpenPositionResponse>(){});
-    	LOGGER.info(() -> "Response open position: " + response);
+    	LOGGER.info(() -> "SecuredMizarAPI> Response open position: " + response);
     	return response;
     }
 
     public ClosePositionResponse closePosition(int position_id) {
     	Map<String, Object> obj = new LinkedHashMap<>();
     	obj.put("position_id", position_id);
-    	LOGGER.info(() -> "Close position: " + obj);
+    	LOGGER.info(() -> "SecuredMizarAPI> Close position: " + obj);
     	ClosePositionResponse response = post("/close-position", obj, new GenericType<ClosePositionResponse>(){});
-    	LOGGER.info(() -> "Response close position: " + response);
+    	LOGGER.info(() -> "SecuredMizarAPI> Response close position: " + response);
     	return response;
     }
 
@@ -140,7 +140,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     
     private CsvTransactionRow buy(String symbol, double factor, Double currentUsdtPrice) {
     	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
-    		throw new IllegalStateException("For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
+    		throw new IllegalStateException("SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
     	if (cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
     		factor = 1;
@@ -150,7 +150,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     	OpenPositionResponse open = openPosition(asset, Utils.USDT, factor);
     	Double currentPrice = Double.parseDouble(open.open_price);
     	if (currentUsdtPrice != null && (currentPrice.isNaN() || currentPrice.isInfinite() || currentPrice == 0)) {
-    		LOGGER.warning("Current open price from Mizar is not a valid number in " + open + ". Taking our value of " + Utils.format(currentUsdtPrice));
+    		LOGGER.warning("SecuredMizarAPI> Current open price from Mizar is not a valid number in " + open + ". Taking our value of " + Utils.format(currentUsdtPrice));
     		currentPrice = currentUsdtPrice;
     	}
     	double quantity = Utils.symbolValue(usdtToBuy, currentPrice);
@@ -161,11 +161,11 @@ public class SecuredMizarAPI implements SecuredAPI {
     // symbol comes with the symbol + USDT
     public CsvTransactionRow sell(String symbol, Action action) {
     	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
-    		throw new IllegalStateException("For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
+    		throw new IllegalStateException("SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
     	ClosePositionsResponse response = closeAllBySymbol(symbol);
     	if (response.closed_positions == null || response.closed_positions.isEmpty()) {
-    		LOGGER.severe("It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + response + ". Returning a fake transaction to bypass this.");
+    		LOGGER.severe("SecuredMizarAPI> It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + response + ". Returning a fake transaction to bypass this.");
     		CsvTransactionRow transaction = new CsvTransactionRow(new Date(), "ERROR", action, symbol, "0.000001", "0.000001", 0.000001);
     		return transaction;
     	} else {
@@ -190,9 +190,9 @@ public class SecuredMizarAPI implements SecuredAPI {
     	obj.put("strategy_id", cloudProperties.MIZAR_STRATEGY_ID);
     	obj.put("base_asset", baseAsset);
     	obj.put("quote_asset", Utils.USDT);
-    	LOGGER.info(() -> "Close all positions: " + obj);
+    	LOGGER.info(() -> "SecuredMizarAPI> Close all positions: " + obj);
     	ClosePositionsResponse response = post("/close-all-positions", obj, new GenericType<ClosePositionsResponse>(){});
-    	LOGGER.info(() -> "Response close all positions: " + response);
+    	LOGGER.info(() -> "SecuredMizarAPI> Response close all positions: " + response);
     	return response;
     }
 
@@ -217,10 +217,10 @@ public class SecuredMizarAPI implements SecuredAPI {
             	try {
             		return response.readEntity(type);
             	} catch (ProcessingException e) {
-                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
+                    throw new RuntimeException("SecuredMizarAPI> Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
             	}
             } else {
-                throw new RuntimeException("HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
+                throw new RuntimeException("SecuredMizarAPI> HTTP response code " + response.getStatus() + " with query " + queryStr.toString() + " from "
                         + webTarget.toString() + " : " + response.readEntity(String.class));
             }
         }
@@ -235,10 +235,10 @@ public class SecuredMizarAPI implements SecuredAPI {
 				try {
             		return response.readEntity(responseType);
             	} catch (ProcessingException e) {
-                    throw new RuntimeException("Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
+                    throw new RuntimeException("SecuredMizarAPI> Cannot deserialize " + webTarget.toString() + " : " + response.readEntity(String.class));
             	}
 			} else {
-				throw new RuntimeException("HTTP response code " + response.getStatus() + " with " + obj + " from "
+				throw new RuntimeException("SecuredMizarAPI> HTTP response code " + response.getStatus() + " with " + obj + " from "
 						+ webTarget.toString() + " : " + response.readEntity(String.class));
 			}
 		}
