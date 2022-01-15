@@ -66,39 +66,41 @@ public class BotExecution {
 	}
 	
 	private void buy(String symbol, Broker stat) throws FileNotFoundException, IOException {
-	    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
-	    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-    		wallet.putIfAbsent(Utils.USDT, 0.0);
-    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
-    		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
-    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
-    		    buy = buy * stat.getFactor();
-    		}
-    		if (cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT > 0) {
-    		    buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
-            }
-    		if (cloudProperties.LIMIT_TRANSACTION_AMOUNT > 0 && buy > cloudProperties.LIMIT_TRANSACTION_AMOUNT) {
-    			buy = cloudProperties.LIMIT_TRANSACTION_AMOUNT;
-    		}
-    		if (buy < connectAPI.minTransaction()) {
-    			buy = connectAPI.minTransaction();
-    		}
-    		double buySymbol = Utils.symbolValue(buy, stat.getNewest().getPrice());
-    		try {
-	    		LOGGER.info(cloudProperties.USER_ID + ": Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
-	    		if (updateWallet(Utils.USDT, buy * -1)) {
-    			    CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
-    			    if (transaction != null) {
-    			    	wallet.putIfAbsent(walletSymbol, 0.0);
-        				updateWallet(walletSymbol, Double.parseDouble(transaction.getQuantity()));
-    			    }
+		if (stat.getNewest().getPrice() > 0) { // Sometimes exchanges disable one symbol, and they set the price to 0
+		    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+		    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
+	    		wallet.putIfAbsent(Utils.USDT, 0.0);
+	    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
+	    		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
+	    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+	    		    buy = buy * stat.getFactor();
 	    		}
-	    	} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol, e);
-			}
-	    } else {
-	        LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " discarded to buy because it is in bot.never.buy");
-	    }
+	    		if (cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT > 0) {
+	    		    buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
+	            }
+	    		if (cloudProperties.LIMIT_TRANSACTION_AMOUNT > 0 && buy > cloudProperties.LIMIT_TRANSACTION_AMOUNT) {
+	    			buy = cloudProperties.LIMIT_TRANSACTION_AMOUNT;
+	    		}
+	    		if (buy < connectAPI.minTransaction()) {
+	    			buy = connectAPI.minTransaction();
+	    		}
+	    		double buySymbol = Utils.symbolValue(buy, stat.getNewest().getPrice());
+	    		try {
+		    		LOGGER.info(cloudProperties.USER_ID + ": Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
+		    		if (updateWallet(Utils.USDT, buy * -1)) {
+	    			    CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
+	    			    if (transaction != null) {
+	    			    	wallet.putIfAbsent(walletSymbol, 0.0);
+	        				updateWallet(walletSymbol, Double.parseDouble(transaction.getQuantity()));
+	    			    }
+		    		}
+		    	} catch (Exception e) {
+					LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol + ". " + stat.getNewest(), e);
+				}
+		    } else {
+		        LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " discarded to buy because it is in bot.never.buy");
+		    }
+		}
 	}
 	
 	private void sell(String symbol, Broker stat) throws FileNotFoundException, IOException {
