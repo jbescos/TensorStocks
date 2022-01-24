@@ -70,16 +70,23 @@ public class BotExecution {
 		    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
 		    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 	    		wallet.putIfAbsent(Utils.USDT, 0.0);
-	    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
-	    		double buy = usdt * cloudProperties.BOT_BUY_REDUCER;
-	    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
-	    		    buy = buy * stat.getFactor();
-	    		}
-	    		if (cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT > 0) {
-	    		    buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
-	            }
-	    		if (cloudProperties.LIMIT_TRANSACTION_AMOUNT > 0 && buy > cloudProperties.LIMIT_TRANSACTION_AMOUNT) {
-	    			buy = cloudProperties.LIMIT_TRANSACTION_AMOUNT;
+	    		double buy = 0;
+	    		if (stat.getPreviousTransactions().isHasTransactions()) {
+	    		    // Buy same amount than before
+	    		    buy = Double.parseDouble(stat.getPreviousTransactions().getPreviousBuys().get(0).getUsdt());
+	    		} else {
+	    		    // First purchase
+    	    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
+    	    		buy = usdt * cloudProperties.BOT_BUY_REDUCER;
+    	    		if (!cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+    	    		    buy = buy * stat.getFactor();
+    	    		}
+    	    		if (cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT > 0) {
+    	    		    buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
+    	            }
+    	    		if (cloudProperties.LIMIT_TRANSACTION_AMOUNT > 0 && buy > cloudProperties.LIMIT_TRANSACTION_AMOUNT) {
+    	    			buy = cloudProperties.LIMIT_TRANSACTION_AMOUNT;
+    	    		}
 	    		}
 	    		if (buy < connectAPI.minTransaction()) {
 	    			buy = connectAPI.minTransaction();
