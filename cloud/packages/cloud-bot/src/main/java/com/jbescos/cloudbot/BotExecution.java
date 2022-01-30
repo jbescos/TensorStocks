@@ -73,7 +73,7 @@ public class BotExecution {
 	    		double buy = 0;
 	    		if (stat.getPreviousTransactions().isHasTransactions()) {
 	    		    // Buy same amount than before
-	    		    buy = Double.parseDouble(stat.getPreviousTransactions().getPreviousBuys().get(0).getUsdt());
+	    			buy = Double.parseDouble(stat.getPreviousTransactions().getPreviousBuys().get(stat.getPreviousTransactions().getPreviousBuys().size() - 1).getUsdt());
 	    		} else {
 	    		    // First purchase
     	    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
