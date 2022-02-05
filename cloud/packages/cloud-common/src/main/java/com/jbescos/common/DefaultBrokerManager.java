@@ -3,7 +3,6 @@ package com.jbescos.common;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,15 +43,13 @@ public class DefaultBrokerManager implements BrokerManager {
 			}
 		}
 		Map<String, Broker> minMax = new LinkedHashMap<>();
-		Map<String, String> benefits = new HashMap<>();
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
 			if (symbolTransactions != null) {
 				symbolTransactions = filterLastBuys(symbolTransactions);
 			}
-			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions, benefits));
+			minMax.put(entry.getKey(), buySellInstance(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions));
 		}
-		LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
 		List<Broker> brokers = Utils.sortBrokers(minMax);
 		if (startPanicPeriod(grouped)) {
 			return new SellPanicBrokerManager(cloudProperties, fileManager).loadBrokers(brokers, Action.SELL_PANIC);
@@ -78,12 +75,8 @@ public class DefaultBrokerManager implements BrokerManager {
 		return false;
 	}
 	
-	private Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions, Map<String, String> benefits) {
+	private Broker buySellInstance(CloudProperties cloudProperties, String symbol, List<CsvRow> rows, List<CsvTransactionRow> symbolTransactions) {
 		TransactionsSummary summary = Utils.minSellProfitable(symbolTransactions);
-		CsvRow newest = rows.get(rows.size() - 1);
-		if (summary.isHasTransactions()) {
-		    benefits.put(symbol, Utils.format(benefit(summary.getMinProfitable(), newest.getPrice())));
-		}
 		Double fixedBuy = cloudProperties.FIXED_BUY.get(symbol);
 	    if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuy != null) {
 		    return new LimitsBroker(cloudProperties, symbol, rows, fixedBuy, summary);
@@ -103,14 +96,6 @@ public class DefaultBrokerManager implements BrokerManager {
 			}
 		}
 		return filtered;
-	}
-	
-	private double benefit(double minProfitableSellPrice, double currentPrice) {
-	    if (currentPrice > minProfitableSellPrice) {
-	        return 1 - (minProfitableSellPrice/currentPrice);
-	    } else {
-	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
-	    }
 	}
 
 }

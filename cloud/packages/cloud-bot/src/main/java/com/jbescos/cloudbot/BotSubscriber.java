@@ -2,6 +2,7 @@ package com.jbescos.cloudbot;
 
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -24,6 +25,8 @@ import com.jbescos.common.CsvUtil;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
+import com.jbescos.common.TransactionsSummary;
+import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
@@ -44,7 +47,8 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         BucketStorage bucketStorage = new BucketStorage(cloudProperties, storage);
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
-        List<Broker> stats = brokerManager.loadBrokers().stream()
+        List<Broker> brokers = brokerManager.loadBrokers();
+        List<Broker> stats = brokers.stream()
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
         BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage);
         bot.execute(stats);
@@ -55,8 +59,26 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 	        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
 	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
         }
+        Map<String, Double> benefits = new HashMap<>();
+        for (Broker broker : brokers) {
+        	TransactionsSummary summary = broker.getPreviousTransactions();
+        	if (summary.isHasTransactions()) {
+    		    benefits.put(broker.getSymbol(), benefit(summary.getMinProfitable(), broker.getNewest().getPrice()));
+    		}
+        }
+        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
+        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
+        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
         client.close();
     }
+    
+	private double benefit(double minProfitableSellPrice, double currentPrice) {
+	    if (currentPrice > minProfitableSellPrice) {
+	        return 1 - (minProfitableSellPrice/currentPrice);
+	    } else {
+	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
+	    }
+	}
 
     public static class PubSubMessage {
         String data;

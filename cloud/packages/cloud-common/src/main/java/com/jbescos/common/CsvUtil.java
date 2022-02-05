@@ -122,6 +122,17 @@ public class CsvUtil {
 		}, reader);
 	}
 	
+	public static List<CsvTxSummaryRow> readCsvTxSummaryRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
+		return readCsv(skipFirst, line -> {
+			String[] columns = line.split(separator);
+			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			String symbol = columns[1];
+			double summary = Double.parseDouble(columns[2]);
+			CsvTxSummaryRow row = new CsvTxSummaryRow(date, columns[0], symbol, summary);
+			return row;
+		}, reader);
+	}
+	
 	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader, Date from, Date to, List<String> symbols) throws IOException {
 		return readCsv(skipFirst,  line -> {
 			String[] columns = line.split(separator);

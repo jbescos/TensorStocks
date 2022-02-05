@@ -9,6 +9,7 @@ import com.jbescos.cloudchart.ChartGenerator.AccountChartCsv;
 import com.jbescos.cloudchart.ChartGenerator.IChartCsv;
 import com.jbescos.cloudchart.ChartGenerator.ProfitableBarChartCsv;
 import com.jbescos.cloudchart.ChartGenerator.SymbolChartCsv;
+import com.jbescos.cloudchart.ChartGenerator.TxSummaryChartCsv;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.Utils;
 
@@ -18,6 +19,7 @@ public class ChartFunction implements HttpFunction {
 	private static final String USER_ID_PARAM = "userId";
 	private static final String TYPE_LINE = "line";
 	private static final String TYPE_BAR = "bar";
+	private static final String TYPE_SUMMARY = "summary";
 	
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
@@ -40,8 +42,10 @@ public class ChartFunction implements HttpFunction {
 				}
 			} else if (TYPE_BAR.equals(type)) {
 				chart = new ProfitableBarChartCsv(cloudProperties, symbols);
+			} else if (TYPE_SUMMARY.equals(type)) {
+				chart = new TxSummaryChartCsv(cloudProperties);
 			} else {
-				throw new IllegalArgumentException("Unkown type=" + type);
+				throw new IllegalArgumentException("Unknown type=" + type);
 			}
 			String fileName = chart.getClass().getSimpleName() + "_" + Utils.today() + ".png";
 			response.setContentType("image/png");

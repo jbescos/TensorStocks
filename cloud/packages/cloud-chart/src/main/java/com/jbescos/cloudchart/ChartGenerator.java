@@ -11,6 +11,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -23,6 +24,7 @@ import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvAccountRow;
 import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
@@ -160,6 +162,66 @@ public class ChartGenerator {
 			}
 		}
 
+	}
+	
+	static class TxSummaryChartCsv implements IChartCsv {
+		
+		private final Page<Blob> txSummaryBlobs;
+		private final CloudProperties cloudProperties;
+
+		public TxSummaryChartCsv(CloudProperties cloudProperties) {
+			this.cloudProperties = cloudProperties;
+			Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
+			txSummaryBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX));
+		}
+
+		@Override
+		public List<IRow> read(int daysBack) throws IOException {
+			Date now = new Date();
+			List<IRow> total = new ArrayList<>();
+			List<String> days = Utils.daysBack(now, daysBack, cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX, ".csv");
+			for (Blob blob : txSummaryBlobs.iterateAll()) {
+				if (days.contains(blob.getName())) {
+					try (ReadChannel readChannel = blob.reader();
+							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+						List<? extends IRow> rows = CsvUtil.readCsvTxSummaryRows(true, ",", reader);
+						if (daysBack > PRECISSION_CHART_DAYS) {
+							// Pick the last to avoid memory issues
+							Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));
+							List<IRow> lastOfEachSymbol = new ArrayList<>();
+							for (List<IRow> values : grouped.values()) {
+								if (!values.isEmpty()) {
+									lastOfEachSymbol.add(values.get(values.size() - 1));
+								}
+							}
+							total.addAll(lastOfEachSymbol);
+						} else {
+							total.addAll(rows);
+						}
+					}
+				}
+			}
+			Optional<IRow> min = total.stream().min((r1, r2) -> r1.getDate().compareTo(r2.getDate()));
+			if (min.isPresent()) {
+				// Set a line in the zero
+				final String ZERO = "ZERO";
+				CsvTxSummaryRow zero0 = new CsvTxSummaryRow(min.get().getDate(), Utils.fromDate(Utils.FORMAT_SECOND, min.get().getDate()), ZERO, 0);
+				CsvTxSummaryRow zero1 = new CsvTxSummaryRow(now, Utils.fromDate(Utils.FORMAT_SECOND, now), ZERO, 0);
+				total.add(zero0);
+				total.add(zero1);
+			}
+			return total;
+		}
+
+		@Override
+		public IChart<IRow> chart(int daysBack) {
+			if (daysBack > PRECISSION_CHART_DAYS) {
+				return new DateChart();
+			} else {
+				return new XYChart();
+			}
+		}
+		
 	}
 
 	static class SymbolChartCsv implements IChartCsv {
