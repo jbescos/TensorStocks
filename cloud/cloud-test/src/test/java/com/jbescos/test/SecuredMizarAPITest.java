@@ -1,8 +1,11 @@
 package com.jbescos.test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -46,6 +49,20 @@ public class SecuredMizarAPITest {
 		System.out.println(builder.toString());
 	}
 
+	@Test
+	public void createStrategyAll() {
+		String name = "Botijo-Pijo-All";
+		String description = "Bot will try to buy cheap and will sell with some profit. It is recommended to invest 1% each time, for example if you have 100.000$, invest 1.000$ in each transaction. It will never sell losses. In worst scenario, the bot will not have enough USDT to continue buying, in this case try to add more USDT or sell something.";
+		List<String> exchanges = mizarApi.exchanges();
+		Set<String> symbols = new HashSet<>();
+		for (String exchange : exchanges) {
+			symbols.addAll(mizarApi.compatibleSymbols(exchange, "SPOT"));
+		}
+		String market = "SPOT";
+		int strategyId = mizarApi.publishSelfHostedStrategy(name, description, exchanges, new ArrayList<>(symbols), market);
+		System.out.println("StrategyId: " + strategyId);
+	}
+	
 	@Test
 	@Ignore
 	public void createStrategy() {

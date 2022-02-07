@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,9 +42,15 @@ public class SecuredMizarAPI implements SecuredAPI {
     	}
     }
 
-    public String exchanges() {
-    	String response = get("/exchanges", new GenericType<String>(){});
-    	return response;
+    public List<String> exchanges() {
+    	List<String> exchangesList = new ArrayList<>();
+    	Map<String, List<Map<String, Object>>> response = get("/exchanges", new GenericType<Map<String, List<Map<String, Object>>>>(){});
+    	List<Map<String, Object>> exchanges = response.get("exchanges");
+    	for (Map<String, Object> exchange : exchanges) {
+    		String value = (String) exchange.get("name");
+    		exchangesList.add(value);
+    	}
+    	return exchangesList;
     }
 
     public List<String> compatibleSymbols(String exchange, String market) {
