@@ -50,6 +50,7 @@ public class SecuredMizarAPITest {
 	}
 
 	@Test
+	@Ignore
 	public void createStrategyAll() {
 		String name = "Botijo-Pijo-All";
 		String description = "Bot will try to buy cheap and will sell with some profit. It is recommended to invest 1% each time, for example if you have 100.000$, invest 1.000$ in each transaction. It will never sell losses. In worst scenario, the bot will not have enough USDT to continue buying, in this case try to add more USDT or sell something.";

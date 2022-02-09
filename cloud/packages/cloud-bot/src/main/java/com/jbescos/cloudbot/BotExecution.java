@@ -171,12 +171,14 @@ public class BotExecution {
 		private final FileManager storage;
 		private final Map<String, String> originalWallet;
 		private final Map<String, Double> wallet = new HashMap<>();
+		private final TelegramBot msgSender;
 		
 		private ConnectAPIImpl(CloudProperties cloudProperties, SecuredAPI api, FileManager storage) {
 			this.cloudProperties = cloudProperties;
 			this.api = api;
 			this.storage = storage;
 			this.originalWallet = api.wallet();
+			this.msgSender = new TelegramBot(cloudProperties, api.getClient());
 			for (Entry<String, String> entry : originalWallet.entrySet()) {
 				wallet.put(entry.getKey(), Double.parseDouble(entry.getValue()));
 			}
@@ -225,6 +227,7 @@ public class BotExecution {
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot save " + transactionsCsv + ": " + data, e);
                 }
+		        List<CsvProfitRow> profits = new ArrayList<>();
 		        StringBuilder profitData = new StringBuilder();
 		        transactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
 		        	for (Broker broker : stats) {
@@ -232,6 +235,7 @@ public class BotExecution {
 		        			CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION, broker.getPreviousTransactions(), tx);
 		        			if (row != null) {
 		        				profitData.append(row.toCsvLine());
+		        				profits.add(row);
 		        			}
 		        			break;
 		        		}
@@ -244,6 +248,16 @@ public class BotExecution {
 	                } catch (IOException e) {
 	                    LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot save " + profitCsv + ": " + profitData, e);
 	                }
+		        }
+		        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
+			        transactions.stream().filter(tx -> tx.getSide() == Action.BUY).forEach(row -> {
+			        	msgSender.sendMessage(cloudProperties.USER_ID + " -> " + row.toString());
+	    				msgSender.sendChartLink(row.getSymbol(), cloudProperties.USER_ID);
+			        });
+			        profits.stream().forEach(row -> {
+			        	msgSender.sendMessage(cloudProperties.USER_ID + " -> " + row.toString());
+	    				msgSender.sendChartLink(row.getSymbol(), cloudProperties.USER_ID);
+			        });
 		        }
 		    }
 		}

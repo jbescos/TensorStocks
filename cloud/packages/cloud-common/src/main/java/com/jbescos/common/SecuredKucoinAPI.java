@@ -321,4 +321,9 @@ public class SecuredKucoinAPI implements SecuredAPI {
 			this.holds = holds;
 		}
 	}
+
+	@Override
+	public Client getClient() {
+		return client;
+	}
 }

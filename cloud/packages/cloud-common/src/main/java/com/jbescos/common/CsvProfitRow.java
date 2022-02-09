@@ -94,4 +94,15 @@ public class CsvProfitRow {
 			return null;
 		}
 	}
+	
+	public String getSymbol() {
+		return symbol;
+	}
+
+    @Override
+    public String toString() {
+        return symbol + " -> sold = " + Utils.fromDate(Utils.FORMAT_SECOND, sellDate) + ", first purchase = " + Utils.fromDate(Utils.FORMAT_SECOND, firstBuyDate)
+        + ", buy = " + quantityUsdtBuy + "$, sell = " + quantityUsdtSell + "$, profit = " + usdtProfit + "$ (" + profitPercentage + ")";
+    }
+	
 }

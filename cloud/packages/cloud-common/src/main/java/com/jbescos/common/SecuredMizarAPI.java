@@ -331,4 +331,9 @@ public class SecuredMizarAPI implements SecuredAPI {
     public static SecuredMizarAPI create(CloudProperties cloudProperties, Client client) {
         return new SecuredMizarAPI(cloudProperties, client);
     }
+    
+	@Override
+	public Client getClient() {
+		return client;
+	}
 }

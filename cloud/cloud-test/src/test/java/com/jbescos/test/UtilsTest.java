@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -341,6 +342,13 @@ public class UtilsTest {
 		brokers.put("b", b);
 		assertEquals(Arrays.asList(b, a), Utils.sortBrokers(brokers));
 		brokers.clear();
+	}
+
+	@Test
+	public void profitToString() {
+		TransactionsSummary summary = new TransactionsSummary(true, 1, 1, new Date(0), Arrays.asList(new CsvTransactionRow(new Date(0), "1", Action.BUY, "test", "10", "10", 1)), Collections.emptyList());
+		CsvProfitRow profit = CsvProfitRow.build("0", summary, new CsvTransactionRow(new Date(0), "1", Action.SELL, "test", "10", "10", 1));
+		assertEquals("test -> sold = 1970-01-01 01:00:00, first purchase = 1970-01-01 01:00:00, buy = 10$, sell = 10$, profit = 0$ (0%)", profit.toString());
 	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {

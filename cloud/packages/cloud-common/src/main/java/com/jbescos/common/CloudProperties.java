@@ -79,9 +79,13 @@ public class CloudProperties {
     public final int MAX_OPEN_POSITIONS;
     public final int MAX_OPEN_POSITIONS_SYMBOLS;
     public final int MAX_PURCHASES_PER_ITERATION;
-    public final boolean BOT_FEAR_FACTOR_ADJUSTED;;
+    public final boolean BOT_FEAR_FACTOR_ADJUSTED;
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
     public final double BOT_LIMITS_FACTOR_PROFIT_SELL;
+    public final boolean TELEGRAM_BOT_ENABLED;
+    public final String TELEGRAM_BOT_TOKEN;
+    public final String TELEGRAM_CHAT_ID;
+    public final String CHART_URL;
     public final Map<String, Double> FIXED_BUY;
     private final Properties mainProperties;
     private final Properties idProperties;
@@ -137,6 +141,11 @@ public class CloudProperties {
         KUCOIN_API_PASSPHRASE = getProperty("kucoin.passphrase.key");
         KUCOIN_COMMERCE_KEY = getProperty("kucoin.commerce.key");
         KUCOIN_API_VERSION = getProperty("kucoin.version");
+        
+        TELEGRAM_BOT_ENABLED = Boolean.valueOf(getProperty("telegram.bot.enabled"));
+        TELEGRAM_BOT_TOKEN = getProperty("telegram.bot.token");
+        TELEGRAM_CHAT_ID = getProperty("telegram.chat.id");
+        CHART_URL = getProperty("chart.url");
         
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));

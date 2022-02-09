@@ -193,4 +193,9 @@ public class SecuredBinanceAPI implements SecuredAPI {
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		return new SecuredBinanceAPI(client, cloudProperties.BINANCE_PUBLIC_KEY, cloudProperties.BINANCE_PRIVATE_KEY);
 	}
+
+	@Override
+	public Client getClient() {
+		return client;
+	}
 }
