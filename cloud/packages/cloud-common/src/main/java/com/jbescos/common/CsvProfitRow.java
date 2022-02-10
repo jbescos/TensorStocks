@@ -101,8 +101,11 @@ public class CsvProfitRow {
 
     @Override
     public String toString() {
-        return symbol + " -> sold = " + Utils.fromDate(Utils.FORMAT_SECOND, sellDate) + ", first purchase = " + Utils.fromDate(Utils.FORMAT_SECOND, firstBuyDate)
-        + ", buy = " + quantityUsdtBuy + "$, sell = " + quantityUsdtSell + "$, profit = " + usdtProfit + "$ (" + profitPercentage + ")";
+    	StringBuilder content = new StringBuilder(symbol).append(" SELL ").append(Utils.fromDate(Utils.FORMAT_SECOND, sellDate))
+    	.append("\nFirst purchase: ").append(Utils.fromDate(Utils.FORMAT_SECOND, firstBuyDate))
+    	.append("\nBuy / Sell: ").append(quantityUsdtBuy).append("$ / ").append(quantityUsdtSell)
+    	.append("\nProfit: ").append(usdtProfit).append("$ (").append(profitPercentage).append(")");
+        return content.toString();
     }
 	
 }

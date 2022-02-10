@@ -345,10 +345,16 @@ public class UtilsTest {
 	}
 
 	@Test
-	public void profitToString() {
-		TransactionsSummary summary = new TransactionsSummary(true, 1, 1, new Date(0), Arrays.asList(new CsvTransactionRow(new Date(0), "1", Action.BUY, "test", "10", "10", 1)), Collections.emptyList());
+	public void dataToString() {
+		CsvTransactionRow buy = new CsvTransactionRow(new Date(0), "1", Action.BUY, "test", "10", "10", 1);
+		TransactionsSummary summary = new TransactionsSummary(true, 1, 1, new Date(0), Arrays.asList(buy), Collections.emptyList());
 		CsvProfitRow profit = CsvProfitRow.build("0", summary, new CsvTransactionRow(new Date(0), "1", Action.SELL, "test", "10", "10", 1));
-		assertEquals("test -> sold = 1970-01-01 01:00:00, first purchase = 1970-01-01 01:00:00, buy = 10$, sell = 10$, profit = 0$ (0%)", profit.toString());
+		assertEquals("test SELL 1970-01-01 01:00:00\n" + 
+				"First purchase: 1970-01-01 01:00:00\n" + 
+				"Buy / Sell: 10$ / 10\n" + 
+				"Profit: 0$ (0%)", profit.toString());
+		assertEquals("test BUY 1970-01-01 01:00:00\n" + 
+				"Total USD (USD per unit): 10$ (1$)", buy.toString());
 	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {

@@ -56,8 +56,9 @@ public class CsvTransactionRow implements IRow {
 
     @Override
     public String toString() {
-        return " TX [date=" + Utils.fromDate(Utils.FORMAT_SECOND, date) + ", side=" + side + ", symbol=" + symbol + ", usdt=" + usdt
-                + ", quantity=" + quantity + ", usdtUnit=" + Utils.format(usdtUnit) + "]\n";
+    	StringBuilder content = new StringBuilder(symbol).append(" BUY ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
+    	    	.append("\nTotal USD (USD per unit): ").append(usdt).append("$ (").append(Utils.format(usdtUnit)).append("$)");
+    	return content.toString();
     }
 
 	public String toCsvLine() {
