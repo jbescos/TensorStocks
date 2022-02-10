@@ -1,6 +1,7 @@
 package com.jbescos.cloudbot;
 
 import java.util.Base64;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,12 +22,12 @@ import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.TransactionsSummary;
-import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
@@ -52,6 +53,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
                 .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
         BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage);
         bot.execute(stats);
+
         // Update wallet in case the exchange supports it
         if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
 	        Map<String, String> wallet = securedApi.wallet();
@@ -69,7 +71,36 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
         String body = CsvTxSummaryRow.toCsvBody(now, benefits);
         bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
+        
+        // Report
+        boolean report = isReportTime(now);
+        if (report) {
+            TelegramBot telegram = new TelegramBot(cloudProperties, client);
+            if (!brokers.isEmpty()) {
+                int fearGreedIndex = brokers.get(0).getNewest().getFearGreedIndex();
+                telegram.sendMessage("Fear Greed Index is: " + fearGreedIndex);
+            }
+            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                telegram.sendChartWalletDaysLink(7);
+                telegram.sendChartWalletDaysLink(365);
+            }
+            telegram.sendChartSummaryLink(7);
+        }
         client.close();
+    }
+    
+    // Reports if the bot run between 6:00 and 6:10
+    private boolean isReportTime(Date now) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        if (hour == 6) {
+            int minute = calendar.get(Calendar.MINUTE);
+            if (minute >=0 && minute <=10) {
+                return true;
+            }
+        }
+        return false;
     }
     
 	private double benefit(double minProfitableSellPrice, double currentPrice) {
