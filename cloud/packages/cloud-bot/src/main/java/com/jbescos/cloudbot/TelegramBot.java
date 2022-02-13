@@ -8,6 +8,7 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
@@ -36,31 +37,30 @@ public class TelegramBot {
         message.put("chat_id", chatId);
         message.put("text", text);
         message.put("method", "sendmessage");
-        try {
-            Response response = client.target(url).request(MediaType.APPLICATION_JSON)
-                    .header("charset", StandardCharsets.UTF_8.name())
-                    .post(Entity.entity(message, MediaType.APPLICATION_JSON));
+        WebTarget webTarget = client.target(url);
+        try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
+                .header("charset", StandardCharsets.UTF_8.name())
+                .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
             if (response.getStatus() != 200) {
-                LOGGER.warning("Cannot send to telegram bot, Status " + response.getStatus() + ": "
-                        + response.readEntity(String.class));
+                LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from " + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Cannot send to telegram bot", e);
+            LOGGER.log(Level.SEVERE, "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
         }
     }
 
     public void sendChartSymbolLink(String symbol) {
-        String msg = chartBotUrl + "?userId=" + userId + "&days=7&symbol=" + symbol;
+        String msg = chartBotUrl + "?userId=" + userId + "&days=7&symbol=" + symbol + "&uncache=" + System.currentTimeMillis();
         sendMessage(msg);
     }
 
     public void sendChartWalletDaysLink(int days) {
-        String msg = chartBotUrl + "?userId=" + userId + "&days=" + days;
+        String msg = chartBotUrl + "?userId=" + userId + "&days=" + days + "&uncache=" + System.currentTimeMillis();
         sendMessage(msg);
     }
 
     public void sendChartSummaryLink(int days) {
-        String msg = chartBotUrl + "?userId=" + userId + "&type=summary" + "&days=" + days;
+        String msg = chartBotUrl + "?userId=" + userId + "&type=summary" + "&days=" + days + "&uncache=" + System.currentTimeMillis();
         sendMessage(msg);
     }
     
