@@ -73,7 +73,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
         
         // Report
-        boolean report = isReportTime(now);
+        boolean report = isReportTime(now, cloudProperties);
         if (report) {
             TelegramBot telegram = new TelegramBot(cloudProperties, client);
             if (!brokers.isEmpty()) {
@@ -90,14 +90,16 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     }
     
     // Reports if the bot run between 6:00 and 6:10
-    private boolean isReportTime(Date now) {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(now);
-        int hour = calendar.get(Calendar.HOUR_OF_DAY);
-        if (hour == 6) {
-            int minute = calendar.get(Calendar.MINUTE);
-            if (minute >=0 && minute <=10) {
-                return true;
+    private boolean isReportTime(Date now, CloudProperties cloudProperties) {
+        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTime(now);
+            int hour = calendar.get(Calendar.HOUR_OF_DAY);
+            if (hour == 6) {
+                int minute = calendar.get(Calendar.MINUTE);
+                if (minute >=0 && minute <=10) {
+                    return true;
+                }
             }
         }
         return false;
