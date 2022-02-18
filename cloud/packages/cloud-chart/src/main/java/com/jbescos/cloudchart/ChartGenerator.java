@@ -54,7 +54,7 @@ public class ChartGenerator {
 		}
 	}
 	
-	public static void save(OutputStream output, IChart<IRow> chart) throws IOException {
+	public static void save(OutputStream output, IChart<?> chart) throws IOException {
 		chart.save(output, "Crypto currencies", "", "USDT");
 	}
 

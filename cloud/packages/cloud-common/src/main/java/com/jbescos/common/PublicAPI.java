@@ -125,7 +125,7 @@ public final class PublicAPI {
 		List<Object[]> result = get(BINANCE_URL, "/api/v3/klines", new GenericType<List<Object[]>>() {}, queryParams.toArray(new String[0]));
 		List<Kline> klines = new ArrayList<>(result.size());
 		for (Object[] values : result) {
-			klines.add(Kline.fromArray(values));
+			klines.add(Kline.fromArray(symbol, values));
 		}
 		return klines;
 	}

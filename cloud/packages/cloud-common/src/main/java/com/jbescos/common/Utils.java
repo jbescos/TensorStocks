@@ -41,6 +41,7 @@ public class Utils {
     public static final String NEW_LINE = "\r\n";
     public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX" + NEW_LINE;
     public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
+    public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST" + NEW_LINE;
     public static final String LAST_PRICE = "last_price.csv";
     public static final String EMPTY_STR = "";
     public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
@@ -84,6 +85,17 @@ public class Utils {
         Calendar c = Calendar.getInstance();
         c.setTime(currentTime);
         c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
+        return c.getTime();
+    }
+    
+    public static Date getDateOfDaysBackZero(Date currentTime, int daysBack) {
+        Calendar c = Calendar.getInstance();
+        c.setTime(currentTime);
+        c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
     }
 
@@ -449,5 +461,18 @@ public class Utils {
 	        }
     	}
         return factorBase;
+    }
+    
+    public static boolean isTime(Date now, int expectedHour) {
+    	Calendar calendar = Calendar.getInstance();
+        calendar.setTime(now);
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        if (hour == expectedHour) {
+            int minute = calendar.get(Calendar.MINUTE);
+            if (minute >=0 && minute <=10) {
+                return true;
+            }
+        }
+        return false;
     }
 }

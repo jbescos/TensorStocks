@@ -87,6 +87,7 @@ public class CloudProperties {
     public final String TELEGRAM_CHAT_ID;
     public final String CHART_URL;
     public final Map<String, Double> FIXED_BUY;
+    public final List<String> KLINES_LIST;
     private final Properties mainProperties;
     private final Properties idProperties;
     
@@ -155,6 +156,8 @@ public class CloudProperties {
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
         BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
+        value = getProperty("klines.list");
+        KLINES_LIST = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
         BROKER_COMMISSION = getProperty("broker.commission");
         BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
         BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
