@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -88,13 +89,8 @@ public class Simulation {
 	    		List<CsvRow> segment = loader.get(previous, now);
 	    		TestFileStorage fileManager = new TestFileStorage(testFolder + "/total_", transactions, segment);
 	    	    List<Broker> stats = new DefaultBrokerManager(loader.getCloudProperties(), fileManager).loadBrokers();
-	    	    try {
-	    	    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
-	                trader.execute(stats);
-	            } catch (IOException e) {
-	                e.printStackTrace();
-	                fail(e.getMessage());
-	            }
+    	    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
+                trader.execute(stats);
 	    	    CsvRow lastRow = segment.get(segment.size() - 1);
 	    	    CsvRow next = loader.next(lastRow.getSymbol(), lastRow);
 	    	    if (next != null) {
@@ -124,7 +120,8 @@ public class Simulation {
 	        }
 	        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name());
 		} catch (IOException e) {
-			throw new RuntimeException("Cannot run simulation for " + testFolder, e);
+			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
+			throw new RuntimeException("Error in " + testFolder, e);
 		}
 	}
 	

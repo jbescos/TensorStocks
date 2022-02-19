@@ -483,4 +483,12 @@ public class Utils {
 	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
 	    }
 	}
+    
+    public static Date getStartOfSpecifiedMonth(Date now, int nextMonths) {
+    	Calendar calendar = Calendar.getInstance();
+    	calendar.setTime(getDateOfDaysBackZero(now, 0));
+    	calendar.set(Calendar.DAY_OF_MONTH, 1);
+    	calendar.add(Calendar.MONTH, nextMonths);
+    	return calendar.getTime();
+    }
 }

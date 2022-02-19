@@ -55,17 +55,19 @@ public class BotTest {
     	final String BASE_TEST_FOLDER = "./target/test-results/";
     	List<Result> results = Collections.synchronizedList(new ArrayList<>());
     	List<CompletableFuture<?>> completables = new ArrayList<>();
-    	int fromToDays = 30;
+    	final int MONTHS_INTERVAL = 1;
     	String[] users = new String [] {
     			"kucoin", "2021-10-25",
     			"binance", "2021-05-08",
+    			"kucoin-all", "2021-10-25",
+    			"binance-all", "2021-05-08",
     			"ftx", "2021-11-09",
     			"okex", "2021-11-09"};
     	for (int i = 0; i < users.length; i = i + 2) {
     		String userId = users[i];
     		CloudProperties cloudProperties = new CloudProperties(userId);
     		String from = users[i + 1];
-    		Date to = Utils.getDateOfDaysBackZero(Utils.fromString(Utils.FORMAT, from), fromToDays * -1);
+    		Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(Utils.FORMAT, from), MONTHS_INTERVAL);
     		String toStr = Utils.fromDate(Utils.FORMAT, to);
     		Simulation simulation = null;
     		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
@@ -73,7 +75,7 @@ public class BotTest {
     		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runTogether()).thenAccept(result -> results.add(result));
     		    completables.add(completable);
     			from = toStr;
-    			to = Utils.getDateOfDaysBackZero(Utils.fromString(Utils.FORMAT, from), fromToDays * -1);
+    			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(Utils.FORMAT, from), MONTHS_INTERVAL);
     			toStr = Utils.fromDate(Utils.FORMAT, to);
     		}
     	}
