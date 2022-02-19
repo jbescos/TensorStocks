@@ -32,9 +32,9 @@ public class Utils {
     private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
     public static final long MINUTES_30_MILLIS = 30 * 60 * 1000;
     public static final long MILLIS_IN_DAY = 1000 * 60 * 60 * 24;
-    public static final DateFormat FORMAT_MONTH = new SimpleDateFormat("yyyy-MM");
-    public static final DateFormat FORMAT = new SimpleDateFormat("yyyy-MM-dd");
-    public static final DateFormat FORMAT_SECOND = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final String FORMAT_MONTH = "yyyy-MM";
+    public static final String FORMAT = "yyyy-MM-dd";
+    public static final String FORMAT_SECOND = "yyyy-MM-dd HH:mm:ss";
     public static final Charset UTF8 = Charset.forName("UTF-8");
     public static final String USDT = "USDT";
     public static final String TOTAL_USDT = "TOTAL_USDT";
@@ -61,7 +61,7 @@ public class Utils {
         return null;
     }
 
-    private static List<String> dateBack(Date currentTime, int unitBack, String prefix, String subfix, int dateType, DateFormat dateFormat) {
+    private static List<String> dateBack(Date currentTime, int unitBack, String prefix, String subfix, int dateType, String dateFormat) {
         List<String> days = new ArrayList<>(unitBack);
         Calendar c = Calendar.getInstance();
         c.setTime(currentTime);
@@ -106,16 +106,16 @@ public class Utils {
         return c.getTime();
     }
 
-    public static Date fromString(DateFormat format, String date) {
+    public static Date fromString(String format, String date) {
         try {
-            return format.parse(date);
-        } catch (ParseException e) {
-            throw new IllegalArgumentException("Cannot parse " + date, e);
+            return new SimpleDateFormat(format).parse(date);
+        } catch (ParseException | ArrayIndexOutOfBoundsException e) {
+            throw new IllegalArgumentException("Cannot parse " + date + " with format " + format, e);
         }
     }
     
-    public static String fromDate(DateFormat format, Date date) {
-        return format.format(date);
+    public static String fromDate(String format, Date date) {
+        return new SimpleDateFormat(format).format(date);
     }
     
     public static String getParam(String param, String defaultValue, Map<String, List<String>> parameters) {
@@ -231,7 +231,7 @@ public class Utils {
     
     public static List<Map<String, String>> userUsdt(Date now, Map<String, Double> prices, Map<String, String> wallet) {
         Map<String, String> walletInUsdt = walletInSymbolUsdt(prices, wallet);
-        String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, now);
+        String dateStr = Utils.fromDate(FORMAT_SECOND, now);
         List<Map<String, String>> rows = new ArrayList<>();
         for (Entry<String, String> entry : wallet.entrySet()) {
             String symbol = Utils.USDT.equals(entry.getKey()) ? Utils.USDT : entry.getKey() + Utils.USDT;

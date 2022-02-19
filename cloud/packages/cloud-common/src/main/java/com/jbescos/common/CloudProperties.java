@@ -334,6 +334,26 @@ public class CloudProperties {
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
+        }, FTX("/ftx/", true) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            	throw new UnsupportedOperationException("FTX integration is not supported");
+            }
+
+			@Override
+			public Map<String, Double> price(PublicAPI publicApi) {
+				return publicApi.priceFtx();
+			}
+        }, OKEX("/okex/", true) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            	throw new UnsupportedOperationException("OKEX integration is not supported");
+            }
+
+			@Override
+			public Map<String, Double> price(PublicAPI publicApi) {
+				return publicApi.priceOkex();
+			}
         };
     	
     	private final String folder;
