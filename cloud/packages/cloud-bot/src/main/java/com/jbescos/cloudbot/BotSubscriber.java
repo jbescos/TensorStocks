@@ -64,7 +64,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         for (Broker broker : brokers) {
         	TransactionsSummary summary = broker.getPreviousTransactions();
         	if (summary.isHasTransactions()) {
-    		    benefits.put(broker.getSymbol(), benefit(summary.getMinProfitable(), broker.getNewest().getPrice()));
+    		    benefits.put(broker.getSymbol(), Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice()));
     		}
         }
         LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
@@ -87,14 +87,6 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         }
         return false;
     }
-    
-	private double benefit(double minProfitableSellPrice, double currentPrice) {
-	    if (currentPrice > minProfitableSellPrice) {
-	        return 1 - (minProfitableSellPrice/currentPrice);
-	    } else {
-	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
-	    }
-	}
 
     public static class PubSubMessage {
         String data;

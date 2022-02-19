@@ -475,4 +475,12 @@ public class Utils {
         }
         return false;
     }
+    
+    public static double benefit(double minProfitableSellPrice, double currentPrice) {
+	    if (currentPrice > minProfitableSellPrice) {
+	        return 1 - (minProfitableSellPrice/currentPrice);
+	    } else {
+	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
+	    }
+	}
 }
