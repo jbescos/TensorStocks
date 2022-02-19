@@ -1,7 +1,6 @@
 package com.jbescos.cloudbot;
 
 import java.util.Base64;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -76,15 +75,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         boolean report = isReportTime(now, cloudProperties);
         if (report) {
             TelegramBot telegram = new TelegramBot(cloudProperties, client);
-            if (!brokers.isEmpty()) {
-                int fearGreedIndex = brokers.get(0).getNewest().getFearGreedIndex();
-                telegram.sendMessage("Fear Greed Index is: " + fearGreedIndex);
-            }
-            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-                telegram.sendChartWalletDaysLink(7);
-                telegram.sendChartWalletDaysLink(365);
-            }
-            telegram.sendChartSummaryLink(7);
+            telegram.sendHtmlLink();
         }
         client.close();
     }

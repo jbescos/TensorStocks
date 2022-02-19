@@ -64,4 +64,9 @@ public class TelegramBot {
         sendMessage(msg);
     }
     
+    public void sendHtmlLink() {
+    	String msg = chartBotUrl + "?userId=" + userId + "&type=html&uncache=" + System.currentTimeMillis();
+        sendMessage(msg);
+    }
+    
 }
