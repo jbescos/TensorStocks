@@ -32,6 +32,7 @@ public class Utils {
     private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
     public static final long MINUTES_30_MILLIS = 30 * 60 * 1000;
     public static final long MILLIS_IN_DAY = 1000 * 60 * 60 * 24;
+    public static final double LOWER_PURCHASE_REDUCER = 0.97;
     public static final String FORMAT_MONTH = "yyyy-MM";
     public static final String FORMAT = "yyyy-MM-dd";
     public static final String FORMAT_SECOND = "yyyy-MM-dd HH:mm:ss";
@@ -490,5 +491,10 @@ public class Utils {
     	calendar.set(Calendar.DAY_OF_MONTH, 1);
     	calendar.add(Calendar.MONTH, nextMonths);
     	return calendar.getTime();
+    }
+    
+    public static boolean isLowerPurchase(double currentPrice, double lowestPurchase, double minimizer) {
+        // Purchase is lower than X% of last purchase
+        return currentPrice < (lowestPurchase * minimizer);
     }
 }

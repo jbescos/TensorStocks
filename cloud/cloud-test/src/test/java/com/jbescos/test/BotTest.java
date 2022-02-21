@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -83,8 +85,11 @@ public class BotTest {
     	Collections.sort(results);
     	TestFileStorage fileStorage = new TestFileStorage(BASE_TEST_FOLDER, null, null);
     	StringBuilder builder = new StringBuilder();
-    	results.forEach(result -> builder.append(result.toString()));
-    	fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.HEAD.getBytes());
+    	results.forEach(result -> builder.append(result.toCsv()));
+    	double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
+    	builder.append("AVG,").append(Utils.format(avg)).append("%");
+    	fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.CSV_HEAD.getBytes());
+    	LOGGER.info("AVG: " + Utils.format(avg) + "%");
     }
     
 //    @Test

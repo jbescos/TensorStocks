@@ -362,6 +362,15 @@ public class UtilsTest {
 		assertEquals("test BUY 1970-01-01 01:00:00\n" + 
 				"Total USD (USD per unit): 10$ (1$)", buy.toString());
 	}
+	
+	@Test
+    public void isLowerPurchase() {
+	    assertFalse(Utils.isLowerPurchase(11, 10, 0.95));
+	    assertFalse(Utils.isLowerPurchase(10, 10, 0.95));
+	    assertFalse(Utils.isLowerPurchase(9.5, 10, 0.95));
+	    // If it is less than 97% of last purchase, then yes
+	    assertTrue(Utils.isLowerPurchase(9.4, 10, 0.95));
+	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);

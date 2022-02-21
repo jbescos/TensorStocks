@@ -127,7 +127,7 @@ public class Simulation {
 	
 	public static class Result implements Comparable<Result> {
 		
-		public static final String HEAD = "FROM,TO,EXCHANGE,USER_ID,INITIAL,FINAL,BENEFIT" + Utils.NEW_LINE;
+		public static final String CSV_HEAD = "FROM,TO,EXCHANGE,USER_ID,INITIAL,FINAL,BENEFIT" + Utils.NEW_LINE;
 		private final double initialAmount;
 		private final double finalAmount;
 		private final double benefitPercentage;
@@ -147,8 +147,35 @@ public class Simulation {
 			this.exchange = exchange;
 		}
 
-		@Override
-		public String toString() {
+		public double getInitialAmount() {
+            return initialAmount;
+        }
+
+        public double getFinalAmount() {
+            return finalAmount;
+        }
+
+        public double getBenefitPercentage() {
+            return benefitPercentage;
+        }
+
+        public String getFrom() {
+            return from;
+        }
+
+        public String getTo() {
+            return to;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public String getExchange() {
+            return exchange;
+        }
+
+		public String toCsv() {
 			StringBuilder builder = new StringBuilder();
 			builder.append(from).append(",").append(to).append(",").append(exchange).append(",").append(userId).append(",")
 			.append(Utils.format(initialAmount)).append("$,").append(Utils.format(finalAmount)).append("$,").append(Utils.format(benefitPercentage))
