@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -55,6 +57,7 @@ public class BotTest {
     @Test
     public void allTogether() throws FileNotFoundException, IOException {
     	final String BASE_TEST_FOLDER = "./target/test-results/";
+    	DateFormat format = new SimpleDateFormat(Utils.FORMAT);
     	List<Result> results = Collections.synchronizedList(new ArrayList<>());
     	List<CompletableFuture<?>> completables = new ArrayList<>();
     	final int MONTHS_INTERVAL = 1;
@@ -69,7 +72,7 @@ public class BotTest {
     		String userId = users[i];
     		CloudProperties cloudProperties = new CloudProperties(userId);
     		String from = users[i + 1];
-    		Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(Utils.FORMAT, from), MONTHS_INTERVAL);
+    		Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
     		String toStr = Utils.fromDate(Utils.FORMAT, to);
     		Simulation simulation = null;
     		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
@@ -77,7 +80,7 @@ public class BotTest {
     		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runTogether()).thenAccept(result -> results.add(result));
     		    completables.add(completable);
     			from = toStr;
-    			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(Utils.FORMAT, from), MONTHS_INTERVAL);
+    			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
     			toStr = Utils.fromDate(Utils.FORMAT, to);
     		}
     	}

@@ -8,6 +8,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -90,12 +92,13 @@ public class CsvUpdater {
 		Collections.sort(files);
 		Map<String, CsvRow> lastPrices = new HashMap<>();
 		boolean startCsvFound = false;
+		DateFormat format = new SimpleDateFormat(Utils.FORMAT);
 		for (String file : files) {
 			if (startCsvFound || startIn.equals(file)) {
 				startCsvFound = true;
 				LOGGER.info(() -> "Processing " + file);
 				try {
-					Date startTime = Utils.fromString(Utils.FORMAT, file.replace(".csv", ""));
+					Date startTime = Utils.fromString(format, file.replace(".csv", ""));
 					if (lastPrices.isEmpty()) {
 						updateLastPricesFromPreviousDay(lastPrices, startTime, rootFolder);
 					}

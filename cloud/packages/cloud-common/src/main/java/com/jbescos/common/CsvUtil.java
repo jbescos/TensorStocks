@@ -5,6 +5,8 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -98,9 +100,10 @@ public class CsvUtil {
 	}
 	
 	public static List<CsvAccountRow> readCsvAccountRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
-		return readCsv(skipFirst, line -> {
+	    DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
+	    return readCsv(skipFirst, line -> {
 			String[] columns = line.split(separator);
-			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			Date date = Utils.fromString(format, columns[0]);
 			String symbol = columns[1];
 			CsvAccountRow row = new CsvAccountRow(date, symbol, Double.parseDouble(columns[2]), Double.parseDouble(columns[3]));
 			return row;
@@ -108,9 +111,10 @@ public class CsvUtil {
 	}
 	
 	public static List<CsvTransactionRow> readCsvTransactionRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
-		return readCsv(skipFirst, line -> {
+	    DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
+	    return readCsv(skipFirst, line -> {
 			String[] columns = line.split(separator);
-			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			Date date = Utils.fromString(format, columns[0]);
 			String orderId = columns[1];
 			String side = columns[2];
 			String symbol = columns[3];
@@ -123,9 +127,10 @@ public class CsvUtil {
 	}
 	
 	public static List<CsvTxSummaryRow> readCsvTxSummaryRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
-		return readCsv(skipFirst, line -> {
+	    DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
+	    return readCsv(skipFirst, line -> {
 			String[] columns = line.split(separator);
-			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			Date date = Utils.fromString(format, columns[0]);
 			String symbol = columns[1];
 			double summary = Double.parseDouble(columns[2]);
 			CsvTxSummaryRow row = new CsvTxSummaryRow(date, columns[0], symbol, summary);
@@ -134,9 +139,10 @@ public class CsvUtil {
 	}
 	
 	public static List<CsvRow> readCsvRows(boolean skipFirst, String separator, BufferedReader reader, Date from, Date to, List<String> symbols) throws IOException {
-		return readCsv(skipFirst,  line -> {
+		DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
+	    return readCsv(skipFirst,  line -> {
 			String[] columns = line.split(separator);
-			Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+			Date date = Utils.fromString(format, columns[0]);
 			if (date.getTime() >= from.getTime() && date.getTime() < to.getTime()) {
 				String symbol = columns[1];
 				if (symbols.isEmpty() || symbols.contains(symbol)) {

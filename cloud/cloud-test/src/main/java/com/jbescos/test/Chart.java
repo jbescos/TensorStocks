@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
@@ -48,11 +50,12 @@ public class Chart {
 	}
 	
 	private static Function<String, CsvRow> createCsvMapper(String direction){
+	    DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
 		Function<String, CsvRow> function = line -> {
 			String[] columns = line.split(",");
 			String directionColumn = columns[3];
 			if (direction.equals(directionColumn)) {
-				Date date = Utils.fromString(Utils.FORMAT_SECOND, columns[0]);
+				Date date = Utils.fromString(format, columns[0]);
 				String symbol = columns[1];
 				double price = Double.parseDouble(columns[2]);
 				double avg = Double.parseDouble(columns[4]);

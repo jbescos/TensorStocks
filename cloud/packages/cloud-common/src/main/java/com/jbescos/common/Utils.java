@@ -108,8 +108,12 @@ public class Utils {
     }
 
     public static Date fromString(String format, String date) {
+        return fromString(new SimpleDateFormat(format), date);
+    }
+    
+    public static Date fromString(DateFormat format, String date) {
         try {
-            return new SimpleDateFormat(format).parse(date);
+            return format.parse(date);
         } catch (ParseException | ArrayIndexOutOfBoundsException e) {
             throw new IllegalArgumentException("Cannot parse " + date + " with format " + format, e);
         }

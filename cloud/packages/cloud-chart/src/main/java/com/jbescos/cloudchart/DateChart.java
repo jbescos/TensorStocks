@@ -4,6 +4,8 @@ import java.awt.BasicStroke;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,10 +46,11 @@ public class DateChart implements IChart<IRow> {
 			}
 		}
 		Map<String, List<IRow>> grouped = data.stream().collect(Collectors.groupingBy(row -> Utils.fromDate(Utils.FORMAT, row.getDate())));
+		DateFormat format = new SimpleDateFormat(Utils.FORMAT);
 		for (String dateStr : grouped.keySet()) {
 			List<IRow> inDate = grouped.get(dateStr);
 			IRow last = inDate.get(inDate.size() - 1);
-			Date date = Utils.fromString(Utils.FORMAT, dateStr);
+			Date date = Utils.fromString(format, dateStr);
 			series.add(new Day(date), last.getPrice());
 			if (avg) {
 				seriesAvg.add(new Day(date), last.getAvg());
