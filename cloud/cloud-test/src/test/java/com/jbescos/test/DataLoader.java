@@ -34,7 +34,9 @@ public class DataLoader {
         	File[] csvs = exchange.listFiles();
         	List<String> days = new ArrayList<>();
         	for (File csv : csvs) {
-        		days.add(csv.getName());
+        	    if (!csv.getName().contains(Utils.LAST_PRICE)) {
+        	        days.add(csv.getName());
+        	    }
         	}
         	Collections.sort(days);
         	EXCHANGES_DATA.put(exchange.getName(), days);
