@@ -13,3 +13,6 @@ bin/*
 *.zip
 *target/
 *.settings/
+
+# Execute resyncTestData.sh
+cloud/cloud-test/src/test/resources/data
