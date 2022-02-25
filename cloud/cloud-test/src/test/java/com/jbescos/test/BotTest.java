@@ -67,7 +67,8 @@ public class BotTest {
     			"kucoin-all", "2021-10-25",
     			"binance-all", "2021-05-08",
     			"ftx", "2021-11-09",
-    			"okex", "2021-11-09"};
+    			"okex", "2021-11-09"
+    			};
     	for (int i = 0; i < users.length; i = i + 2) {
     		String userId = users[i];
     		CloudProperties cloudProperties = new CloudProperties(userId);

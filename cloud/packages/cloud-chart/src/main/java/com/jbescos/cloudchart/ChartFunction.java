@@ -47,7 +47,9 @@ public class ChartFunction implements HttpFunction {
 			String type = Utils.getParam("type", TYPE_LINE, request.getQueryParameters());
 			if (TYPE_HTML.equals(type)) {
 				response.setContentType("text/html");
-				String htmlPage = HTML_PAGE.replaceAll("<USER_ID>", userId).replaceAll("<USER_ID>", userId).replaceAll("<TIMESTAMP>", Long.toString(System.currentTimeMillis()));
+				String htmlPage = HTML_PAGE.replaceAll("<USER_ID>", userId)
+				        .replaceAll("<CHART_URL>", cloudProperties.CHART_URL)
+				        .replaceAll("<TIMESTAMP>", Long.toString(System.currentTimeMillis()));
 				response.getWriter().append(htmlPage);
 				response.getWriter().flush();
 			} else {
