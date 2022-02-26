@@ -501,4 +501,20 @@ public class Utils {
         // Purchase is lower than X% of last purchase
         return currentPrice < (lowestPurchase * minimizer);
     }
+    
+    public static CsvTransactionRow calculatedUsdtCsvTransactionRow(Date date, String symbol, String orderId, Action action, String usdt, double currentUsdtPrice, double commission) {
+		double expectedQuantity = Utils.symbolValue(Double.parseDouble(usdt), currentUsdtPrice);
+		expectedQuantity = Utils.applyCommission(expectedQuantity, commission);
+		CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, usdt, Utils.format(expectedQuantity), currentUsdtPrice);
+    	return tx;
+    	
+    }
+    
+    public static CsvTransactionRow calculatedSymbolCsvTransactionRow(Date date, String symbol, String orderId, Action action, String quantity, double currentUsdtPrice, double commission) {
+		double expectedUsdt = Utils.usdValue(Double.parseDouble(quantity), currentUsdtPrice);
+		expectedUsdt = Utils.applyCommission(expectedUsdt, commission);
+		CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, Utils.format(expectedUsdt), quantity, currentUsdtPrice);
+    	return tx;
+    	
+    }
 }

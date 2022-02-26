@@ -292,11 +292,9 @@ public class BotExecution {
 		public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd) {
 			CsvTransactionRow transaction = null;
 			if (stat.getAction() == Action.BUY) {
-				double netoQuantity = Utils.applyCommission(Double.parseDouble(quantity), cloudProperties.BOT_BUY_COMMISSION);
-				transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, quantityUsd, Utils.format(netoQuantity), stat.getNewest().getPrice());
+				transaction = Utils.calculatedUsdtCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString(), stat.getAction(), quantityUsd, stat.getNewest().getPrice(), cloudProperties.BOT_BUY_COMMISSION);
 			} else {
-				double netoUsdt = Utils.applyCommission(Double.parseDouble(quantityUsd), cloudProperties.BOT_SELL_COMMISSION);
-				transaction = new CsvTransactionRow(stat.getNewest().getDate(), UUID.randomUUID().toString(), stat.getAction(), symbol, Utils.format(netoUsdt), quantity, stat.getNewest().getPrice());
+				transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString(), stat.getAction(), quantity, stat.getNewest().getPrice(), cloudProperties.BOT_SELL_COMMISSION);
 			}
 			newTransactions.add(transaction);
 			transactions.add(transaction);

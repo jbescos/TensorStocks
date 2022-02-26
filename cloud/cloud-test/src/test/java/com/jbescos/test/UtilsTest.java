@@ -371,6 +371,28 @@ public class UtilsTest {
 	    // If it is less than 97% of last purchase, then yes
 	    assertTrue(Utils.isLowerPurchase(9.4, 10, 0.95));
 	}
+	
+	@Test
+	public void calculatedUsdtCsvTransactionRow() {
+		CsvTransactionRow tx = Utils.calculatedUsdtCsvTransactionRow(new Date(), "symbol", "orderId", Action.BUY, "10", 5, 0.1);
+		assertEquals("symbol", tx.getSymbol());
+		assertEquals("orderId", tx.getOrderId());
+		assertEquals(Action.BUY, tx.getSide());
+		assertEquals("10", tx.getUsdt());
+		assertEquals("1.8", tx.getQuantity());
+		assertEquals(5, tx.getUsdtUnit(), 0.000001);
+	}
+	
+	@Test
+	public void calculatedSymbolCsvTransactionRow() {
+		CsvTransactionRow tx = Utils.calculatedSymbolCsvTransactionRow(new Date(), "symbol", "orderId", Action.SELL, "10", 5, 0.1);
+		assertEquals("symbol", tx.getSymbol());
+		assertEquals("orderId", tx.getOrderId());
+		assertEquals(Action.SELL, tx.getSide());
+		assertEquals("10", tx.getQuantity());
+		assertEquals("45", tx.getUsdt());
+		assertEquals(5, tx.getUsdtUnit(), 0.000001);
+	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);

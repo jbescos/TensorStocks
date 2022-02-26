@@ -40,14 +40,18 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	private final String passphrase;
 	private final String version;
 	private final Mac mac;
+	private final double buyCommission;
+	private final double sellCommission;
 	
-	private SecuredKucoinAPI(Client client, String publicKey, String privateKey, String passphrase, String version) throws InvalidKeyException, NoSuchAlgorithmException {
+	private SecuredKucoinAPI(Client client, String publicKey, String privateKey, String passphrase, String version, double buyCommission, double sellCommission) throws InvalidKeyException, NoSuchAlgorithmException {
 		this.mac = Mac.getInstance(HMAC_SHA_256);
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
 		this.client = client;
 		this.publicKey = publicKey;
 		this.passphrase = passphrase;
 		this.version = version;
+		this.buyCommission = buyCommission;
+		this.sellCommission = sellCommission;
 	}
 	
 	public <T> T get(String path, GenericType<T> type, String... query) {
@@ -132,25 +136,21 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	@Override
 	public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
 		int rounded = new BigDecimal(quoteOrderQty).intValue();
-		return order(symbol, action, currentUsdtPrice, BuySell.funds, Integer.toString(rounded));
+		String orderId = order(symbol, action, BuySell.funds, Integer.toString(rounded));
+		CsvTransactionRow tx = Utils.calculatedUsdtCsvTransactionRow(new Date(), symbol, orderId, action, Integer.toString(rounded), currentUsdtPrice, buyCommission);
+		return tx;
 	}
 
 	@Override
 	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
 		SymbolLimits limits = getSymbolLimits(symbol);
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, limits.baseMinSize, limits.baseMaxSize, limits.baseIncrement);
-		CsvTransactionRow tx = order(symbol, action, currentUsdtPrice, BuySell.size, fixedQuantity);
-		double txQuantity = Double.parseDouble(tx.getQuantity());
-		double desiredQuantity = Double.parseDouble(fixedQuantity);
-		if (txQuantity < (desiredQuantity * 0.95)) {
-			LOGGER.warning("SecuredKucoinAPI> Fixing the transaction because current quantity " + quantity + " does not match with received " + tx);
-			// FIXME we should apply commission here
-			tx = new CsvTransactionRow(tx.getDate(), tx.getOrderId(), tx.getSide(), symbol, Utils.format(Utils.usdValue(desiredQuantity, tx.getUsdtUnit())), fixedQuantity, tx.getUsdtUnit());
-		}
+		String orderId = order(symbol, action, BuySell.size, fixedQuantity);
+		CsvTransactionRow tx = Utils.calculatedSymbolCsvTransactionRow(new Date(), symbol, orderId, action, fixedQuantity, currentUsdtPrice, sellCommission);
 		return tx;
 	}
 	
-	private CsvTransactionRow order(String symbol, Action action, Double currentUsdtPrice, BuySell key, String value) {
+	private String order(String symbol, Action action, BuySell key, String value) {
 		String kucoinSymbol = symbol.replaceFirst(Utils.USDT, "-" + Utils.USDT);
 		String side = action.side().toLowerCase();
 		String clientOid = UUID.randomUUID().toString();
@@ -164,10 +164,9 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		body.append("}");
 		LOGGER.info(() -> "SecuredKucoinAPI> Prepared order: " + body.toString());
 		Map<String, String> response = post("/api/v1/orders", new GenericType<KucoinResponse<Map<String, String>>>() {}, body.toString()).getData();
-		LOGGER.info(() -> "SecuredKucoinAPI> Completed order: " + response);
 		String orderId = response.get("orderId");
 		Map<String, String> orderInfo = getOrder(orderId);
-		LOGGER.info(() -> "SecuredKucoinAPI> Order Info: " + orderInfo);
+		LOGGER.info(() -> "SecuredKucoinAPI> Order Info: " + orderInfo + ", " + response);
 		/* FIXME Sometimes dealFunds and dealSize comes much lower than it should be, for example: side=SELL&quantity=45459.00811599 -> 
 		* Order Info: {id=xxxxxx, symbol=AI-USDT, opType=DEAL, type=market, side=sell, price=0, size=45459.0081, funds=0, dealFunds=259.209449966, 
 		* dealSize=11166.3079, fee=0.518418899932, feeCurrency=USDT, stp=, stop=, stopTriggered=false, stopPrice=0, timeInForce=GTC, postOnly=false, 
@@ -185,28 +184,7 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		* hidden=false, iceberg=false, visibleSize=0, cancelAfter=0, channel=API, clientOid=eacfd6b6-a274-45c2-9482-79d8e71afa20, remark=null, tags=null,
 		* isActive=true, cancelExist=false, createdAt=1641420043454, tradeType=TRADE}
 		*/
-		String totalUsdt = orderInfo.get("dealFunds");
-		if ("0".equals(totalUsdt)) {
-		    if (key == BuySell.funds) {
-		        totalUsdt = value;
-		    } else {
-		        totalUsdt = Utils.format(Utils.usdValue(Double.parseDouble(value), currentUsdtPrice));
-		    }
-		    LOGGER.warning("dealFunds response is 0. We have recalculated it to " + totalUsdt);
-		}
-
-		String totalQuantity = orderInfo.get("dealSize");
-		if ("0".equals(totalQuantity)) {
-            if (key == BuySell.funds) {
-                totalQuantity = Utils.format(Utils.symbolValue(Double.parseDouble(value), currentUsdtPrice));
-            } else {
-                totalQuantity = value;
-            }
-            LOGGER.warning("dealSize response is 0. We have recalculated it to " + totalQuantity);
-        }
-		double usdtUnit = Double.parseDouble(totalUsdt) / Double.parseDouble(totalQuantity);
-		CsvTransactionRow tx = new CsvTransactionRow(new Date(Long.parseLong(orderInfo.get("createdAt"))), orderId, action, symbol, totalUsdt, totalQuantity, usdtUnit);
-		return tx;
+		return orderId;
 	}
 	
 	private static enum BuySell {
@@ -223,7 +201,7 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	}
 	
 	public static SecuredKucoinAPI create(CloudProperties cloudProperties, Client client) throws InvalidKeyException, NoSuchAlgorithmException {
-		return new SecuredKucoinAPI(client, cloudProperties.KUCOIN_PUBLIC_KEY, cloudProperties.KUCOIN_PRIVATE_KEY, cloudProperties.KUCOIN_API_PASSPHRASE, cloudProperties.KUCOIN_API_VERSION);
+		return new SecuredKucoinAPI(client, cloudProperties.KUCOIN_PUBLIC_KEY, cloudProperties.KUCOIN_PRIVATE_KEY, cloudProperties.KUCOIN_API_PASSPHRASE, cloudProperties.KUCOIN_API_VERSION, cloudProperties.BOT_BUY_COMMISSION, cloudProperties.BOT_SELL_COMMISSION);
 	}
 	
 	private static class SymbolLimits {

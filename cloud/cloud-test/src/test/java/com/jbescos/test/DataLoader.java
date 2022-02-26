@@ -34,7 +34,7 @@ public class DataLoader {
         	File[] csvs = exchange.listFiles();
         	List<String> days = new ArrayList<>();
         	for (File csv : csvs) {
-        	    if (!csv.getName().contains(Utils.LAST_PRICE)) {
+        	    if (!csv.getName().contains(Utils.LAST_PRICE) && csv.getName().endsWith(".csv")) {
         	        days.add(csv.getName());
         	    }
         	}
@@ -51,6 +51,9 @@ public class DataLoader {
     
     public static String lastDayCsv(String exchange) {
     	List<String> csvs = EXCHANGES_DATA.get(exchange.toLowerCase());
+    	if (csvs.isEmpty()) {
+    		throw new IllegalArgumentException("There is no data for " + exchange);
+    	}
     	return csvs.get(csvs.size() - 1).split("\\.")[0];
     }
     
