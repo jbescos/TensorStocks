@@ -168,9 +168,11 @@ public class ChartGenerator {
 		
 		private final Page<Blob> txSummaryBlobs;
 		private final CloudProperties cloudProperties;
+		private final List<String> symbols;
 
-		public TxSummaryChartCsv(CloudProperties cloudProperties) {
+		public TxSummaryChartCsv(CloudProperties cloudProperties, List<String> symbols) {
 			this.cloudProperties = cloudProperties;
+			this.symbols = symbols == null ? Collections.emptyList() : symbols;
 			Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
 			txSummaryBlobs = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX));
 		}
@@ -184,7 +186,13 @@ public class ChartGenerator {
 				if (days.contains(blob.getName())) {
 					try (ReadChannel readChannel = blob.reader();
 							BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-						List<? extends IRow> rows = CsvUtil.readCsvTxSummaryRows(true, ",", reader);
+						List<? extends IRow> rows = CsvUtil.readCsvTxSummaryRows(true, ",", reader).stream().filter(row -> {
+							if (!symbols.isEmpty() && !symbols.contains(row.getLabel())) {
+								return false;
+							} else {
+								return true;
+							}
+						}).collect(Collectors.toList());
 						if (daysBack > PRECISSION_CHART_DAYS) {
 							// Pick the last to avoid memory issues
 							Map<String, List<IRow>> grouped = rows.stream().collect(Collectors.groupingBy(IRow::getLabel));

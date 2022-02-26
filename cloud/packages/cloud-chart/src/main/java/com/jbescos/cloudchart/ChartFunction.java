@@ -65,7 +65,7 @@ public class ChartFunction implements HttpFunction {
 				} else if (TYPE_BAR.equals(type)) {
 					chart = new ProfitableBarChartCsv(cloudProperties, symbols);
 				} else if (TYPE_SUMMARY.equals(type)) {
-					chart = new TxSummaryChartCsv(cloudProperties);
+					chart = new TxSummaryChartCsv(cloudProperties, symbols);
 				} else {
 					throw new IllegalArgumentException("Unknown type=" + type);
 				}
