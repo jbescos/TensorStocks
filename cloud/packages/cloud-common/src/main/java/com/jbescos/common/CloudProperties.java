@@ -87,6 +87,7 @@ public class CloudProperties {
     public final String TELEGRAM_CHAT_ID;
     public final String CHART_URL;
     public final Map<String, Double> FIXED_BUY;
+    public final Map<String, Double> FIXED_SELL;
     public final List<String> KLINES_LIST;
     private final Properties mainProperties;
     private final Properties idProperties;
@@ -190,11 +191,16 @@ public class CloudProperties {
             minSell = createMinSell(mainProperties);
         }
         MIN_SELL = minSell;
-        Map<String, Double> fixedBuy = fixedBuy(idProperties);
+        Map<String, Double> fixedBuy = fixedLimits(idProperties, "bot.limits.fixed.buy.");
         if (fixedBuy.isEmpty()) {
-            fixedBuy = fixedBuy(mainProperties);
+            fixedBuy = fixedLimits(mainProperties, "bot.limits.fixed.buy.");
         }
         FIXED_BUY = fixedBuy;
+        Map<String, Double> fixedSell = fixedLimits(idProperties, "bot.limits.fixed.sell.");
+        if (fixedSell.isEmpty()) {
+            fixedSell = fixedLimits(mainProperties, "bot.limits.fixed.sell.");
+        }
+        FIXED_SELL = fixedSell;
     }
     
     private String findByPrefix(Storage storage, String prefix) {
@@ -249,23 +255,26 @@ public class CloudProperties {
         return Collections.unmodifiableMap(minSell);
     }
     
-    private  Map<String, Double> fixedBuy(Properties properties) {
-        Map<String, Double> fixedBuy = new HashMap<>();
+    private Map<String, Double> fixedLimits(Properties properties, String limitBuyOrSellKey) {
+        Map<String, Double> fixedLimits = new HashMap<>();
         if (LIMITS_BROKER_ENABLE) {
 	        @SuppressWarnings("unchecked")
 			Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
 	        while (enums.hasMoreElements()) {
 	            String key = enums.nextElement();
-	            if (key.startsWith("bot.limits.fixed")) {
+	            if (key.startsWith(limitBuyOrSellKey)) {
 	                String symbol = key.split("\\.")[4];
-	                if (!fixedBuy.containsKey(symbol)) {
-	                    double buy = Double.parseDouble(properties.getProperty("bot.limits.fixed.buy." + symbol));
-	                    fixedBuy.put(symbol, buy);
+	                if (!fixedLimits.containsKey(symbol)) {
+	                    String value = properties.getProperty(limitBuyOrSellKey + symbol);
+	                    if (value != null) {
+    	                    double limit = Double.parseDouble(value);
+    	                    fixedLimits.put(symbol, limit);
+	                    }
 	                }
 	            }
 	        }
         }
-        return Collections.unmodifiableMap(fixedBuy);
+        return Collections.unmodifiableMap(fixedLimits);
     }
 
     public double minSell(String symbol) {

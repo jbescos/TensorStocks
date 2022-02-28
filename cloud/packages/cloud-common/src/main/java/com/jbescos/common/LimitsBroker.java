@@ -25,12 +25,21 @@ public class LimitsBroker implements Broker {
         this.summary = summary;
         double price = newest.getPrice();
         double benefit = 1 - (summary.getMinProfitable() / newest.getPrice());
-        if (summary.isHasTransactions() && Utils.isMax(values) && benefit >= cloudProperties.BOT_LIMITS_FACTOR_PROFIT_SELL) {
+        if (summary.isHasTransactions() && Utils.isMax(values) && isSell(benefit)) {
             action = Action.SELL;
         } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_PURCHASE_REDUCER)))) {
             action = Action.BUY;
         } else {
         	action = Action.NOTHING;
+        }
+    }
+    
+    private boolean isSell(double benefit) {
+        Double fixedSell =  cloudProperties.FIXED_SELL.get(symbol);
+        if (fixedSell != null) {
+            return newest.getPrice() >= fixedSell;
+        } else {
+            return benefit >= cloudProperties.BOT_LIMITS_FACTOR_PROFIT_SELL;
         }
     }
     
