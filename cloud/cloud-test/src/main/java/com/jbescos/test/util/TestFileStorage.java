@@ -1,5 +1,6 @@
 package com.jbescos.test.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -45,6 +46,23 @@ public class TestFileStorage implements FileManager {
 	@Override
 	public List<CsvRow> loadPreviousRows() throws IOException {
 		return previousRows;
+	}
+
+	@Override
+	public String overwriteFile(String fileName, byte[] content, byte[] header)
+			throws FileNotFoundException, IOException {
+		Path path = Paths.get(filePath + fileName);
+		File file = path.toFile();
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		outputStream.write(header);
+		outputStream.write(content);
+		if (!file.exists()) {
+			Files.createDirectories(path.getParent());
+		} else {
+			file.delete();
+		}
+		Files.write(path, outputStream.toByteArray(), StandardOpenOption.CREATE);
+		return file.getAbsolutePath();
 	}
 
 }

@@ -1,6 +1,7 @@
 package com.jbescos.common;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.channels.Channels;
@@ -139,6 +140,16 @@ public class BucketStorage implements FileManager {
 			}
 		}
 		return rows;
+	}
+
+	@Override
+	public String overwriteFile(String fileName, byte[] content, byte[] header)
+			throws FileNotFoundException, IOException {
+		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+		outputStream.write(header);
+		outputStream.write(content);
+		BlobInfo blobInfo = storage.create(createBlobInfo(cloudProperties, fileName, false), outputStream.toByteArray());
+		return blobInfo.getMediaLink();
 	}
 
 }

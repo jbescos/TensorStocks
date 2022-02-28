@@ -46,6 +46,8 @@ public class Utils {
     public static final String LAST_PRICE = "last_price.csv";
     public static final String EMPTY_STR = "";
     public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
+    public static final String CONTEXT_PREFIX = "context/";
+    public static final String OPEN_POSSITIONS = CONTEXT_PREFIX + "open_possitions.csv";
     public static final String WALLET_PREFIX = "wallet/wallet_";
     public static final String TX_SUMMARY_PREFIX = "tx_summary/tx_summary_";
     public static final double MIN_WALLET_VALUE_TO_RECORD = 0.1;
@@ -516,5 +518,28 @@ public class Utils {
 		CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, Utils.format(expectedUsdt), quantity, currentUsdtPrice);
     	return tx;
     	
+    }
+    
+    public static List<CsvTransactionRow> openPossitions(List<Broker> brokers, List<CsvTransactionRow> newTransactions){
+    	Map<String, List<CsvTransactionRow>> previousTx = brokers.stream().flatMap(broker -> broker.getPreviousTransactions().getPreviousBuys().stream()).collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
+    	return openPossitions2(previousTx, newTransactions);
+    }
+    
+    public static List<CsvTransactionRow> openPossitions2(Map<String, List<CsvTransactionRow>> previousTx, List<CsvTransactionRow> newTransactions){
+    	for (CsvTransactionRow newTransaction : newTransactions) {
+    		if (newTransaction.getSide() == Action.BUY) {
+    			List<CsvTransactionRow> bySymbol = previousTx.get(newTransaction.getSymbol());
+    			if (bySymbol == null) {
+    				bySymbol = new ArrayList<>();
+    				previousTx.put(newTransaction.getSymbol(), bySymbol);
+    			}
+    			bySymbol.add(newTransaction);
+    		} else if (newTransaction.getSide() == Action.SELL || newTransaction.getSide() == Action.SELL_PANIC) {
+    			previousTx.remove(newTransaction.getSymbol());
+    		} else {
+    			throw new IllegalArgumentException(newTransaction + " side is not understood!");
+    		}
+    	}
+    	return previousTx.values().stream().flatMap(val -> val.stream()).sorted((a, b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toList());
     }
 }

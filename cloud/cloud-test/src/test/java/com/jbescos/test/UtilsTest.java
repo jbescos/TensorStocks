@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -394,6 +395,23 @@ public class UtilsTest {
 		assertEquals(5, tx.getUsdtUnit(), 0.000001);
 	}
 
+	@Test
+	public void openPossitions2() {
+		List<CsvTransactionRow> previousTx = Arrays.asList(
+				Utils.calculatedUsdtCsvTransactionRow(new Date(10), "symbol1", "1", Action.BUY, "10", 5, 0.1),
+				Utils.calculatedUsdtCsvTransactionRow(new Date(9), "symbol1", "2", Action.BUY, "10", 5, 0.1),
+				Utils.calculatedUsdtCsvTransactionRow(new Date(8), "symbol2", "3", Action.BUY, "10", 5, 0.1),
+				Utils.calculatedUsdtCsvTransactionRow(new Date(7), "symbol3", "4", Action.BUY, "10", 5, 0.1)
+				);
+		List<CsvTransactionRow> newTx = Arrays.asList(
+				Utils.calculatedUsdtCsvTransactionRow(new Date(0), "symbol1", "5", Action.SELL, "10", 5, 0.1),
+				Utils.calculatedUsdtCsvTransactionRow(new Date(11), "symbol4", "6", Action.BUY, "10", 5, 0.1),
+				Utils.calculatedUsdtCsvTransactionRow(new Date(12), "symbol3", "7", Action.BUY, "10", 5, 0.1)
+				);
+		List<CsvTransactionRow> result = Utils.openPossitions2(previousTx.stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol)), newTx);
+		assertEquals(Arrays.asList("4", "3", "6", "7"), result.stream().map(CsvTransactionRow::getOrderId).collect(Collectors.toList()));
+	}
+	
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}

@@ -8,6 +8,8 @@ public interface FileManager {
 
 	String updateFile(String fileName, byte[] content, byte[] header) throws FileNotFoundException, IOException;
 	
+	String overwriteFile(String fileName, byte[] content, byte[] header) throws FileNotFoundException, IOException;
+	
 	List<CsvTransactionRow> loadTransactions() throws IOException;
 	
 	List<CsvRow> loadPreviousRows() throws IOException;

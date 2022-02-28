@@ -223,9 +223,13 @@ public class BotExecution {
 		        transactions.stream().forEach(r -> data.append(r.toCsvLine()));
 		        String transactionsCsv = cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv";
 		        try {
-                    storage.updateFile(transactionsCsv, data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+		        	byte[] head = Utils.TX_ROW_HEADER.getBytes(Utils.UTF8);
+                    storage.updateFile(transactionsCsv, data.toString().getBytes(Utils.UTF8), head);
+                    data.setLength(0);
+                    Utils.openPossitions(stats, transactions).stream().forEach(r -> data.append(r.toCsvLine()));
+                    storage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS, data.toString().getBytes(Utils.UTF8), head);
                 } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot save " + transactionsCsv + ": " + data, e);
+                    LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot save transactions " , e);
                 }
 		        List<CsvProfitRow> profits = new ArrayList<>();
 		        StringBuilder profitData = new StringBuilder();
@@ -340,6 +344,9 @@ public class BotExecution {
 					StringBuilder data = new StringBuilder();
 					newTransactions.stream().forEach(r -> data.append(r.toCsvLine()));
 					storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+					data.setLength(0);
+					Utils.openPossitions(stats, newTransactions).stream().forEach(r -> data.append(r.toCsvLine()));
+                    storage.overwriteFile("open_possitions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					StringBuilder profitData = new StringBuilder();
 					newTransactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC).forEach(tx -> {
 			        	for (Broker broker : stats) {
