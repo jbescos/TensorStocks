@@ -42,7 +42,6 @@ public class BotExecution {
 		int purchases = 0;
 		Set<String> openSymbolPositions = openPositionSymbols(stats);
 		for (Broker stat : stats) {
-			LOGGER.info(() -> cloudProperties.USER_ID + ": Processing " + stat);
 			if (stat.getAction() == Action.BUY) {
 				if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
 					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() <= cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {

@@ -48,10 +48,8 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
         List<Broker> brokers = brokerManager.loadBrokers();
-        List<Broker> stats = brokers.stream()
-                .filter(stat -> stat.getAction() != Action.NOTHING).collect(Collectors.toList());
         BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage);
-        bot.execute(stats);
+        bot.execute(brokers);
 
         // Update wallet in case the exchange supports it
         if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
