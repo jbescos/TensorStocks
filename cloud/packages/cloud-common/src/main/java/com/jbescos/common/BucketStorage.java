@@ -107,17 +107,27 @@ public class BucketStorage implements FileManager {
 
 	@Override
 	public List<CsvTransactionRow> loadTransactions() throws IOException {
-		List<CsvTransactionRow> transactions = new ArrayList<>();
-		List<String> months = Utils.monthsBack(new Date(), cloudProperties.BOT_MONTHS_BACK_TRANSACTIONS, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
-		Page<Blob> transactionFiles = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
-		for (Blob transactionFile : transactionFiles.iterateAll()) {
-		    if (months.contains(transactionFile.getName())) {
-		        try (ReadChannel readChannel = transactionFile.reader();
-                        BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-                    List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
-                    transactions.addAll(csv);
-                }
-		    }
+		Blob retrieve = storage.get(BlobInfo.newBuilder(cloudProperties.BUCKET, cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS).build().getBlobId());
+		List<CsvTransactionRow> transactions = null;
+		if (retrieve == null) {
+			LOGGER.warning(cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS + " was not found!. Reading all transactions of the last 12 months.");
+			transactions = new ArrayList<>();
+			List<String> months = Utils.monthsBack(new Date(), 12, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+			Page<Blob> transactionFiles = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
+			for (Blob transactionFile : transactionFiles.iterateAll()) {
+			    if (months.contains(transactionFile.getName())) {
+			        try (ReadChannel readChannel = transactionFile.reader();
+	                        BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+	                    List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
+	                    transactions.addAll(csv);
+	                }
+			    }
+			}
+		} else {
+			try (ReadChannel readChannel = retrieve.reader();
+                    BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+				transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);
+            }
 		}
 		return transactions;
 	}

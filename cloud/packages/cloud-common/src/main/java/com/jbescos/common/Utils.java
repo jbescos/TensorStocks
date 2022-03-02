@@ -47,7 +47,7 @@ public class Utils {
     public static final String EMPTY_STR = "";
     public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
     public static final String CONTEXT_PREFIX = "context/";
-    public static final String OPEN_POSSITIONS = CONTEXT_PREFIX + "open_possitions.csv";
+    public static final String OPEN_POSSITIONS = CONTEXT_PREFIX + "open_positions.csv";
     public static final String WALLET_PREFIX = "wallet/wallet_";
     public static final String TX_SUMMARY_PREFIX = "tx_summary/tx_summary_";
     public static final double MIN_WALLET_VALUE_TO_RECORD = 0.1;

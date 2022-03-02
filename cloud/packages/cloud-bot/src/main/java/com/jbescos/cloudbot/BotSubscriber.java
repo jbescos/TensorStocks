@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -17,7 +16,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
 import com.jbescos.common.Broker;
-import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
@@ -37,6 +35,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 
     @Override
     public void accept(PubSubMessage payload, Context context) throws Exception {
+    	long millis = System.currentTimeMillis();
         String userId = new String(Base64.getDecoder().decode(payload.data));
         CloudProperties cloudProperties = new CloudProperties(userId);
         Client client = ClientBuilder.newClient();
@@ -76,6 +75,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
             telegram.sendHtmlLink();
         }
         client.close();
+        LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
     
     // Reports if the bot run between 6:00 and 6:10

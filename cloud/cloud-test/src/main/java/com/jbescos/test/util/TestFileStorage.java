@@ -40,6 +40,7 @@ public class TestFileStorage implements FileManager {
 
 	@Override
 	public List<CsvTransactionRow> loadTransactions() throws IOException {
+		// FIXME read only open positions
 		return transactions;
 	}
 
