@@ -20,7 +20,6 @@ import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
@@ -28,9 +27,12 @@ import com.jbescos.common.CsvRow;
 import com.jbescos.common.FearGreedIndex;
 import com.jbescos.common.FileManager;
 import com.jbescos.common.Kline;
+import com.jbescos.common.PropertiesConfigurationException;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.PublicAPI.Interval;
 import com.jbescos.common.PublisherMgr;
+import com.jbescos.common.StorageInfo;
+import com.jbescos.common.TelegramBot;
 import com.jbescos.common.Utils;
 
 // Entry: com.jbescos.cloudstorage.StorageFunction
@@ -43,18 +45,18 @@ public class StorageFunction implements HttpFunction {
 	@Override
 	public void service(HttpRequest request, HttpResponse response) throws Exception {
 		boolean skip = Boolean.parseBoolean(Utils.getParam(SKIP_PARAM, "false", request.getQueryParameters()));
-		CloudProperties cloudProperties = new CloudProperties();
+		StorageInfo storageInfo = StorageInfo.build();
 		Client client = ClientBuilder.newClient();
 		PublicAPI publicAPI = new PublicAPI(client);
-		BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
+		BucketStorage storage = new BucketStorage(storageInfo);
 		
 		Map<String, List<String>> groupedFolder = new HashMap<>();
-		Page<Blob> files = storage.list(cloudProperties.PROPERTIES_BUCKET);
+		Page<Blob> files = storage.list(storageInfo.getPropertiesBucket());
 		for (Blob blob : files.iterateAll()) {
 			if (blob.isDirectory()) {
 				String userId = blob.getName().replaceAll("/", "");
 				try {
-					CloudProperties user = new CloudProperties(userId);
+					CloudProperties user = new CloudProperties(userId, storageInfo);
 					if (user.USER_ACTIVE) {
     					List<String> usersByFolder = groupedFolder.get(user.USER_EXCHANGE.getFolder());
     					if (usersByFolder == null) {
@@ -65,8 +67,10 @@ public class StorageFunction implements HttpFunction {
 					} else {
 					    LOGGER.log(Level.WARNING, userId + " is not active. Skipping notifications.");
 					}
-				} catch (Exception e) {
-					LOGGER.log(Level.SEVERE, "Cannot load user " + userId, e);
+				} catch (PropertiesConfigurationException e) {
+					TelegramBot telegram = new TelegramBot(e.getTelegramInfo(), client);
+					LOGGER.log(Level.SEVERE, "Cannot load user properties of " + userId, e);
+					telegram.exception("Cannot load user properties of " + userId, e);
 				}
 			}
 		}
@@ -74,6 +78,7 @@ public class StorageFunction implements HttpFunction {
 		Date now = new Date(time);
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		
+		CloudProperties cloudProperties = new CloudProperties(storageInfo);
 		klines(now, storage, publicAPI, cloudProperties);
 		
 		FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);

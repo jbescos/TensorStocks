@@ -24,7 +24,7 @@ import com.jbescos.common.Utils;
 
 public class SecuredBinanceAPITest {
 
-	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties(null);
 
 	@Test
 	@Ignore

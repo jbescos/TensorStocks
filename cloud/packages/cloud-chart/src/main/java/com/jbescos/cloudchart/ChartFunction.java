@@ -11,6 +11,7 @@ import com.jbescos.cloudchart.ChartGenerator.ProfitableBarChartCsv;
 import com.jbescos.cloudchart.ChartGenerator.SymbolChartCsv;
 import com.jbescos.cloudchart.ChartGenerator.TxSummaryChartCsv;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.StorageInfo;
 import com.jbescos.common.Utils;
 
 // Entry: com.jbescos.cloudchart.ChartFunction
@@ -43,7 +44,7 @@ public class ChartFunction implements HttpFunction {
 			response.setStatusCode(200);
 			response.setContentType("text/plain");
 		} else {
-			CloudProperties cloudProperties = new CloudProperties(userId);
+			CloudProperties cloudProperties = new CloudProperties(userId, StorageInfo.build());
 			String type = Utils.getParam("type", TYPE_LINE, request.getQueryParameters());
 			if (TYPE_HTML.equals(type)) {
 				response.setContentType("text/html");

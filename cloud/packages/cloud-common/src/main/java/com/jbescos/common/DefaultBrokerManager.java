@@ -25,8 +25,8 @@ public class DefaultBrokerManager implements BrokerManager {
 
 	@Override
 	public List<Broker> loadBrokers() throws IOException {
-		List<CsvTransactionRow> transactions = fileManager.loadTransactions();
-		List<CsvRow> lastData = fileManager.loadPreviousRows();
+		List<CsvTransactionRow> transactions = fileManager.loadTransactions(cloudProperties.USER_ID);
+		List<CsvRow> lastData = fileManager.loadPreviousRows(cloudProperties.USER_EXCHANGE, cloudProperties.BOT_HOURS_BACK_STATISTICS, cloudProperties.BOT_WHITE_LIST_SYMBOLS);
 		Map<String, List<CsvRow>> grouped = lastData.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
 				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));

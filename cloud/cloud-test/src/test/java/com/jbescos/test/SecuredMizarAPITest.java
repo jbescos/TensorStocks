@@ -23,7 +23,7 @@ import com.jbescos.common.Utils;
 public class SecuredMizarAPITest {
 
 	private final Client client = ClientBuilder.newClient();
-	private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(new CloudProperties(), client);
+	private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(new CloudProperties(null), client);
 	private static final String EXCHANGE = "kucoin";
 //	private static final String EXCHANGE = "binance";
 	

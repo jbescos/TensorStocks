@@ -19,19 +19,13 @@ import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 
-import com.google.api.gax.paging.Page;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.Storage.BucketListOption;
-import com.google.cloud.storage.StorageOptions;
 
 public class CloudProperties {
 
     private static final Logger LOGGER = Logger.getLogger(CloudProperties.class.getName());
-    private static final String PREFIX_PROPERTIES_BUCKET = "crypto-properties";
-    private static final String PREFIX_STORAGE_BUCKET = "crypto-for-training";
     public final String PROPERTIES_BUCKET;
     public final String BUCKET;
     public final String USER_ID;
@@ -63,8 +57,6 @@ public class CloudProperties {
     public final double BOT_MIN_MAX_RELATION_BUY;
     public final int BOT_HOURS_BACK_STATISTICS;
     private final Map<String, Double> MIN_SELL;
-    public final double EWMA_CONSTANT;
-    public final double EWMA_2_CONSTANT;
     public final boolean BOT_BUY_IGNORE_FACTOR_REDUCER;
     public final boolean PANIC_BROKER_ENABLE;
     public final boolean LIMITS_BROKER_ENABLE;
@@ -83,6 +75,7 @@ public class CloudProperties {
     public final double BOT_LIMITS_FACTOR_PROFIT_SELL;
     public final boolean TELEGRAM_BOT_ENABLED;
     public final String TELEGRAM_BOT_TOKEN;
+    public final String TELEGRAM_BOT_EXCEPTION_TOKEN;
     public final String TELEGRAM_CHAT_ID;
     public final String CHART_URL;
     public final Map<String, Double> FIXED_BUY;
@@ -91,35 +84,31 @@ public class CloudProperties {
     private final Properties mainProperties;
     private final Properties idProperties;
     
-    public CloudProperties() {
-        this(null);
+    public CloudProperties(StorageInfo storageInfo) {
+        this(null, storageInfo);
     }
 
-    public CloudProperties(String userId) {
+    public CloudProperties(String userId, StorageInfo storageInfo) {
         USER_ID = userId;
         try {
-            Properties mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
-            if (mainProperties == null) {
+            Properties mainProperties = null;
+            if (storageInfo != null) {
+            	// Cloud
             	idProperties = new Properties();
-                PROJECT_ID = StorageOptions.getDefaultProjectId();
+                PROJECT_ID = storageInfo.getProjectId();
                 mainProperties = new Properties();
-                Storage storage = StorageOptions.newBuilder().setProjectId(PROJECT_ID).build().getService();
-                BUCKET = findByPrefix(storage, PREFIX_STORAGE_BUCKET);
-                if (BUCKET == null) {
-                    throw new IllegalStateException("Bucket that starts with " + PREFIX_STORAGE_BUCKET + " was not found");
-                }
-                PROPERTIES_BUCKET = findByPrefix(storage, PREFIX_PROPERTIES_BUCKET);
-                if (PROPERTIES_BUCKET == null) {
-                    throw new IllegalStateException("Bucket that starts with " + PREFIX_PROPERTIES_BUCKET + " was not found");
-                }
-                loadProperties(PROPERTIES_BUCKET, mainProperties, storage, PROPERTIES_FILE);
+                BUCKET = storageInfo.getBucket();
+                PROPERTIES_BUCKET = storageInfo.getPropertiesBucket();
+                loadProperties(PROPERTIES_BUCKET, mainProperties, storageInfo.getStorage(), PROPERTIES_FILE);
                 if (USER_ID != null) {
-                    loadProperties(PROPERTIES_BUCKET, idProperties, storage, USER_ID + "/" + PROPERTIES_FILE);
+                    loadProperties(PROPERTIES_BUCKET, idProperties, storageInfo.getStorage(), USER_ID + "/" + PROPERTIES_FILE);
                 }
             } else {
+            	// Test
+            	mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
                 PROJECT_ID = "test";
-                PROPERTIES_BUCKET = PREFIX_PROPERTIES_BUCKET;
-                BUCKET = PREFIX_STORAGE_BUCKET;
+                PROPERTIES_BUCKET = "";
+                BUCKET = "";
                 if (USER_ID != null) {
                 	idProperties = Utils.fromClasspath("/" + USER_ID + "/" + PROPERTIES_FILE);
                 } else {
@@ -131,6 +120,13 @@ public class CloudProperties {
             throw new IllegalStateException("Cannot load properties file", e);
         }
         USER_ACTIVE = Boolean.valueOf(getProperty("user.active"));
+
+        TELEGRAM_BOT_ENABLED = Boolean.valueOf(getProperty("telegram.bot.enabled"));
+        TELEGRAM_BOT_TOKEN = getProperty("telegram.bot.token");
+        TELEGRAM_BOT_EXCEPTION_TOKEN = getProperty("telegram.bot.exception.token");
+        TELEGRAM_CHAT_ID = getProperty("telegram.chat.id");
+        CHART_URL = getProperty("chart.url");
+
         EMAIL = getProperty("user.email");
         GOOGLE_TOPIC_ID = getProperty("google.topic.id");
         USER_EXCHANGE = Exchange.valueOf(getProperty("user.exchange"));
@@ -142,11 +138,6 @@ public class CloudProperties {
         KUCOIN_API_PASSPHRASE = getProperty("kucoin.passphrase.key");
         KUCOIN_COMMERCE_KEY = getProperty("kucoin.commerce.key");
         KUCOIN_API_VERSION = getProperty("kucoin.version");
-        
-        TELEGRAM_BOT_ENABLED = Boolean.valueOf(getProperty("telegram.bot.enabled"));
-        TELEGRAM_BOT_TOKEN = getProperty("telegram.bot.token");
-        TELEGRAM_CHAT_ID = getProperty("telegram.chat.id");
-        CHART_URL = getProperty("chart.url");
         
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));
@@ -166,8 +157,6 @@ public class CloudProperties {
         BOT_MIN_MAX_RELATION_BUY = Double.parseDouble(getProperty("bot.min.max.relation.buy"));
         BOT_HOURS_BACK_STATISTICS = Integer.parseInt(getProperty("bot.hours.back.statistics"));
         MIN_TRANSACTION = Double.parseDouble(getProperty("min.transaction"));
-        EWMA_CONSTANT = Double.parseDouble(getProperty("ewma.constant"));
-        EWMA_2_CONSTANT = Double.parseDouble(getProperty("ewma.2.constant"));
         BOT_BUY_IGNORE_FACTOR_REDUCER = Boolean.valueOf(getProperty("bot.buy.ignore.factor.reducer"));
         BOT_MAX_PROFIT_SELL = Double.parseDouble(getProperty("bot.max.profit.sell"));
         BOT_MIN_PROFIT_SELL = Double.parseDouble(getProperty("bot.min.profit.sell"));
@@ -201,20 +190,12 @@ public class CloudProperties {
         FIXED_SELL = fixedSell;
     }
     
-    private String findByPrefix(Storage storage, String prefix) {
-    	Page<Bucket> page = storage.list(BucketListOption.prefix(prefix));
-        for (Bucket bucket : page.iterateAll()) {
-            return bucket.getName();
-        }
-        return null;
-    }
-    
     private String getProperty(String name) {
         String value = idProperties.getProperty(name);
         if (value == null) {
             value = mainProperties.getProperty(name);
             if (value == null) {
-                throw new IllegalStateException("Property " + name + " was not found in properties files");
+                throw new PropertiesConfigurationException("Property " + name + " was not found in properties files", new TelegramInfo(TELEGRAM_BOT_ENABLED, USER_ID, TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_EXCEPTION_TOKEN, TELEGRAM_CHAT_ID, CHART_URL));
             }
         }
         return value;

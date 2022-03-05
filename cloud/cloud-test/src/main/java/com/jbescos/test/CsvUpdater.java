@@ -33,7 +33,7 @@ import com.jbescos.common.Utils;
 public class CsvUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(CsvUpdater.class.getName());
-	private static final CloudProperties cloudProperties = new CloudProperties();
+	private static final CloudProperties cloudProperties = new CloudProperties(null);
 
 	public static void main(String args[]) throws IOException {
 		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\binance", "2021-05-08.csv");
@@ -116,11 +116,11 @@ public class CsvUpdater {
 								double avg2;
 								if (last == null) {
 									last = row;
-									avg = Utils.ewma(cloudProperties.EWMA_CONSTANT, row.getPrice(), null);
-									avg2 = Utils.ewma(cloudProperties.EWMA_2_CONSTANT, row.getPrice(), null);
+									avg = Utils.ewma(Utils.EWMA_CONSTANT, row.getPrice(), null);
+									avg2 = Utils.ewma(Utils.EWMA_2_CONSTANT, row.getPrice(), null);
 								} else {
-									avg = Utils.ewma(cloudProperties.EWMA_CONSTANT, row.getPrice(), last.getAvg());
-									avg2 = Utils.ewma(cloudProperties.EWMA_2_CONSTANT, row.getPrice(), last.getAvg2());
+									avg = Utils.ewma(Utils.EWMA_CONSTANT, row.getPrice(), last.getAvg());
+									avg2 = Utils.ewma(Utils.EWMA_2_CONSTANT, row.getPrice(), last.getAvg2());
 								}
 								row.setAvg(avg);
 								row.setAvg2(avg2);

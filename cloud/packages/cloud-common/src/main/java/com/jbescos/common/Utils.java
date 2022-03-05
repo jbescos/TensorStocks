@@ -51,7 +51,8 @@ public class Utils {
     public static final String WALLET_PREFIX = "wallet/wallet_";
     public static final String TX_SUMMARY_PREFIX = "tx_summary/tx_summary_";
     public static final double MIN_WALLET_VALUE_TO_RECORD = 0.1;
-    
+    public static final double EWMA_CONSTANT = 0.01;
+    public static final double EWMA_2_CONSTANT = 0.001;
 
     public static Properties fromClasspath(String properties) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(properties)) {

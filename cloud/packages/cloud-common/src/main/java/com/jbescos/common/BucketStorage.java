@@ -23,25 +23,23 @@ import com.google.cloud.storage.Acl.Role;
 import com.google.cloud.storage.Acl.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
-import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
+import com.jbescos.common.CloudProperties.Exchange;
 
 public class BucketStorage implements FileManager {
 	
 	private static final Logger LOGGER = Logger.getLogger(BucketStorage.class.getName());
-	private final Storage storage;
-	private final CloudProperties cloudProperties;
+	private final StorageInfo storageInfo;
 	
-	public BucketStorage(CloudProperties cloudProperties, Storage storage) {
-		this.cloudProperties = cloudProperties;
-	    this.storage = storage;
+	public BucketStorage(StorageInfo storageInfo) {
+		this.storageInfo = storageInfo;
 	}
 	
 	public Map<String, CsvRow> previousRows(long serverTime, String lastUpdated) throws IOException {
 		Map<String, CsvRow> previousRows = new LinkedHashMap<>();
-		Blob retrieve = storage.get(cloudProperties.BUCKET, lastUpdated);
+		Blob retrieve = storageInfo.getStorage().get(storageInfo.getBucket(), lastUpdated);
 		if (retrieve == null) {
 			LOGGER.warning(lastUpdated + " was not found");
 			// TODO It is better to get it from the last records of the date.csv
@@ -64,36 +62,36 @@ public class BucketStorage implements FileManager {
             CsvRow previous = previousRows.get(price.getKey());
             CsvRow newRow = null;
             if (previous != null) {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), Utils.ewma(cloudProperties.EWMA_CONSTANT, price.getValue(), previous.getAvg()), Utils.ewma(cloudProperties.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()), fearGreedIndex);
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), Utils.ewma(Utils.EWMA_CONSTANT, price.getValue(), previous.getAvg()), Utils.ewma(Utils.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()), fearGreedIndex);
             } else {
                 newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue(), fearGreedIndex);
             }
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());
         }
-        storage.create(createBlobInfo(cloudProperties, lastPriceCsv, false), builder.toString().getBytes(Utils.UTF8));
+        storageInfo.getStorage().create(createBlobInfo(storageInfo, lastPriceCsv, false), builder.toString().getBytes(Utils.UTF8));
         return newRows;
 	}
 
 	@Override
 	public String updateFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
-		BlobInfo retrieve = storage.get(BlobInfo.newBuilder(cloudProperties.BUCKET, fileName).build().getBlobId());
+		BlobInfo retrieve = storageInfo.getStorage().get(BlobInfo.newBuilder(storageInfo.getBucket(), fileName).build().getBlobId());
 		if (retrieve == null) {
-			retrieve = storage.create(createBlobInfo(cloudProperties, fileName, false), header);
+			retrieve = storageInfo.getStorage().create(createBlobInfo(storageInfo, fileName, false), header);
 		}
-		final String TEMP_FILE = cloudProperties.USER_ID + "/" + fileName + ".tmp";
-		storage.create(createBlobInfo(cloudProperties, TEMP_FILE, false), content);
-		BlobInfo blobInfo = createBlobInfo(cloudProperties, fileName, false);
+		final String TEMP_FILE = fileName + ".tmp";
+		storageInfo.getStorage().create(createBlobInfo(storageInfo, TEMP_FILE, false), content);
+		BlobInfo blobInfo = createBlobInfo(storageInfo, fileName, false);
 		ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
 				.addSource(fileName).addSource(TEMP_FILE).build();
-		blobInfo = storage.compose(request);
-		storage.delete(cloudProperties.BUCKET, TEMP_FILE);
+		blobInfo = storageInfo.getStorage().compose(request);
+		storageInfo.getStorage().delete(storageInfo.getBucket(), TEMP_FILE);
 		return blobInfo.getMediaLink();
 	}
 
-	private static BlobInfo createBlobInfo(CloudProperties cloudProperties, String fileName, boolean acl) {
-		BlobInfo.Builder builder = BlobInfo.newBuilder(cloudProperties.BUCKET, fileName);
+	private static BlobInfo createBlobInfo(StorageInfo storageInfo, String fileName, boolean acl) {
+		BlobInfo.Builder builder = BlobInfo.newBuilder(storageInfo.getBucket(), fileName);
 		if (acl) {
 			builder.setAcl(new ArrayList<>(Arrays.asList(Acl.of(User.ofAllUsers(), Role.READER))));
 		}
@@ -102,18 +100,18 @@ public class BucketStorage implements FileManager {
 	}
 	
 	public Page<Blob> list(String bucket) {
-		return storage.list(bucket, BlobListOption.currentDirectory());
+		return storageInfo.getStorage().list(bucket, BlobListOption.currentDirectory());
 	}
 
 	@Override
-	public List<CsvTransactionRow> loadTransactions() throws IOException {
-		Blob retrieve = storage.get(BlobInfo.newBuilder(cloudProperties.BUCKET, cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS).build().getBlobId());
+	public List<CsvTransactionRow> loadTransactions(String userId) throws IOException {
+		Blob retrieve = storageInfo.getStorage().get(BlobInfo.newBuilder(storageInfo.getBucket(), userId + "/" + Utils.OPEN_POSSITIONS).build().getBlobId());
 		List<CsvTransactionRow> transactions = null;
 		if (retrieve == null) {
-			LOGGER.warning(cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS + " was not found!. Reading all transactions of the last 12 months.");
+			LOGGER.warning(userId + "/" + Utils.OPEN_POSSITIONS + " was not found!. Reading all transactions of the last 12 months.");
 			transactions = new ArrayList<>();
-			List<String> months = Utils.monthsBack(new Date(), 12, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
-			Page<Blob> transactionFiles = storage.list(cloudProperties.BUCKET, BlobListOption.prefix(cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX));
+			List<String> months = Utils.monthsBack(new Date(), 12, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+			Page<Blob> transactionFiles = storageInfo.getStorage().list(storageInfo.getBucket(), BlobListOption.prefix(userId + "/" + Utils.TRANSACTIONS_PREFIX));
 			for (Blob transactionFile : transactionFiles.iterateAll()) {
 			    if (months.contains(transactionFile.getName())) {
 			        try (ReadChannel readChannel = transactionFile.reader();
@@ -133,17 +131,17 @@ public class BucketStorage implements FileManager {
 	}
 
 	@Override
-	public List<CsvRow> loadPreviousRows() throws IOException {
+	public List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols) throws IOException {
 		// Get 1 day more and compare dates later
-		List<String> days = Utils.daysBack(new Date(), (cloudProperties.BOT_HOURS_BACK_STATISTICS / 24) + 1, "data" + cloudProperties.USER_EXCHANGE.getFolder(), ".csv");
+		List<String> days = Utils.daysBack(new Date(), (hoursBack / 24) + 1, "data" + exchange.getFolder(), ".csv");
 		List<CsvRow> rows = new ArrayList<>();
 		Date now = new Date();
-		Date from = Utils.getDateOfHoursBack(now, cloudProperties.BOT_HOURS_BACK_STATISTICS);
+		Date from = Utils.getDateOfHoursBack(now, hoursBack);
 		List<CsvRow> csvInDay = null;
 		for (String day : days) {
-			try (ReadChannel readChannel = storage.reader(cloudProperties.BUCKET, day);
+			try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), day);
 					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				csvInDay = CsvUtil.readCsvRows(true, ",", reader, cloudProperties.BOT_WHITE_LIST_SYMBOLS);
+				csvInDay = CsvUtil.readCsvRows(true, ",", reader, whiteListSymbols);
 				csvInDay = csvInDay.stream().filter(row -> row.getDate().getTime() > from.getTime())
 						.collect(Collectors.toList());
 				rows.addAll(csvInDay);
@@ -158,7 +156,7 @@ public class BucketStorage implements FileManager {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 		outputStream.write(header);
 		outputStream.write(content);
-		BlobInfo blobInfo = storage.create(createBlobInfo(cloudProperties, fileName, false), outputStream.toByteArray());
+		BlobInfo blobInfo = storageInfo.getStorage().create(createBlobInfo(storageInfo, fileName, false), outputStream.toByteArray());
 		return blobInfo.getMediaLink();
 	}
 

@@ -13,6 +13,7 @@ import java.util.List;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.FileManager;
+import com.jbescos.common.CloudProperties.Exchange;
 
 public class TestFileStorage implements FileManager {
 
@@ -39,13 +40,13 @@ public class TestFileStorage implements FileManager {
 	}
 
 	@Override
-	public List<CsvTransactionRow> loadTransactions() throws IOException {
+	public List<CsvTransactionRow> loadTransactions(String userId) throws IOException {
 		// FIXME read only open positions
 		return transactions;
 	}
 
 	@Override
-	public List<CsvRow> loadPreviousRows() throws IOException {
+	public List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols) throws IOException {
 		return previousRows;
 	}
 

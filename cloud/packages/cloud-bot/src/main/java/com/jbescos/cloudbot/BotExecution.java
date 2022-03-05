@@ -1,6 +1,5 @@
 package com.jbescos.cloudbot;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -22,6 +21,7 @@ import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.FileManager;
 import com.jbescos.common.SecuredAPI;
+import com.jbescos.common.TelegramBot;
 import com.jbescos.common.Utils;
 
 public class BotExecution {
@@ -64,7 +64,7 @@ public class BotExecution {
 		return openSymbols;
 	}
 	
-	private void buy(String symbol, Broker stat) throws FileNotFoundException, IOException {
+	private void buy(String symbol, Broker stat) {
 		if (stat.getNewest().getPrice() > 0) { // Sometimes exchanges disable one symbol, and they set the price to 0
 		    if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
 		    	String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
@@ -91,43 +91,35 @@ public class BotExecution {
 	    			buy = connectAPI.minTransaction();
 	    		}
 	    		double buySymbol = Utils.symbolValue(buy, stat.getNewest().getPrice());
-	    		try {
-		    		LOGGER.info(cloudProperties.USER_ID + ": Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
-		    		if (updateWallet(Utils.USDT, buy * -1)) {
-	    			    CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
-	    			    if (transaction != null) {
-	    			    	wallet.putIfAbsent(walletSymbol, 0.0);
-	        				updateWallet(walletSymbol, Double.parseDouble(transaction.getQuantity()));
-	    			    }
-		    		}
-		    	} catch (Exception e) {
-					LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot buy " + Utils.format(buy) + " " + Utils.USDT + " of " + symbol + ". " + stat.getNewest(), e);
-				}
+	    		LOGGER.info(cloudProperties.USER_ID + ": Trying to buy " + Utils.format(buy) + " " + Utils.USDT + ". Stats = " + stat);
+	    		if (updateWallet(Utils.USDT, buy * -1)) {
+    			    CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol), Utils.format(buy));
+    			    if (transaction != null) {
+    			    	wallet.putIfAbsent(walletSymbol, 0.0);
+        				updateWallet(walletSymbol, Double.parseDouble(transaction.getQuantity()));
+    			    }
+	    		}
 		    } else {
 		        LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol + " discarded to buy because it is in bot.never.buy");
 		    }
 		}
 	}
 	
-	private void sell(String symbol, Broker stat) throws FileNotFoundException, IOException {
+	private void sell(String symbol, Broker stat) {
 		String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 		wallet.putIfAbsent(walletSymbol, 0.0);
 		double sell = wallet.remove(walletSymbol);
 		double usdtOfSymbol = Utils.usdValue(sell, stat.getNewest().getPrice());
-		try {
-			if (usdtOfSymbol >= connectAPI.minTransaction()) {
-				LOGGER.info(() -> cloudProperties.USER_ID + ": Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
-				CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(sell), Utils.format(usdtOfSymbol));
-				if (transaction != null) {
-					updateWallet(Utils.USDT, transaction.getPrice());
-				}
-			} else {
-				// Restore wallet
-				wallet.put(walletSymbol, sell);
-				LOGGER.info(() -> cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
+		if (usdtOfSymbol >= connectAPI.minTransaction()) {
+			LOGGER.info(() -> cloudProperties.USER_ID + ": Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
+			CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(sell), Utils.format(usdtOfSymbol));
+			if (transaction != null) {
+				updateWallet(Utils.USDT, transaction.getPrice());
 			}
-		} catch (Exception e) {
-			LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol, e);
+		} else {
+			// Restore wallet
+			wallet.put(walletSymbol, sell);
+			LOGGER.info(() -> cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
 		}
 	}
 
@@ -202,7 +194,9 @@ public class BotExecution {
 				}
 				transactions.add(transaction);
 			} catch (Exception e) {
-				LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot " + stat.getAction().name() + " " + quantity + " " + symbol + " (" + quantityUsd + " " + Utils.USDT + ")", e);
+				String message = cloudProperties.USER_ID + ": Cannot " + stat.getAction().name() + " " + quantity + " " + symbol + " (" + quantityUsd + " " + Utils.USDT + ")";
+				LOGGER.log(Level.SEVERE, message, e);
+				msgSender.exception(message, e);
 			}
 			return transaction;
 		}

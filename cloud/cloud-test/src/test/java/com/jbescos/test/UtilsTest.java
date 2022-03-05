@@ -28,7 +28,7 @@ import com.jbescos.common.Utils;
 
 public class UtilsTest {
 
-	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties(null);
 
 	@Test
 	public void daysBack() {

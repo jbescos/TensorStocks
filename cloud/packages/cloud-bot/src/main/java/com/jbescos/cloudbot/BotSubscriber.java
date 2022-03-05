@@ -12,8 +12,6 @@ import javax.ws.rs.client.ClientBuilder;
 
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
 import com.jbescos.common.Broker;
 import com.jbescos.common.BrokerManager;
@@ -24,6 +22,8 @@ import com.jbescos.common.CsvUtil;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
+import com.jbescos.common.StorageInfo;
+import com.jbescos.common.TelegramBot;
 import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
@@ -37,13 +37,13 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     public void accept(PubSubMessage payload, Context context) throws Exception {
     	long millis = System.currentTimeMillis();
         String userId = new String(Base64.getDecoder().decode(payload.data));
-        CloudProperties cloudProperties = new CloudProperties(userId);
+        StorageInfo storageInfo = StorageInfo.build();
         Client client = ClientBuilder.newClient();
+        CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
         PublicAPI publicAPI = new PublicAPI(client);
         long time = publicAPI.time();
         Date now = new Date(time);
-        Storage storage = StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService();
-        BucketStorage bucketStorage = new BucketStorage(cloudProperties, storage);
+        BucketStorage bucketStorage = new BucketStorage(storageInfo);
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
         List<Broker> brokers = brokerManager.loadBrokers();

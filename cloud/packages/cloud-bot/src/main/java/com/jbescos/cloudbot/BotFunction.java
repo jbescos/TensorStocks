@@ -9,7 +9,6 @@ import javax.ws.rs.client.ClientBuilder;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
-import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.Broker;
 import com.jbescos.common.Broker.Action;
 import com.jbescos.common.BrokerManager;
@@ -21,6 +20,7 @@ import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.SellPanicBrokerManager;
+import com.jbescos.common.StorageInfo;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
@@ -41,9 +41,10 @@ public class BotFunction implements HttpFunction {
 			response.setStatusCode(200);
 			response.setContentType("text/plain");
 		} else {
-			CloudProperties cloudProperties = new CloudProperties(userId);
+			StorageInfo storageInfo = StorageInfo.build();
+			CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
 			Client client = ClientBuilder.newClient();
-			BucketStorage storage = new BucketStorage(cloudProperties, StorageOptions.newBuilder().setProjectId(cloudProperties.PROJECT_ID).build().getService());
+			BucketStorage storage = new BucketStorage(storageInfo);
 			BrokerManager brokerManager;
 			SecuredAPI api = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
 			String side = Utils.getParam(SIDE_PARAM, null, request.getQueryParameters());

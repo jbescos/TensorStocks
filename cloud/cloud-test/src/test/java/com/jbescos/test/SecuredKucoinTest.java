@@ -22,7 +22,7 @@ import com.jbescos.common.SecuredKucoinAPI;
 public class SecuredKucoinTest {
 
 	private static final Logger LOGGER = Logger.getLogger(SecuredKucoinTest.class.getName());
-	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties();
+	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties(null);
 	private static final Client client = ClientBuilder.newClient();
 	
 	@BeforeClass

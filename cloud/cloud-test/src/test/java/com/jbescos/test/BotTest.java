@@ -10,10 +10,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.junit.Test;
 
@@ -71,7 +69,7 @@ public class BotTest {
     			};
     	for (int i = 0; i < users.length; i = i + 2) {
     		String userId = users[i];
-    		CloudProperties cloudProperties = new CloudProperties(userId);
+    		CloudProperties cloudProperties = new CloudProperties(userId, null);
     		String from = users[i + 1];
     		Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
     		String toStr = Utils.fromDate(Utils.FORMAT, to);
