@@ -104,9 +104,7 @@ public class CautelousBroker implements Broker {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
                             if (percentileMin) {
-                            	if (summary.getPreviousBuys() == null || summary.getPreviousBuys().size() <= cloudProperties.MAX_OPEN_POSITIONS) {
-                            		action = Action.BUY;
-                            	}
+                            	action = Action.BUY;
                             } else {
 //                                LOGGER.info(() -> newest + " buy discarded because the price is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                             }

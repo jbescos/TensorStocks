@@ -22,6 +22,7 @@ import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.FileManager;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.TelegramBot;
+import com.jbescos.common.TransactionsSummary;
 import com.jbescos.common.Utils;
 
 public class BotExecution {
@@ -45,8 +46,11 @@ public class BotExecution {
 			if (stat.getAction() == Action.BUY) {
 				if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
 					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() <= cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
-						buy(stat.getSymbol(), stat);
-						openSymbolPositions.add(stat.getSymbol());
+					    TransactionsSummary summary = stat.getPreviousTransactions();
+					    if (summary.getPreviousBuys() == null || summary.getPreviousBuys().size() <= cloudProperties.MAX_OPEN_POSITIONS) {
+    						buy(stat.getSymbol(), stat);
+    						openSymbolPositions.add(stat.getSymbol());
+					    }
 					}
 				}
 				purchases++;
