@@ -45,9 +45,9 @@ public class BotExecution {
 		for (Broker stat : stats) {
 			if (stat.getAction() == Action.BUY) {
 				if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
-					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() <= cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
+					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() < cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
 					    TransactionsSummary summary = stat.getPreviousTransactions();
-					    if (summary.getPreviousBuys() == null || summary.getPreviousBuys().size() <= cloudProperties.MAX_OPEN_POSITIONS) {
+					    if (summary.getPreviousBuys() == null || summary.getPreviousBuys().size() < cloudProperties.MAX_OPEN_POSITIONS) {
     						buy(stat.getSymbol(), stat);
     						openSymbolPositions.add(stat.getSymbol());
 					    }
