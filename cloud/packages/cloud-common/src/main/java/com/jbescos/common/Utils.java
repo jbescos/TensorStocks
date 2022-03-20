@@ -456,19 +456,18 @@ public class Utils {
         return fearGreedIndex < 30;
     }
     
-    public static double factorFearGreedAdjusted(double factorBase, int fearGreedIndex, boolean adjustEnabled) {
-    	if (adjustEnabled) {
-	        if (fearGreedIndex < 10) {
-	            return factorBase + 0.3;
-	        } else if (fearGreedIndex < 15) {
-	            return factorBase + 0.2;
-	        } else if (fearGreedIndex < 20) {
-	            return factorBase + 0.15;
-	        } else if (fearGreedIndex < 30) {
-	            return factorBase + 0.1;
-	        }
-    	}
-        return factorBase;
+    public static double factorFearGreedAdjusted(double factorBase, int fearGreedIndex) {
+        if (fearGreedIndex < 10) {
+            return factorBase + 0.3;
+        } else if (fearGreedIndex < 15) {
+            return factorBase + 0.2;
+        } else if (fearGreedIndex < 20) {
+            return factorBase + 0.15;
+        } else if (fearGreedIndex < 30) {
+            return factorBase + 0.1;
+        } else {
+        	return factorBase;
+        }
     }
     
     public static boolean isTime(Date now, int expectedHour) {
