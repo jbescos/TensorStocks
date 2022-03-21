@@ -1,7 +1,5 @@
 package com.jbescos.test;
 
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -73,24 +72,18 @@ public class Simulation {
 		}
 	}
 	
-	public Result runTogether() {
-		try {
-			load();
-			final double INITIAL_USDT = 1000;
-			Map<String, Double> wallet = new HashMap<>();
-	        wallet.put(Utils.USDT, INITIAL_USDT);
-	        List<CsvRow> walletHistorical = new ArrayList<>();
-	    	List<CsvTransactionRow> transactions = new ArrayList<>();
-	    	CsvRow first = loader.first();
-	    	long now = first.getDate().getTime() + hoursBackMillis;
-	    	long last = loader.last(first.getSymbol()).getDate().getTime();
+	private void iterate(Map<String, Double> wallet, List<CsvRow> walletHistorical, List<CsvTransactionRow> transactions, String symbol) {
+		CsvRow first = symbol == null ? loader.first() : loader.first(symbol);
+    	long now = first.getDate().getTime() + hoursBackMillis;
+    	long last = loader.last(first.getSymbol()).getDate().getTime();
+    	try {
 	    	while (now <= last) {
 	    		long previous = now - hoursBackMillis;
-	    		List<CsvRow> segment = loader.get(previous, now);
-	    		TestFileStorage fileManager = new TestFileStorage(testFolder + "/total_", transactions, segment);
+	    		List<CsvRow> segment = symbol == null ? loader.get(previous, now) : loader.get(symbol, previous, now);
+	    		TestFileStorage fileManager = new TestFileStorage(testFolder + (symbol == null ? "/total_" : "/" + symbol + "_"), transactions, segment);
 	    	    List<Broker> stats = new DefaultBrokerManager(loader.getCloudProperties(), fileManager).loadBrokers();
-    	    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
-                trader.execute(stats);
+		    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
+	            trader.execute(stats);
 	    	    CsvRow lastRow = segment.get(segment.size() - 1);
 	    	    CsvRow next = loader.next(lastRow.getSymbol(), lastRow);
 	    	    if (next != null) {
@@ -99,6 +92,21 @@ public class Simulation {
 	    	        break;
 	    	    }
 	    	}
+    	} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
+			throw new RuntimeException("Error in " + testFolder, e);
+		}
+	}
+	
+	public Result runTogether() {
+		try {
+			load();
+			final double INITIAL_USDT = 1000;
+			Map<String, Double> wallet = new HashMap<>();
+	        wallet.put(Utils.USDT, INITIAL_USDT);
+	        List<CsvRow> walletHistorical = new ArrayList<>();
+	    	List<CsvTransactionRow> transactions = new ArrayList<>();
+	    	iterate(wallet, walletHistorical, transactions, null);
 	    	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
 	    	double totalPrice = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
 	    	benefit = ((totalPrice * 100) / INITIAL_USDT) - 100;
@@ -112,7 +120,7 @@ public class Simulation {
 	            ChartGenerator.save(output, chart);
 	        }
 	        chartFile = new File(testFolder + "/fearGreed.png");
-	        List<IRow> fears = loader.get(first.getSymbol()).stream().map(row -> new FearGreedRow(row)).collect(Collectors.toList());
+	        List<IRow> fears = loader.get(loader.first().getSymbol()).stream().map(row -> new FearGreedRow(row)).collect(Collectors.toList());
 	        try (FileOutputStream output = new FileOutputStream(chartFile)) {
 	            IChart<IRow> chart = new DateChart();
 	            ChartGenerator.writeChart(fears, output, chart);
@@ -123,6 +131,38 @@ public class Simulation {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
 			throw new RuntimeException("Error in " + testFolder, e);
 		}
+	}
+	
+	public void runBySymbol() {
+		try {
+			load();
+			Collection<String> symbols = loader.symbols();
+			symbols.parallelStream().forEach(symbol -> {
+				List<CsvTransactionRow> transactions = new ArrayList<>();
+				List<CsvRow> walletHistorical = new ArrayList<>();
+				CsvRow first = loader.first(symbol);
+				Map<String, Double> wallet = new HashMap<>();
+		        wallet.put(Utils.USDT, first.getPrice());
+		        iterate(wallet, walletHistorical, transactions, symbol);
+		        List<CsvRow> total = loader.get(symbol);
+		        List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
+		        symbolCharts(symbol, total, transactions, totalWalletHistorical);
+			});
+		} catch (IOException e) {
+			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
+			throw new RuntimeException("Error in " + testFolder, e);
+		}
+	}
+	
+	private void symbolCharts(String symbol, List<CsvRow> rows, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical) {
+		File chartFile = new File(testFolder + "/" + symbol + ".png");
+        try (FileOutputStream output = new FileOutputStream(chartFile)) {
+            IChart<IRow> chart = new XYChart();
+            ChartGenerator.writeChart(transactions, output, chart);
+            ChartGenerator.writeChart(rows, output, chart);
+            ChartGenerator.writeChart(walletHistorical, output, chart);
+            ChartGenerator.save(output, chart);
+        } catch (IOException e) {}
 	}
 	
 	public static class Result implements Comparable<Result> {
