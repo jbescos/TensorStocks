@@ -24,7 +24,7 @@ public final class PublicAPI {
 	private static final String FEAR_GREEDY_URL = "https://api.alternative.me/fng/";
 	private static final String BINANCE_URL = "https://api.binance.com";
 	private static final String KUCOIN_URL = "https://api.kucoin.com";
-	private static final String OKEX_URL = "https://www.okex.com";
+	private static final String OKEX_URL = "https://www.okx.com/";
 	private static final String FTX_URL = "https://ftx.com";
 	private final Client client;
 	
@@ -88,9 +88,10 @@ public final class PublicAPI {
 	
 	public Map<String, Double> priceOkex() {
 		Map<String, Double> pricesBySymbol = new HashMap<>();
-		get(OKEX_URL, "/api/spot/v3/instruments/ticker", new GenericType<List<Map<String, String>>>() {}).stream()
-		.filter(ticker -> ticker.get("instrument_id").endsWith(Utils.USDT))
-		.forEach(ticker -> pricesBySymbol.put(ticker.get("instrument_id").replaceFirst("-", ""), Double.parseDouble(ticker.get("last"))));
+		List<Map<String, String>> data = (List<Map<String, String>>) get(OKEX_URL, "/api/v5/market/tickers", new GenericType<Map<String, Object>>() {}, "instType", "SPOT").get("data");
+		data.stream()
+		.filter(ticker -> ticker.get("instId").endsWith(Utils.USDT))
+		.forEach(ticker -> pricesBySymbol.put(ticker.get("instId").replaceFirst("-", ""), Double.parseDouble(ticker.get("last"))));
 		return pricesBySymbol;
 	}
 
