@@ -146,7 +146,12 @@ public class Simulation {
 		        iterate(wallet, walletHistorical, transactions, symbol);
 		        List<CsvRow> total = loader.get(symbol);
 		        List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
-		        symbolCharts(symbol, total, transactions, totalWalletHistorical);
+		        int profit = 0;
+		        if (!totalWalletHistorical.isEmpty()) {
+		        	double last = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
+		        	profit = (int) ((last * 100 / first.getPrice()) - 100);
+		        }
+		        symbolCharts(symbol, total, transactions, totalWalletHistorical, profit);
 			});
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
@@ -154,8 +159,8 @@ public class Simulation {
 		}
 	}
 	
-	private void symbolCharts(String symbol, List<CsvRow> rows, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical) {
-		File chartFile = new File(testFolder + "/" + symbol + ".png");
+	private void symbolCharts(String symbol, List<CsvRow> rows, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, int profit) {
+		File chartFile = new File(testFolder + "/" + profit + "%_" + symbol + ".png");
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
             IChart<IRow> chart = new XYChart();
             ChartGenerator.writeChart(transactions, output, chart);

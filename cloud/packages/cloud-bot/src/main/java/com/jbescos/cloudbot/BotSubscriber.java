@@ -80,7 +80,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     
     // Reports if the bot run between 6:00 and 6:10
     private boolean isReportTime(Date now, CloudProperties cloudProperties) {
-        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
+        if (cloudProperties.TELEGRAM_BOT_ENABLED && cloudProperties.USER_EXCHANGE.isSupportWallet()) {
             return Utils.isTime(now, 6);
         }
         return false;

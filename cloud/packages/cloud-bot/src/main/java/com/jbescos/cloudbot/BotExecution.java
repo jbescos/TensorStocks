@@ -253,11 +253,15 @@ public class BotExecution {
 		        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
 			        transactions.stream().filter(tx -> tx.getSide() == Action.BUY).forEach(row -> {
 			        	msgSender.sendMessage(cloudProperties.USER_ID + " -> " + row.toString());
-	    				msgSender.sendChartSymbolLink(row.getSymbol());
+			        	if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+			        		msgSender.sendChartSymbolLink(row.getSymbol());
+			        	}
 			        });
 			        profits.stream().forEach(row -> {
 			        	msgSender.sendMessage(cloudProperties.USER_ID + " -> " + row.toString());
-	    				msgSender.sendChartSymbolLink(row.getSymbol());
+			        	if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+			        		msgSender.sendChartSymbolLink(row.getSymbol());
+			        	}
 			        });
 		        }
 		    }
