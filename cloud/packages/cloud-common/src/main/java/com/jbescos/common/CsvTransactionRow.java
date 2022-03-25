@@ -56,7 +56,7 @@ public class CsvTransactionRow implements IRow {
 
     @Override
     public String toString() {
-    	StringBuilder content = new StringBuilder(symbol).append(" BUY ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
+    	StringBuilder content = new StringBuilder().append("ORDER ID: ").append(orderId).append("\n").append(symbol).append(" BUY ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
     	    	.append("\nTotal USD (USD per unit): ").append(usdt).append("$ (").append(Utils.format(usdtUnit)).append("$)");
     	return content.toString();
     }

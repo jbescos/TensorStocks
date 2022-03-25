@@ -72,7 +72,9 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         boolean report = isReportTime(now, cloudProperties);
         if (report) {
             TelegramBot telegram = new TelegramBot(cloudProperties, client);
-            telegram.sendHtmlLink();
+            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+            	telegram.sendHtmlLink();
+            }
         }
         client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
@@ -80,7 +82,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     
     // Reports if the bot run between 6:00 and 6:10
     private boolean isReportTime(Date now, CloudProperties cloudProperties) {
-        if (cloudProperties.TELEGRAM_BOT_ENABLED && cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
             return Utils.isTime(now, 6);
         }
         return false;

@@ -12,6 +12,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+//https://telegram.rest/docs
 public class TelegramBot {
 
     private static final Logger LOGGER = Logger.getLogger(TelegramBot.class.getName());

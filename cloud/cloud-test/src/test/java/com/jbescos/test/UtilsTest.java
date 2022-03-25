@@ -360,7 +360,7 @@ public class UtilsTest {
 				"First purchase: 1970-01-01 01:00:00\n" + 
 				"Buy / Sell: 10$ / 10\n" + 
 				"Profit: 0$ (0%)", profit.toString());
-		assertEquals("test BUY 1970-01-01 01:00:00\n" + 
+		assertEquals("ORDER ID: 1\ntest BUY 1970-01-01 01:00:00\n" + 
 				"Total USD (USD per unit): 10$ (1$)", buy.toString());
 	}
 	
