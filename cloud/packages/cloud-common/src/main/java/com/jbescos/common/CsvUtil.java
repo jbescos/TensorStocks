@@ -99,6 +99,29 @@ public class CsvUtil {
 		
 	}
 	
+	public static List<CsvProfitRow> readCsvProfitRows(BufferedReader reader) throws IOException {
+		DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
+		final String SPLIT = ",";
+		return readCsv(true, line -> {
+			String[] columns = line.split(SPLIT);
+			Date sellDate = Utils.fromString(format, columns[0]);
+			Date firstBuyDate = Utils.fromString(format, columns[1]);
+			String symbol = columns[2];
+			String quantityBuy = columns[3];
+			String quantitySell = columns[4];
+			String quantityUsdtBuy = columns[5];
+			String quantityUsdtSell = columns[6];
+			String commissionPercentage = columns[7];
+			String commissionUsdt = columns[8];
+			String usdtProfit = columns[9];
+			String netUsdtProfit = columns[10];
+			String profitPercentage = columns[11];
+			// "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISSION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%"
+			CsvProfitRow row = new CsvProfitRow(firstBuyDate, sellDate, symbol, quantityBuy, quantityUsdtBuy, quantitySell, quantityUsdtSell, commissionPercentage, commissionUsdt, usdtProfit, netUsdtProfit, profitPercentage);
+			return row;
+		}, reader);
+	}
+	
 	public static List<CsvAccountRow> readCsvAccountRows(boolean skipFirst, String separator, BufferedReader reader) throws IOException {
 	    DateFormat format = new SimpleDateFormat(Utils.FORMAT_SECOND);
 	    return readCsv(skipFirst, line -> {

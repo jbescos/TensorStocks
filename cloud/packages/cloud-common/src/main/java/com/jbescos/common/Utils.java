@@ -152,11 +152,15 @@ public class Utils {
     }
     
     public static String format(double amount) {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        return format(amount, 8);
+    }
+    
+    public static String format(double amount, int digits) {
+    	DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         symbols.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("0", symbols);
         df.setRoundingMode(RoundingMode.DOWN);
-        df.setMaximumFractionDigits(8);
+        df.setMaximumFractionDigits(digits);
         return df.format(amount);
     }
     
@@ -541,5 +545,24 @@ public class Utils {
     		}
     	}
     	return previousTx.values().stream().flatMap(val -> val.stream()).sorted((a, b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toList());
+    }
+    
+    public static String profitSummary(Date now, int days, List<CsvProfitRow> profits) {
+    	Date from = getDateOfDaysBack(now, days);
+    	double totalUsdtBuy = 0;
+    	double totalUsdtSell = 0;
+    	List<CsvProfitRow> filtered = profits.stream().filter(row -> row.getSellDate().getTime() >= from.getTime()).collect(Collectors.toList());
+    	for (CsvProfitRow row : filtered) {
+    		totalUsdtBuy = totalUsdtBuy + Double.parseDouble(row.getQuantityUsdtBuy());
+    		totalUsdtSell = totalUsdtSell + Double.parseDouble(row.getQuantityUsdtSell());
+    	}
+    	double result = totalUsdtSell - totalUsdtBuy;
+    	double resultPercent = 0;
+    	if (result != 0) {
+    		resultPercent = result * 100 / totalUsdtBuy;
+    	}
+    	StringBuilder builder = new StringBuilder();
+    	builder.append("Last ").append(days).append(" days: ").append(Utils.format(totalUsdtBuy, 2)).append("$-").append(Utils.format(totalUsdtSell, 2)).append("$, ").append(Utils.format(result, 2)).append("$(").append(Utils.format(resultPercent, 2)).append("%)");
+    	return builder.toString();
     }
 }

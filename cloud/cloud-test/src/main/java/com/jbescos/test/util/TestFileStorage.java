@@ -1,19 +1,24 @@
 package com.jbescos.test.util;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 
+import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.common.CsvUtil;
 import com.jbescos.common.FileManager;
-import com.jbescos.common.CloudProperties.Exchange;
 
 public class TestFileStorage implements FileManager {
 
@@ -65,6 +70,17 @@ public class TestFileStorage implements FileManager {
 		}
 		Files.write(path, outputStream.toByteArray(), StandardOpenOption.CREATE);
 		return file.getAbsolutePath();
+	}
+
+	@Override
+	public List<CsvProfitRow> loadCsvProfitRows(String userId, int monthsBack) {
+		Path path = Paths.get(filePath + "/profitable.csv");
+		File file = path.toFile();
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
+			return CsvUtil.readCsvProfitRows(reader);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 }

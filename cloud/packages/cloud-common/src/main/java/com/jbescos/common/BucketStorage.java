@@ -151,6 +151,23 @@ public class BucketStorage implements FileManager {
 	}
 
 	@Override
+	public List<CsvProfitRow> loadCsvProfitRows(String userId, int monthsBack) {
+		List<String> months = Utils.monthsBack(new Date(), monthsBack, userId + "/" + CsvProfitRow.PREFIX, ".csv");
+		List<CsvProfitRow> rows = new ArrayList<>();
+		List<CsvProfitRow> csvInMonth = null;
+		for (String month : months) {
+			try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), month);
+					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+				csvInMonth = CsvUtil.readCsvProfitRows(reader);
+				rows.addAll(csvInMonth);
+			} catch (Exception e) {
+				// Eat it, no CSV was found is not an error
+			}
+		}
+		return rows;
+	}
+
+	@Override
 	public String overwriteFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();

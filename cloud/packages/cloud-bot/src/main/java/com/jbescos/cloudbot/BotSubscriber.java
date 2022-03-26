@@ -17,6 +17,7 @@ import com.jbescos.common.Broker;
 import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.DefaultBrokerManager;
@@ -75,6 +76,12 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
             if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
             	telegram.sendHtmlLink();
             }
+            List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
+            StringBuilder profits = new StringBuilder(userId).append("\nopened-closed, profit(%)");
+            profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
+            profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
+            profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+            telegram.sendMessage(profits.toString());
         }
         client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
