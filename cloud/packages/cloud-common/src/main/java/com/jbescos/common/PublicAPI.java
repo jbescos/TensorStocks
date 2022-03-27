@@ -1,6 +1,7 @@
 package com.jbescos.common;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -35,17 +36,33 @@ public final class PublicAPI {
 	public long time() {
 		return get(BINANCE_URL, "/api/v3/time", new GenericType<ServerTime>() {}).getServerTime();
 	}
-	
-	public ExchangeInfo exchangeInfo(String symbol) {
+
+	public Map<String, Object> exchangeInfoFilter(String symbol, String filterName) {
 	    String[] query = null;
 	    if (symbol != null) {
 	        query = new String[] {"symbol", symbol};
 	    } else {
 	        query = new String[0];
 	    }
-		ExchangeInfo exchangeInfo = get(BINANCE_URL, "/api/v3/exchangeInfo", new GenericType<ExchangeInfo>() {}, query);
-		return exchangeInfo;
+	    Map<String, Object> exchangeInfo = get(BINANCE_URL, "/api/v3/exchangeInfo", new GenericType<Map<String, Object>>() {}, query);
+	    List<Map<String, Object>> symbolFilters = (List<Map<String, Object>>) exchangeInfo.get("symbols");
+		return getBinanceFilter(symbol, filterName, symbolFilters);
 	}
+	
+    private Map<String, Object> getBinanceFilter(String symbol, String filterName, List<Map<String, Object>> symbolFilters){
+        for (Map<String, Object> symbolFilter : symbolFilters) {
+            if (symbol.equals(symbolFilter.get("symbol"))) {
+                List<Map<String, Object>> filters = (List<Map<String, Object>>) symbolFilter.get("filters");
+                for (Map<String, Object> filter : filters) {
+                    Object obj = filter.get("filterType");
+                    if (obj != null && obj.equals(filterName)) {
+                        return filter;
+                    }
+                }
+            }
+        }
+        return Collections.emptyMap();
+    }
 	
 	public List<FearGreedIndex> getFearGreedIndex(String days){
 		List<FearGreedIndex> list = new ArrayList<>();

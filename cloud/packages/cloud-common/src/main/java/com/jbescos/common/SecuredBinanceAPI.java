@@ -149,8 +149,7 @@ public class SecuredBinanceAPI implements SecuredAPI {
 	public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
 		Date now =  new Date();
 		String orderId = UUID.randomUUID().toString();
-		ExchangeInfo exchange = new PublicAPI(client).exchangeInfo(symbol);
-		Map<String, Object> filter = exchange.getFilter(symbol, ExchangeInfo.LOT_SIZE);
+		Map<String, Object> filter = new PublicAPI(client).exchangeInfoFilter(symbol, "LOT_SIZE");
 		String fixedQuantity = Utils.filterLotSizeQuantity(quantity, filter.get("minQty").toString(), filter.get("maxQty").toString(), filter.get("stepSize").toString());
 		String[] args = new String[] {"symbol", symbol, "side", action.side(), "type", "MARKET", "quantity", fixedQuantity, "newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime())};
 		LOGGER.info(() -> "SecuredBinanceAPI> Prepared Symbol order: " + Arrays.asList(args).toString());

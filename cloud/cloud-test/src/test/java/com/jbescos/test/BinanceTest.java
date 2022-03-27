@@ -13,10 +13,9 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.jbescos.common.Kline;
 import com.jbescos.common.PublicAPI;
 import com.jbescos.common.PublicAPI.Interval;
-import com.jbescos.common.ExchangeInfo;
-import com.jbescos.common.Kline;
 import com.jbescos.common.Utils;
 
 public class BinanceTest {
@@ -26,17 +25,13 @@ public class BinanceTest {
     @Test
     @Ignore
     public void exchange() {
-//        "filterType": "LOT_SIZE",
-//        "minQty": "1.00",
-//        "maxQty": "10000000000.00",
-//        "stepSize": "1.00"
+//      {filterType=LOT_SIZE, minQty=1.00, maxQty=46116860414.00, stepSize=1.00}
         String symbol = "SHIBUSDT";
         Client client = ClientBuilder.newClient();
-        ExchangeInfo info = new PublicAPI(client).exchangeInfo(symbol);
-        LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(info.getServerTime())));
-        Map<String, Object> filter = info.getFilter(symbol, ExchangeInfo.LOT_SIZE);
+        Map<String, Object> filter = new PublicAPI(client).exchangeInfoFilter(symbol, "LOT_SIZE");
+        System.out.println(filter);
         assertEquals("1.00", filter.get("minQty").toString());
-        assertEquals("10000000000.00", filter.get("maxQty").toString());
+        assertEquals("46116860414.00", filter.get("maxQty").toString());
         assertEquals("1.00", filter.get("stepSize").toString());
         client.close();
     }

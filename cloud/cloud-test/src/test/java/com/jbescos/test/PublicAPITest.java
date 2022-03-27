@@ -66,4 +66,5 @@ public class PublicAPITest {
         	chart.save(output, "BTC KLines", "", "USDT");
         }
 	}
+	
 }
