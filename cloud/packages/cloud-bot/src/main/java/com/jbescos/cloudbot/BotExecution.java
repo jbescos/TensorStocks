@@ -128,13 +128,16 @@ public class BotExecution {
 	}
 
 	private boolean updateWallet(String symbol, double amount) {
-		double current = wallet.get(symbol);
+		Double current = wallet.get(symbol);
+		if (current == null) {
+			current = 0.0;
+		}
 		double accumulated = current + amount;
 		if (accumulated > 0) {
 			wallet.put(symbol, accumulated);
 			return true;
 		} else {
-			LOGGER.info(() -> cloudProperties.USER_ID + ": There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
+			LOGGER.info(cloudProperties.USER_ID + ": There is not enough money in the wallet. There is only " + Utils.format(current) + symbol);
 		}
 		return false;
 	}
