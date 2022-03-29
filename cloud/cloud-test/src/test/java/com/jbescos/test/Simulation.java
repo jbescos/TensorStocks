@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -133,8 +134,9 @@ public class Simulation {
 		}
 	}
 	
-	public void runBySymbol() {
+	public List<Score> runBySymbol() {
 		try {
+			List<Score> scores = Collections.synchronizedList(new ArrayList<>());
 			load();
 			Collection<String> symbols = loader.symbols();
 			symbols.parallelStream().forEach(symbol -> {
@@ -152,7 +154,9 @@ public class Simulation {
 		        	profit = (int) ((last * 100 / first.getPrice()) - 100);
 		        }
 		        symbolCharts(symbol, total, transactions, totalWalletHistorical, profit);
+		        scores.add(new Score(profit, symbol));
 			});
+			return scores;
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
 			throw new RuntimeException("Error in " + testFolder, e);
@@ -168,6 +172,27 @@ public class Simulation {
             ChartGenerator.writeChart(walletHistorical, output, chart);
             ChartGenerator.save(output, chart);
         } catch (IOException e) {}
+	}
+	
+	public static class Score implements Comparable<Score> {
+		private final int profit;
+		private final String symbol;
+
+		public Score(int profit, String symbol) {
+			this.profit = profit;
+			this.symbol = symbol;
+		}
+		public int getProfit() {
+			return profit;
+		}
+		public String getSymbol() {
+			return symbol;
+		}
+		@Override
+		public int compareTo(Score o) {
+			return Integer.compare(o.getProfit(), getProfit());
+		}
+		
 	}
 	
 	public static class Result implements Comparable<Result> {

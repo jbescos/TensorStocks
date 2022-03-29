@@ -16,7 +16,7 @@ public class TelegramBotTest {
 	@Ignore
 	public void sendMessage() {
 		TelegramBot bot = new TelegramBot(properties, ClientBuilder.newClient());
-		bot.sendMessage("Hello world");
+		bot.sendMessage("📢  Hello world");
 	}
 	
 	@Test

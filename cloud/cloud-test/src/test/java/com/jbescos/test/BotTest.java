@@ -89,7 +89,12 @@ public class BotTest {
     		Simulation simulation = null;
     		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
     		    final Simulation sim = simulation;
-    		    CompletableFuture<Void> completable = CompletableFuture.runAsync(() -> sim.runBySymbol());
+    		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runBySymbol()).thenAccept(scores -> {
+    		    	Collections.sort(scores);
+    		    	StringBuilder builder = new StringBuilder("bot.white.list=");
+    		    	scores.stream().forEach(score -> builder.append(score.getSymbol()).append(","));
+    		    	LOGGER.info(userId + ": " + builder.toString());
+    		    });
     		    completables.add(completable);
     			from = toStr;
     			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);

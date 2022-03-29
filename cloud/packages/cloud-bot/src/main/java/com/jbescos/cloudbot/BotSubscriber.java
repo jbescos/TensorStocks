@@ -77,7 +77,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
             	telegram.sendHtmlLink();
             }
             List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
-            StringBuilder profits = new StringBuilder(userId).append("\nopened-closed, profit(%)");
+            StringBuilder profits = new StringBuilder().append("📢 ").append(userId).append("\nopened-closed, profit(%)");
             profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
             profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
             profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
