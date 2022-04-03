@@ -104,24 +104,10 @@ public class BucketStorage implements FileManager {
 	}
 
 	@Override
-	public List<CsvTransactionRow> loadTransactions(String userId) throws IOException {
+	public List<CsvTransactionRow> loadOpenTransactions(String userId) throws IOException {
 		Blob retrieve = storageInfo.getStorage().get(BlobInfo.newBuilder(storageInfo.getBucket(), userId + "/" + Utils.OPEN_POSSITIONS).build().getBlobId());
-		List<CsvTransactionRow> transactions = null;
-		if (retrieve == null) {
-			LOGGER.warning(userId + "/" + Utils.OPEN_POSSITIONS + " was not found!. Reading all transactions of the last 12 months.");
-			transactions = new ArrayList<>();
-			List<String> months = Utils.monthsBack(new Date(), 12, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
-			Page<Blob> transactionFiles = storageInfo.getStorage().list(storageInfo.getBucket(), BlobListOption.prefix(userId + "/" + Utils.TRANSACTIONS_PREFIX));
-			for (Blob transactionFile : transactionFiles.iterateAll()) {
-			    if (months.contains(transactionFile.getName())) {
-			        try (ReadChannel readChannel = transactionFile.reader();
-	                        BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-	                    List<CsvTransactionRow> csv = CsvUtil.readCsvTransactionRows(true, ",", reader);
-	                    transactions.addAll(csv);
-	                }
-			    }
-			}
-		} else {
+		List<CsvTransactionRow> transactions = Collections.emptyList();
+		if (retrieve != null) {
 			try (ReadChannel readChannel = retrieve.reader();
                     BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 				transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);

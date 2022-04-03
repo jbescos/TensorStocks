@@ -90,5 +90,62 @@ public class CsvTransactionRow implements IRow {
 	public Double getAvg2() {
 		return null;
 	}
-	
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + ((orderId == null) ? 0 : orderId.hashCode());
+		result = prime * result + ((quantity == null) ? 0 : quantity.hashCode());
+		result = prime * result + ((side == null) ? 0 : side.hashCode());
+		result = prime * result + ((symbol == null) ? 0 : symbol.hashCode());
+		result = prime * result + ((usdt == null) ? 0 : usdt.hashCode());
+		long temp;
+		temp = Double.doubleToLongBits(usdtUnit);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CsvTransactionRow other = (CsvTransactionRow) obj;
+		if (date == null) {
+			if (other.date != null)
+				return false;
+		} else if (!date.equals(other.date))
+			return false;
+		if (orderId == null) {
+			if (other.orderId != null)
+				return false;
+		} else if (!orderId.equals(other.orderId))
+			return false;
+		if (quantity == null) {
+			if (other.quantity != null)
+				return false;
+		} else if (!quantity.equals(other.quantity))
+			return false;
+		if (side != other.side)
+			return false;
+		if (symbol == null) {
+			if (other.symbol != null)
+				return false;
+		} else if (!symbol.equals(other.symbol))
+			return false;
+		if (usdt == null) {
+			if (other.usdt != null)
+				return false;
+		} else if (!usdt.equals(other.usdt))
+			return false;
+		if (Double.doubleToLongBits(usdtUnit) != Double.doubleToLongBits(other.usdtUnit))
+			return false;
+		return true;
+	}
+
 }

@@ -12,7 +12,7 @@ public interface FileManager {
 	
 	String overwriteFile(String fileName, byte[] content, byte[] header) throws FileNotFoundException, IOException;
 	
-	List<CsvTransactionRow> loadTransactions(String userId) throws IOException;
+	List<CsvTransactionRow> loadOpenTransactions(String userId) throws IOException;
 	
 	List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols) throws IOException;
 

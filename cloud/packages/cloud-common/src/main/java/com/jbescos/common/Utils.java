@@ -186,6 +186,7 @@ public class Utils {
             double accumulated = 0.0;
             double totalQuantity = 0.0;
             String symbol = null;
+            lastPurchase = previousTransactions.stream().filter(tx -> tx.getSide() == Action.BUY).map(tx -> tx.getDate()).sorted((d1, d2) -> d2.compareTo(d1)).findFirst().orElse(null);
             for (CsvTransactionRow transaction : previousTransactions) {
                 if (symbol == null) {
                     symbol = transaction.getSymbol();
@@ -196,9 +197,6 @@ public class Utils {
                     double quantity = Double.parseDouble(transaction.getQuantity());
                     double usdt = Double.parseDouble(transaction.getUsdt());
                     if (transaction.getSide() == Action.BUY) {
-                        if (lastPurchase == null) {
-                            lastPurchase = transaction.getDate();
-                        }
                         double usdtUnit = usdt / quantity;
                         if (usdtUnit < lowestPurchase) {
                             lowestPurchase = usdtUnit;

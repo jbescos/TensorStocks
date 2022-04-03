@@ -1,7 +1,6 @@
 package com.jbescos.common;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -25,7 +24,7 @@ public class DefaultBrokerManager implements BrokerManager {
 
 	@Override
 	public List<Broker> loadBrokers() throws IOException {
-		List<CsvTransactionRow> transactions = fileManager.loadTransactions(cloudProperties.USER_ID);
+		List<CsvTransactionRow> transactions = fileManager.loadOpenTransactions(cloudProperties.USER_ID);
 		List<CsvRow> lastData = fileManager.loadPreviousRows(cloudProperties.USER_EXCHANGE, cloudProperties.BOT_HOURS_BACK_STATISTICS, cloudProperties.BOT_WHITE_LIST_SYMBOLS);
 		Map<String, List<CsvRow>> grouped = lastData.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
 		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
@@ -33,9 +32,6 @@ public class DefaultBrokerManager implements BrokerManager {
 		Map<String, Broker> minMax = new LinkedHashMap<>();
 		for (Entry<String, List<CsvRow>> entry : grouped.entrySet()) {
 			List<CsvTransactionRow> symbolTransactions = groupedTransactions.get(entry.getKey());
-			if (symbolTransactions != null) {
-				symbolTransactions = filterLastBuys(symbolTransactions);
-			}
 			minMax.put(entry.getKey(), buildBroker(cloudProperties, entry.getKey(), entry.getValue(), symbolTransactions));
 		}
 		List<Broker> brokers = Utils.sortBrokers(minMax);
@@ -64,19 +60,6 @@ public class DefaultBrokerManager implements BrokerManager {
 				return new CautelousBroker(cloudProperties, symbol, rows, summary, panicPeriod);
 			}
 		}
-	}
-
-	private List<CsvTransactionRow> filterLastBuys(List<CsvTransactionRow> symbolTransactions) {
-		List<CsvTransactionRow> filtered = new ArrayList<>();
-		for (int i = symbolTransactions.size() - 1; i >= 0; i--) {
-			CsvTransactionRow tx = symbolTransactions.get(i);
-			if (tx.getSide() == Action.BUY) {
-				filtered.add(tx);
-			} else {
-				break;
-			}
-		}
-		return filtered;
 	}
 
 }

@@ -255,7 +255,11 @@ public class Simulation {
 
 		@Override
 		public int compareTo(Result o) {
-			return from.compareTo(o.from);
+			int result = from.compareTo(o.from);
+			if (result == 0) {
+				result = userId.compareTo(o.userId);
+			}
+			return result;
 		}
 		
 	}

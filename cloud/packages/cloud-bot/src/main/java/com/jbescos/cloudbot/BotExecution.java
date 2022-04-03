@@ -76,7 +76,7 @@ public class BotExecution {
 	    		double buy = 0;
 	    		if (stat.getPreviousTransactions().isHasTransactions()) {
 	    		    // Buy same amount than before
-	    			buy = Double.parseDouble(stat.getPreviousTransactions().getPreviousBuys().get(stat.getPreviousTransactions().getPreviousBuys().size() - 1).getUsdt());
+	    			buy = Double.parseDouble(stat.getPreviousTransactions().getPreviousBuys().get(0).getUsdt());
 	    		} else {
 	    		    // First purchase
     	    		double usdt = wallet.get(Utils.USDT) * FLOAT_ISSUE;
@@ -278,15 +278,15 @@ public class BotExecution {
 		private final FileManager storage;
 		private final List<CsvTransactionRow> newTransactions = new ArrayList<>();
 		private final Map<String, Double> wallet;
-		private final List<CsvTransactionRow> transactions;
+		private final List<CsvTransactionRow> totalTransactions;
 		private final List<CsvRow> walletHistorical;
 		private final double minTransaction;
 		
-		private ConnectAPITest(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
+		private ConnectAPITest(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvTransactionRow> totalTransactions, List<CsvRow> walletHistorical, double minTransaction) {
 			this.cloudProperties = cloudProperties;
 			this.storage = storage;
 			this.wallet = wallet;
-			this.transactions = transactions;
+			this.totalTransactions = totalTransactions;
 			this.walletHistorical = walletHistorical;
 			this.minTransaction = minTransaction;
 		}
@@ -305,7 +305,7 @@ public class BotExecution {
 				transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString(), stat.getAction(), quantity, stat.getNewest().getPrice(), cloudProperties.BOT_SELL_COMMISSION);
 			}
 			newTransactions.add(transaction);
-			transactions.add(transaction);
+			totalTransactions.add(transaction);
 			return transaction;
 		}
 

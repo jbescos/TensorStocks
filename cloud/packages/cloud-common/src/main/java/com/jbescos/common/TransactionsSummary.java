@@ -45,4 +45,60 @@ public class TransactionsSummary {
 		return previousSells;
 	}
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + (hasTransactions ? 1231 : 1237);
+		result = prime * result + ((lastPurchase == null) ? 0 : lastPurchase.hashCode());
+		long temp;
+		temp = Double.doubleToLongBits(lowestPurchase);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		temp = Double.doubleToLongBits(minProfitable);
+		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + ((previousBuys == null) ? 0 : previousBuys.hashCode());
+		result = prime * result + ((previousSells == null) ? 0 : previousSells.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		TransactionsSummary other = (TransactionsSummary) obj;
+		if (hasTransactions != other.hasTransactions)
+			return false;
+		if (lastPurchase == null) {
+			if (other.lastPurchase != null)
+				return false;
+		} else if (!lastPurchase.equals(other.lastPurchase))
+			return false;
+		if (Double.doubleToLongBits(lowestPurchase) != Double.doubleToLongBits(other.lowestPurchase))
+			return false;
+		if (Double.doubleToLongBits(minProfitable) != Double.doubleToLongBits(other.minProfitable))
+			return false;
+		if (previousBuys == null) {
+			if (other.previousBuys != null)
+				return false;
+		} else if (!previousBuys.equals(other.previousBuys))
+			return false;
+		if (previousSells == null) {
+			if (other.previousSells != null)
+				return false;
+		} else if (!previousSells.equals(other.previousSells))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "TransactionsSummary [minProfitable=" + minProfitable + ", lowestPurchase=" + lowestPurchase
+				+ ", hasTransactions=" + hasTransactions + ", lastPurchase=" + lastPurchase + ", previousBuys="
+				+ previousBuys + ", previousSells=" + previousSells + "]";
+	}
+
 }
