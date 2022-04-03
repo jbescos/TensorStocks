@@ -114,16 +114,20 @@ public class DataLoader {
     
     public CsvRow first(String symbol) {
     	if (grouped.isEmpty()) {
-    		throw new IllegalStateException("There is no data between " + from + " and " + to + " in " + cloudProperties.USER_EXCHANGE.name().toLowerCase());
+    		LOGGER.warning("There is no data between " + from + " and " + to + " in " + cloudProperties.USER_EXCHANGE.name().toLowerCase());
+    		return null;
+    	} else {
+    		return grouped.get(symbol).get(0);
     	}
-        return grouped.get(symbol).get(0);
     }
     
     public CsvRow first() {
     	if (grouped.isEmpty()) {
-    		throw new IllegalStateException("There is no data between " + from + " and " + to + " in " + cloudProperties.USER_EXCHANGE.name().toLowerCase());
+    		LOGGER.warning("There is no data between " + from + " and " + to + " in " + cloudProperties.USER_EXCHANGE.name().toLowerCase());
+    		return null;
+    	} else {
+    		return grouped.entrySet().iterator().next().getValue().get(0);
     	}
-        return grouped.entrySet().iterator().next().getValue().get(0);
     }
 
     public CsvRow next(String symbol, CsvRow current) {

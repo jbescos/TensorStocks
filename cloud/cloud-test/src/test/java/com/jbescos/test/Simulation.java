@@ -102,32 +102,36 @@ public class Simulation {
 	public Result runTogether() {
 		try {
 			load();
-			final double INITIAL_USDT = 1000;
-			Map<String, Double> wallet = new HashMap<>();
-	        wallet.put(Utils.USDT, INITIAL_USDT);
-	        List<CsvRow> walletHistorical = new ArrayList<>();
-	    	List<CsvTransactionRow> transactions = new ArrayList<>();
-	    	iterate(wallet, walletHistorical, transactions, null);
-	    	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
-	    	double totalPrice = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
-	    	benefit = ((totalPrice * 100) / INITIAL_USDT) - 100;
-	    	LOGGER.info(() -> loader.cloudProperties.USER_ID + " from " + from + " to " + to + " " + Utils.format(benefit) + "%, " + Utils.format(totalPrice) + " " + Utils.USDT);
-	    	File chartFile = new File(testFolder + "/total.png");
-	    	Path path = Paths.get(testFolder);
-	    	Files.createDirectories(path);
-	        try (FileOutputStream output = new FileOutputStream(chartFile)) {
-	        	IChart<IRow> chart = new XYChart();
-	        	ChartGenerator.writeChart(walletHistorical, output, chart);
-	            ChartGenerator.save(output, chart);
-	        }
-	        chartFile = new File(testFolder + "/fearGreed.png");
-	        List<IRow> fears = loader.get(loader.first().getSymbol()).stream().map(row -> new FearGreedRow(row)).collect(Collectors.toList());
-	        try (FileOutputStream output = new FileOutputStream(chartFile)) {
-	            IChart<IRow> chart = new DateChart();
-	            ChartGenerator.writeChart(fears, output, chart);
-	            ChartGenerator.save(output, chart);
-	        }
-	        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name());
+			if (loader.first() != null) {
+				final double INITIAL_USDT = 1000;
+				Map<String, Double> wallet = new HashMap<>();
+		        wallet.put(Utils.USDT, INITIAL_USDT);
+		        List<CsvRow> walletHistorical = new ArrayList<>();
+		    	List<CsvTransactionRow> transactions = new ArrayList<>();
+		    	iterate(wallet, walletHistorical, transactions, null);
+		    	List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
+		    	double totalPrice = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
+		    	benefit = ((totalPrice * 100) / INITIAL_USDT) - 100;
+		    	LOGGER.info(() -> loader.cloudProperties.USER_ID + " from " + from + " to " + to + " " + Utils.format(benefit) + "%, " + Utils.format(totalPrice) + " " + Utils.USDT);
+		    	File chartFile = new File(testFolder + "/total.png");
+		    	Path path = Paths.get(testFolder);
+		    	Files.createDirectories(path);
+		        try (FileOutputStream output = new FileOutputStream(chartFile)) {
+		        	IChart<IRow> chart = new XYChart();
+		        	ChartGenerator.writeChart(walletHistorical, output, chart);
+		            ChartGenerator.save(output, chart);
+		        }
+		        chartFile = new File(testFolder + "/fearGreed.png");
+		        List<IRow> fears = loader.get(loader.first().getSymbol()).stream().map(row -> new FearGreedRow(row)).collect(Collectors.toList());
+		        try (FileOutputStream output = new FileOutputStream(chartFile)) {
+		            IChart<IRow> chart = new DateChart();
+		            ChartGenerator.writeChart(fears, output, chart);
+		            ChartGenerator.save(output, chart);
+		        }
+		        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name());
+			} else {
+				return null;
+			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
 			throw new RuntimeException("Error in " + testFolder, e);
@@ -138,25 +142,29 @@ public class Simulation {
 		try {
 			List<Score> scores = Collections.synchronizedList(new ArrayList<>());
 			load();
-			Collection<String> symbols = loader.symbols();
-			symbols.parallelStream().forEach(symbol -> {
-				List<CsvTransactionRow> transactions = new ArrayList<>();
-				List<CsvRow> walletHistorical = new ArrayList<>();
-				CsvRow first = loader.first(symbol);
-				Map<String, Double> wallet = new HashMap<>();
-		        wallet.put(Utils.USDT, first.getPrice());
-		        iterate(wallet, walletHistorical, transactions, symbol);
-		        List<CsvRow> total = loader.get(symbol);
-		        List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
-		        int profit = 0;
-		        if (!totalWalletHistorical.isEmpty()) {
-		        	double last = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
-		        	profit = (int) ((last * 100 / first.getPrice()) - 100);
-		        }
-		        symbolCharts(symbol, total, transactions, totalWalletHistorical, profit);
-		        scores.add(new Score(profit, symbol));
-			});
-			return scores;
+			if (loader.first() != null) {
+				Collection<String> symbols = loader.symbols();
+				symbols.parallelStream().forEach(symbol -> {
+					List<CsvTransactionRow> transactions = new ArrayList<>();
+					List<CsvRow> walletHistorical = new ArrayList<>();
+					CsvRow first = loader.first(symbol);
+					Map<String, Double> wallet = new HashMap<>();
+			        wallet.put(Utils.USDT, first.getPrice());
+			        iterate(wallet, walletHistorical, transactions, symbol);
+			        List<CsvRow> total = loader.get(symbol);
+			        List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
+			        int profit = 0;
+			        if (!totalWalletHistorical.isEmpty()) {
+			        	double last = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
+			        	profit = (int) ((last * 100 / first.getPrice()) - 100);
+			        }
+			        symbolCharts(symbol, total, transactions, totalWalletHistorical, profit);
+			        scores.add(new Score(profit, symbol));
+				});
+				return scores;
+			} else {
+				return null;
+			}
 		} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
 			throw new RuntimeException("Error in " + testFolder, e);

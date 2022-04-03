@@ -49,7 +49,11 @@ public class BotTest {
     		Simulation simulation = null;
     		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
     		    final Simulation sim = simulation;
-    		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runTogether()).thenAccept(result -> results.add(result));
+    		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runTogether()).thenAccept(result -> {
+    		    	if (result != null) {
+    		    		results.add(result);
+    		    	}
+    		    });
     		    completables.add(completable);
     			from = toStr;
     			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
@@ -90,10 +94,12 @@ public class BotTest {
     		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
     		    final Simulation sim = simulation;
     		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runBySymbol()).thenAccept(scores -> {
-    		    	Collections.sort(scores);
-    		    	StringBuilder builder = new StringBuilder("bot.white.list=");
-    		    	scores.stream().forEach(score -> builder.append(score.getSymbol()).append(","));
-    		    	LOGGER.info(userId + ": " + builder.toString());
+    		    	if (scores != null) {
+	    		    	Collections.sort(scores);
+	    		    	StringBuilder builder = new StringBuilder("bot.white.list=");
+	    		    	scores.stream().forEach(score -> builder.append(score.getSymbol()).append(","));
+	    		    	LOGGER.info(userId + ": " + builder.toString());
+    		    	}
     		    });
     		    completables.add(completable);
     			from = toStr;
