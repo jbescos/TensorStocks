@@ -57,13 +57,15 @@ public class Simulation {
 	}
 	
 	public static Simulation build(String from, String to, String baseTestFolder, CloudProperties cloudProperties) {
-		Date lastTo = Utils.fromString(Utils.FORMAT, DataLoader.lastDayCsv(cloudProperties.USER_EXCHANGE.name()));
-		Date fromDate = Utils.fromString(Utils.FORMAT, from);
-		if (fromDate.getTime() < lastTo.getTime()) {
-			return new Simulation(from, to, baseTestFolder, cloudProperties);
-		} else {
-			return null;
+		String lastDay = DataLoader.lastDayCsv(cloudProperties.USER_EXCHANGE.name());
+		if (lastDay != null) {
+			Date lastTo = Utils.fromString(Utils.FORMAT, lastDay);
+			Date fromDate = Utils.fromString(Utils.FORMAT, from);
+			if (fromDate.getTime() < lastTo.getTime()) {
+				return new Simulation(from, to, baseTestFolder, cloudProperties);
+			}
 		}
+		return null;
 	}
 	
 	private void load() throws IOException {

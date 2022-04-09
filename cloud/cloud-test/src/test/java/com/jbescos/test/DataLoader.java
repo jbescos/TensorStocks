@@ -51,17 +51,22 @@ public class DataLoader {
     
     public static String lastDayCsv(String exchange) {
     	List<String> csvs = EXCHANGES_DATA.get(exchange.toLowerCase());
-    	if (csvs.isEmpty()) {
-    		throw new IllegalArgumentException("There is no data for " + exchange);
+    	if (csvs == null || csvs.isEmpty()) {
+    		return null;
+    	} else {
+    		return csvs.get(csvs.size() - 1).split("\\.")[0];
     	}
-    	return csvs.get(csvs.size() - 1).split("\\.")[0];
     }
     
     private static File[] listFiles(String resourcePath) {
     	URL dataResource = DataLoader.class.getResource(resourcePath);
-    	String path = dataResource.getPath();
-        File[] exchanges = new File(path).listFiles();
-        return exchanges;
+    	if (dataResource != null) {
+	    	String path = dataResource.getPath();
+	        File[] exchanges = new File(path).listFiles();
+	        return exchanges;
+    	} else {
+    		return new File[0];
+    	}
     }
 
     public void loadData() throws IOException {

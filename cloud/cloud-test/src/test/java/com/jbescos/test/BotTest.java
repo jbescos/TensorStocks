@@ -61,14 +61,16 @@ public class BotTest {
     		}
     	}
     	CompletableFuture.allOf(completables.toArray(new CompletableFuture[0])).join();
-    	Collections.sort(results);
-    	TestFileStorage fileStorage = new TestFileStorage(BASE_TEST_FOLDER, null, null);
-    	StringBuilder builder = new StringBuilder();
-    	results.forEach(result -> builder.append(result.toCsv()));
-    	double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
-    	builder.append("AVG,").append(Utils.format(avg)).append("%");
-    	fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.CSV_HEAD.getBytes());
-    	LOGGER.info("AVG: " + Utils.format(avg) + "%");
+    	if (!results.isEmpty()) {
+	    	Collections.sort(results);
+	    	TestFileStorage fileStorage = new TestFileStorage(BASE_TEST_FOLDER, null, null);
+	    	StringBuilder builder = new StringBuilder();
+	    	results.forEach(result -> builder.append(result.toCsv()));
+	    	double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
+	    	builder.append("AVG,").append(Utils.format(avg)).append("%");
+	    	fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.CSV_HEAD.getBytes());
+	    	LOGGER.info("AVG: " + Utils.format(avg) + "%");
+    	}
     }
     
     @Test
