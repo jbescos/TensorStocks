@@ -119,10 +119,7 @@ public class CautelousBroker implements Broker {
                 }
             } else if (hasPreviousTransactions) {
                 if (Utils.isMax(values)) { // It is going down
-                    double minSell = cloudProperties.minSell(this.symbol);
-                    if (price < minSell) {
-//                        LOGGER.info(() -> newest + " sell discarded because minimum selling price is set to " + Utils.format(minSell) + ". Max is " + max);
-                    } else if (price < minProfitableSellPrice) {
+                    if (price < minProfitableSellPrice) {
 //                        LOGGER.info(() -> newest + " sell discarded because it has to be higher than " + Utils.format(minProfitableSellPrice) + " to be profitable.");
                     } else {
                         double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, maxProfitSell, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL);

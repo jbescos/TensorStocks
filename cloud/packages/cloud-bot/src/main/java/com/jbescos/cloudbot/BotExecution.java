@@ -55,8 +55,12 @@ public class BotExecution {
 				}
 				purchases++;
 			} else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
-				sell(stat.getSymbol(), stat);
-				openSymbolPositions.remove(stat.getSymbol());
+			    double minSell = cloudProperties.minSell(stat.getSymbol());
+			    // In case minimum sell is set, verify current price is higher
+			    if (stat.getNewest().getPrice() >= minSell) {
+			        sell(stat.getSymbol(), stat);
+	                openSymbolPositions.remove(stat.getSymbol());
+			    }
 			}
 		}
 		connectAPI.postActions(stats);
