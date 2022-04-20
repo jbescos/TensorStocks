@@ -281,12 +281,12 @@ public class UtilsTest {
 		TransactionsSummary summary = Utils.minSellProfitable(Arrays.asList(buy2, buy1));
 		CsvProfitRow profitRow = CsvProfitRow.build("0.03", summary, sell);
 		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
-		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,1000.8454,3%,3.007362,100.2454,97.238038,11.13095713%" + Utils.NEW_LINE, profitRow.toCsvLine());
+		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,1000.84,3%,3,100.24,97.23,11.13%" + Utils.NEW_LINE, profitRow.toCsvLine());
 		// Sell quantity does not match with but quantity because the user bought out of the system. We only consider the bot proportion
 		sell = createCsvTransactionRow("2021-10-01 00:00:00", Action.SELL, "1538", "2");
 		profitRow = CsvProfitRow.build("0.03", summary, sell);
 		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
-		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,999.7,3%,2.973,99.1,96.127,11.00377526%" + Utils.NEW_LINE, profitRow.toCsvLine());
+		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,999.7,3%,2.97,99.1,96.12,11%" + Utils.NEW_LINE, profitRow.toCsvLine());
 	}
 	
 	@Test

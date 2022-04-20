@@ -69,27 +69,27 @@ public class CsvProfitRow {
 			 */
 			BigDecimal quantitySellbd = new BigDecimal(quantitySell);
 			if (quantitySellbd.compareTo(quantityBuy) > 0) {
-				quantitySell = Utils.format(quantityBuy);
+				quantitySell = Utils.format(quantityBuy, 2);
 				/*
 				 *  Recalculate USDT from new quantity with the current price.
 				 */
 				quantityUsdtSellbd = new BigDecimal(Utils.usdValue(quantityBuy.doubleValue(), sell.getUsdtUnit()));
-				quantityUsdtSell = Utils.format(quantityUsdtSellbd);
 			}
+			quantityUsdtSell = Utils.format(quantityUsdtSellbd, 2);
 			// FIXME What to do if he sold out of the system?.
 			BigDecimal usdtProfit = quantityUsdtSellbd.subtract(quantityUsdtBuy);
 			BigDecimal commissionUsdt = new BigDecimal(commission).multiply(usdtProfit);
 			BigDecimal netUsdtProfit = usdtProfit.subtract(commissionUsdt);
-			String commissionPercentage = Utils.format(new BigDecimal(commission).multiply(d100)) + "%";
+			String commissionPercentage = Utils.format(new BigDecimal(commission).multiply(d100), 2) + "%";
 			/*
 			 * quantityUsdtBuy -> 100
 			 * usdtProfit -> X
 			 * 
 			 * profitPercentage = usdtProfit * 100 / quantityUsdtBuy
 			 */
-			String profitPercentage = Utils.format(usdtProfit.multiply(d100).divide(quantityUsdtBuy, 8, RoundingMode.DOWN)) + "%";
-			return new CsvProfitRow(firstBuyDate, sellDate, symbol, Utils.format(quantityBuy), Utils.format(quantityUsdtBuy), quantitySell, quantityUsdtSell,
-					commissionPercentage, Utils.format(commissionUsdt), Utils.format(usdtProfit), Utils.format(netUsdtProfit), profitPercentage);
+			String profitPercentage = Utils.format(usdtProfit.multiply(d100).divide(quantityUsdtBuy, 8, RoundingMode.DOWN), 2) + "%";
+			return new CsvProfitRow(firstBuyDate, sellDate, symbol, Utils.format(quantityBuy, 2), Utils.format(quantityUsdtBuy, 2), quantitySell, quantityUsdtSell,
+					commissionPercentage, Utils.format(commissionUsdt, 2), Utils.format(usdtProfit, 2), Utils.format(netUsdtProfit, 2), profitPercentage);
 		} else {
 			return null;
 		}

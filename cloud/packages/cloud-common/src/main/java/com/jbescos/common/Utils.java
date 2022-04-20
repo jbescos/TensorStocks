@@ -164,13 +164,17 @@ public class Utils {
         return df.format(amount);
     }
     
-    public static String format(BigDecimal amount) {
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+    public static String format(BigDecimal amount, int digits) {
+    	DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         symbols.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("0", symbols);
         df.setRoundingMode(RoundingMode.DOWN);
-        df.setMaximumFractionDigits(8);
+        df.setMaximumFractionDigits(digits);
         return df.format(amount);
+    }
+    
+    public static String format(BigDecimal amount) {
+        return format(amount, 8);
     }
     
     public static TransactionsSummary minSellProfitable(List<CsvTransactionRow> previousTransactions) {
