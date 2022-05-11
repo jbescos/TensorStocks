@@ -27,7 +27,7 @@ public class LimitsBroker implements Broker {
         double benefit = 1 - (summary.getMinProfitable() / newest.getPrice());
         if (summary.isHasTransactions() && Utils.isMax(values) && isSell(benefit)) {
             action = Action.SELL;
-        } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_PURCHASE_REDUCER)))) {
+        } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_LIMITS_PURCHASE_REDUCER)))) {
             action = Action.BUY;
         } else {
         	action = Action.NOTHING;
