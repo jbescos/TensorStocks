@@ -566,6 +566,11 @@ public class Utils {
     	}
     	StringBuilder builder = new StringBuilder();
     	builder.append("Last ").append(days).append(" days: ").append(Utils.format(totalUsdtBuy, 2)).append("$-").append(Utils.format(totalUsdtSell, 2)).append("$, ").append(Utils.format(result, 2)).append("$(").append(Utils.format(resultPercent, 2)).append("%)");
+    	if (resultPercent < 0) {
+    		builder.append(" ❌");
+    	} else {
+    		builder.append(" ✅");
+    	}
     	return builder.toString();
     }
 }

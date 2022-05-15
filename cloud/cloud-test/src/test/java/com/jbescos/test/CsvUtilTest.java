@@ -65,6 +65,6 @@ public class CsvUtilTest {
 		assertEquals(row1, profits.get(0));
 		assertEquals(row2, profits.get(1));
 		String result = Utils.profitSummary(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-05 00:00:00"), 30, profits);
-		assertEquals("Last 30 days: 4.1$-8.1$, 4$(97.56%)", result);
+		assertEquals("Last 30 days: 4.1$-8.1$, 4$(97.56%) ✅", result);
 	}
 }

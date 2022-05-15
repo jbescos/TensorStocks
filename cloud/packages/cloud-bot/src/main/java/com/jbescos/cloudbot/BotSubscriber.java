@@ -48,40 +48,41 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
         List<Broker> brokers = brokerManager.loadBrokers();
-        BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage);
-        bot.execute(brokers);
-
-        // Update wallet in case the exchange supports it
-        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-	        Map<String, String> wallet = securedApi.wallet();
-	        Map<String, Double> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
-	        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
-	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
-        }
-        Map<String, Double> benefits = new HashMap<>();
-        for (Broker broker : brokers) {
-        	TransactionsSummary summary = broker.getPreviousTransactions();
-        	if (summary.isHasTransactions()) {
-    		    benefits.put(broker.getSymbol(), Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice()));
-    		}
-        }
-        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
-        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
-        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
-        
-        // Report
-        boolean report = isReportTime(now, cloudProperties);
-        if (report) {
-            TelegramBot telegram = new TelegramBot(cloudProperties, client);
-            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-            	telegram.sendHtmlLink();
-            }
-            List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
-            StringBuilder profits = new StringBuilder().append("📢 ").append(userId).append("\nopened-closed, profit(%)");
-            profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
-            profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
-            profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
-            telegram.sendMessage(profits.toString());
+        try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
+	        BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage, telegram);
+	        bot.execute(brokers);
+	
+	        // Update wallet in case the exchange supports it
+	        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+		        Map<String, String> wallet = securedApi.wallet();
+		        Map<String, Double> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
+		        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
+		        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+	        }
+	        Map<String, Double> benefits = new HashMap<>();
+	        for (Broker broker : brokers) {
+	        	TransactionsSummary summary = broker.getPreviousTransactions();
+	        	if (summary.isHasTransactions()) {
+	    		    benefits.put(broker.getSymbol(), Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice()));
+	    		}
+	        }
+	        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
+	        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
+	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
+	        
+	        // Report
+	        boolean report = isReportTime(now, cloudProperties);
+	        if (report) {
+	            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+	            	telegram.sendHtmlLink();
+	            }
+	            List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
+	            StringBuilder profits = new StringBuilder().append("opened-closed, profit(%)");
+	            profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
+	            profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
+	            profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+	            telegram.sendMessage(profits.toString());
+	        }
         }
         client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");

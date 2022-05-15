@@ -1,8 +1,11 @@
 package com.jbescos.common;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,7 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 //https://telegram.rest/docs
-public class TelegramBot {
+public class TelegramBot implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(TelegramBot.class.getName());
     private static final String BASE_URL = "https://api.telegram.org/bot";
@@ -24,6 +27,7 @@ public class TelegramBot {
     private final String chatId;
     private final String chartBotUrl;
     private final boolean enabled;
+    private final Map<String, List<String>> bufferedMessages = new HashMap<>();
 
     public TelegramBot(TelegramInfo telegramInfo, Client client) {
     	this.enabled = telegramInfo.isEnabled();
@@ -45,20 +49,12 @@ public class TelegramBot {
 
     public void sendMessage(String text, String url) {
     	if (enabled) {
-	        Map<String, String> message = new HashMap<>();
-	        message.put("chat_id", chatId);
-	        message.put("text", text);
-	        message.put("method", "sendmessage");
-	        WebTarget webTarget = client.target(url);
-	        try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
-	                .header("charset", StandardCharsets.UTF_8.name())
-	                .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
-	            if (response.getStatus() != 200) {
-	                LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from " + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
-	            }
-	        } catch (Exception e) {
-	            LOGGER.log(Level.SEVERE, "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
-	        }
+    		List<String> messages = bufferedMessages.get(url);
+    		if (messages == null) {
+    			messages = new ArrayList<>();
+    			bufferedMessages.put(url, messages);
+    		}
+    		messages.add(text);
     	}
     }
 
@@ -86,4 +82,36 @@ public class TelegramBot {
     	sendMessage(message + ": " + e.getMessage(), exceptionUrl);
     }
 
+    public void flush() {
+    	if (enabled) {
+    		for (Entry<String, List<String>> entry : bufferedMessages.entrySet()) {
+    			String url = entry.getKey();
+    			StringBuilder text = new StringBuilder();
+    			for (String message : entry.getValue()) {
+    				text.append(message).append("\n");
+    			}
+    			text.insert(0, "<b>📢 " + userId + "</b>\n");
+		    	Map<String, String> message = new HashMap<>();
+		        message.put("chat_id", chatId);
+		        message.put("text", text.toString());
+		        message.put("method", "sendmessage");
+		        message.put("parse_mode", "html");
+		        WebTarget webTarget = client.target(url);
+		        try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
+		                .header("charset", StandardCharsets.UTF_8.name())
+		                .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
+		            if (response.getStatus() != 200) {
+		                LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from " + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
+		            }
+		        } catch (Exception e) {
+		            LOGGER.log(Level.SEVERE, "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
+		        }
+    		}
+    	}
+    }
+
+	@Override
+	public void close() {
+		flush();
+	}
 }

@@ -116,7 +116,12 @@ public class CsvProfitRow {
     	StringBuilder content = new StringBuilder(symbol).append(" SELL ").append(Utils.fromDate(Utils.FORMAT_SECOND, sellDate))
     	.append("\nFirst purchase: ").append(Utils.fromDate(Utils.FORMAT_SECOND, firstBuyDate))
     	.append("\nBuy / Sell: ").append(quantityUsdtBuy).append("$ / ").append(quantityUsdtSell).append("$")
-    	.append("\nProfit: ").append(usdtProfit).append("$ (").append(profitPercentage).append(")");
+    	.append("\nProfit: ").append(usdtProfit).append("$ (<b>").append(profitPercentage).append("</b>)");
+    	if (profitPercentage.indexOf(0) == '-') {
+    		content.append(" ❌");
+    	} else {
+    		content.append(" ✅");
+    	}
         return content.toString();
     }
 

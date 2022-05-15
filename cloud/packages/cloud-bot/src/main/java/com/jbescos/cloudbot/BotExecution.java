@@ -146,8 +146,8 @@ public class BotExecution {
 		return false;
 	}
 	
-	public static BotExecution production(CloudProperties cloudProperties, SecuredAPI api, FileManager storage) {
-		return new BotExecution(cloudProperties, new ConnectAPIImpl(cloudProperties, api, storage));
+	public static BotExecution production(CloudProperties cloudProperties, SecuredAPI api, FileManager storage, TelegramBot msgSender) {
+		return new BotExecution(cloudProperties, new ConnectAPIImpl(cloudProperties, api, storage, msgSender));
 	}
 	
 	public static BotExecution test(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
@@ -175,12 +175,12 @@ public class BotExecution {
 		private final Map<String, Double> wallet = new HashMap<>();
 		private final TelegramBot msgSender;
 		
-		private ConnectAPIImpl(CloudProperties cloudProperties, SecuredAPI api, FileManager storage) {
+		private ConnectAPIImpl(CloudProperties cloudProperties, SecuredAPI api, FileManager storage, TelegramBot msgSender) {
 			this.cloudProperties = cloudProperties;
 			this.api = api;
 			this.storage = storage;
 			this.originalWallet = api.wallet();
-			this.msgSender = new TelegramBot(cloudProperties, api.getClient());
+			this.msgSender = msgSender;
 			for (Entry<String, String> entry : originalWallet.entrySet()) {
 				wallet.put(entry.getKey(), Double.parseDouble(entry.getValue()));
 			}
@@ -259,13 +259,13 @@ public class BotExecution {
 		        }
 		        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
 			        transactions.stream().filter(tx -> tx.getSide() == Action.BUY).forEach(row -> {
-			        	msgSender.sendMessage("📢 " + cloudProperties.USER_ID + "\n" + row.toString());
+			        	msgSender.sendMessage(row.toString());
 			        	if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
 			        		msgSender.sendChartSymbolLink(row.getSymbol());
 			        	}
 			        });
 			        profits.stream().forEach(row -> {
-			        	msgSender.sendMessage("📢 " + cloudProperties.USER_ID + "\n" + row.toString());
+			        	msgSender.sendMessage(row.toString());
 			        	if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
 			        		msgSender.sendChartSymbolLink(row.getSymbol());
 			        	}

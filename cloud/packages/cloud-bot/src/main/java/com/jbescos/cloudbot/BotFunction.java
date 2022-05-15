@@ -21,6 +21,7 @@ import com.jbescos.common.PublicAPI;
 import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.SellPanicBrokerManager;
 import com.jbescos.common.StorageInfo;
+import com.jbescos.common.TelegramBot;
 import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
@@ -52,8 +53,10 @@ public class BotFunction implements HttpFunction {
 			LOGGER.info(() -> "Actively invoked " + side);
 			if (Action.SELL_PANIC == action) {
 			    brokerManager = new SellPanicBrokerManager(cloudProperties, storage);
-			    BotExecution bot = BotExecution.production(cloudProperties, api, storage);
-		        bot.execute(brokerManager.loadBrokers());
+			    try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
+				    BotExecution bot = BotExecution.production(cloudProperties, api, storage, telegram);
+			        bot.execute(brokerManager.loadBrokers());
+			    }
 			} else {
 			    brokerManager = new DefaultBrokerManager(cloudProperties, storage);
 				String symbol = Utils.getParam(SYMBOL_PARAM, null, request.getQueryParameters());

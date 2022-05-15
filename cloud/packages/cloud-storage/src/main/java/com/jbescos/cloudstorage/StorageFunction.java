@@ -68,9 +68,10 @@ public class StorageFunction implements HttpFunction {
 					    LOGGER.log(Level.WARNING, userId + " is not active. Skipping notifications.");
 					}
 				} catch (PropertiesConfigurationException e) {
-					TelegramBot telegram = new TelegramBot(e.getTelegramInfo(), client);
-					LOGGER.log(Level.SEVERE, "Cannot load user properties of " + userId, e);
-					telegram.exception("Cannot load user properties of " + userId, e);
+					try (TelegramBot telegram = new TelegramBot(e.getTelegramInfo(), client)) {
+						LOGGER.log(Level.SEVERE, "Cannot load user properties of " + userId, e);
+						telegram.exception("Cannot load user properties of " + userId, e);
+					}
 				}
 			}
 		}
