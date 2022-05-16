@@ -8,15 +8,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.jbescos.localbot.WebSocket.Symbolable;
 
 import jakarta.websocket.MessageHandler;
 
 public class MessageHandlerImpl<T extends Symbolable> implements MessageHandler.Whole<String> {
 
 	private static final Logger LOGGER = Logger.getLogger(MessageHandlerImpl.class.getName());
-	private final ObjectMapper mapper = new ObjectMapper();
 	private final ConcurrentHashMap<String, Long> symbolTimestamps = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<String, Boolean> symbolNotWorking = new ConcurrentHashMap<>();
 	private final ConcurrentHashMap<String, MessageWorker<T>> symbolWorkers = new ConcurrentHashMap<>();
@@ -32,7 +29,7 @@ public class MessageHandlerImpl<T extends Symbolable> implements MessageHandler.
 	@Override
 	public void onMessage(String message) {
 		try {
-			T obj = mapper.readValue(message, messageType);
+			T obj = Constants.MAPPER.readValue(message, messageType);
 			final long now = System.currentTimeMillis();
 			// It makes sure same symbol is not processed more than 1 time during the Constants.LATENCY
 			long result = symbolTimestamps.compute(obj.symbol(), (key, val) -> {
@@ -52,7 +49,7 @@ public class MessageHandlerImpl<T extends Symbolable> implements MessageHandler.
 				}
 			}
 		} catch (JsonProcessingException e) {
-			LOGGER.warning("Couldn't parse " + message);
+			LOGGER.warning("Couldn't parse " + message + " in " + messageType);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unexpected error", e);
 		}

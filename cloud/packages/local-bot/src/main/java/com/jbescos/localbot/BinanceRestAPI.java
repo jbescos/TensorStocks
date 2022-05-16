@@ -17,7 +17,6 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.client.WebTarget;
@@ -34,8 +33,10 @@ public class BinanceRestAPI {
 	private static final String URL = "https://api.binance.com";
 	private final Mac mac;
 	private final String publicKey;
+	private final Client client;
 
-	private BinanceRestAPI(String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
+	private BinanceRestAPI(Client client, String publicKey, String privateKey) throws NoSuchAlgorithmException, InvalidKeyException {
+		this.client = client;
 		mac = Mac.getInstance(HMAC_SHA_256);
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
 		this.publicKey = publicKey;
@@ -56,7 +57,6 @@ public class BinanceRestAPI {
 	}
 
 	private <T> T get(String path, GenericType<T> type, String... query) {
-		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
 		StringBuilder queryStr = new StringBuilder();
 		if (query.length != 0) {
@@ -86,7 +86,6 @@ public class BinanceRestAPI {
 	}
 
 	private <T> T post(String path, GenericType<T> type, String... query) {
-		Client client = ClientBuilder.newClient();
 		WebTarget webTarget = client.target(URL).path(path);
 		StringBuilder queryStr = new StringBuilder();
 		if (query.length != 0) {
@@ -134,25 +133,7 @@ public class BinanceRestAPI {
 		}
 		return wallet;
 	}
-
-	// quoteOrderQty is always in USDT !!!
-	public Transaction order(String symbol, String side, String quoteOrderQty)
-			throws FileNotFoundException, IOException {
-		Date now = new Date();
-		String orderId = UUID.randomUUID().toString();
-		String[] args = new String[] { "symbol", symbol, "side", side, "type", "MARKET", "quoteOrderQty", quoteOrderQty,
-				"newClientOrderId", orderId, "newOrderRespType", "RESULT", "timestamp", Long.toString(now.getTime()) };
-		LOGGER.info(() -> "Prepared order: " + Arrays.asList(args).toString());
-		Map<String, String> response = post("/api/v3/order", new GenericType<Map<String, String>>() {
-		}, args);
-		LOGGER.info(() -> "Completed order: " + response);
-		String executedQty = response.get("executedQty");
-		BigDecimal quoteOrderQtyBD = new BigDecimal(quoteOrderQty);
-		BigDecimal executedQtyBD = new BigDecimal(executedQty);
-		BigDecimal result = quoteOrderQtyBD.divide(executedQtyBD);
-		return new Transaction(Constants.FORMAT_SECOND.format(now), orderId, side, symbol, quoteOrderQty, executedQty, result.toString());
-	}
-
+	
 	public Map<String, String> testOrder(String symbol, String side, String quoteOrderQty)
 			throws FileNotFoundException, IOException {
 		Date now = new Date();
@@ -166,12 +147,12 @@ public class BinanceRestAPI {
 		return response;
 	}
 
-	public static BinanceRestAPI create(String publicKey, String privateKey)
+	public static BinanceRestAPI create(Client client, String publicKey, String privateKey)
 			throws InvalidKeyException, NoSuchAlgorithmException {
-		return new BinanceRestAPI(publicKey, privateKey);
+		return new BinanceRestAPI(client, publicKey, privateKey);
 	}
 
-	public static BinanceRestAPI create() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		return new BinanceRestAPI(Constants.BINANCE_PUBLIC_KEY, Constants.BINANCE_PRIVATE_KEY);
+	public static BinanceRestAPI create(Client client) throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		return new BinanceRestAPI(client, Constants.BINANCE_PUBLIC_KEY, Constants.BINANCE_PRIVATE_KEY);
 	}
 }

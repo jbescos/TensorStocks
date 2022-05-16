@@ -5,8 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -65,6 +67,26 @@ public class PublicAPITest {
         	chart.add("BTCUSDT", klines);
         	chart.save(output, "BTC KLines", "", "USDT");
         }
+	}
+	
+	@Test
+	@Ignore
+	public void compatibleSymbols() {
+		Client client = ClientBuilder.newClient();
+		PublicAPI publicAPI = new PublicAPI(client);
+		Map<String, Double> pricesKucoin = publicAPI.priceKucoin();
+		Map<String, Double> pricesBinance = publicAPI.priceBinance();
+		Set<String> compatibleSymbols = new HashSet<>();
+		for (String symbol : pricesBinance.keySet()) {
+			if (pricesKucoin.containsKey(symbol)) {
+				compatibleSymbols.add(symbol);
+				if (compatibleSymbols.size() == 100) {
+					break;
+				}
+			}
+		}
+		client.close();
+		System.out.println("Compatible symbols: " + compatibleSymbols);
 	}
 	
 }

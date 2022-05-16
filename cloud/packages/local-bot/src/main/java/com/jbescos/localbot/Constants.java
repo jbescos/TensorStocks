@@ -16,12 +16,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 public class Constants {
 
 	private static final String PROPERTY_PATH = System.getProperty("property");
+	public static final ObjectMapper MAPPER = new ObjectMapper();
 	public static final String USDT = "USDT";
-	public static final String WS_URL;
+	public static final double PROFIT;
+	public static final String BINANCE_WS_URL;
 	public static final List<String> SYMBOLS;
 	public static final long LATENCY;
 	public static final String BINANCE_PUBLIC_KEY;
@@ -31,14 +35,14 @@ public class Constants {
 	public static final BigDecimal COMMISSION_APPLIED;
 	public static final BigDecimal MIN_BINANCE_USDT;
 	public static final BigDecimal AMOUNT_REDUCER;
-	public static final BigDecimal EWMA_CONSTANT;
 	private static final DecimalFormat DECIMAL_FORMAT;
 	
 	static {
 		try {
 			Properties properties = load(PROPERTY_PATH);
-			WS_URL = properties.getProperty("binance.ws.url");
-			SYMBOLS = Arrays.asList(properties.getProperty("bot.symbols").toLowerCase().split(","));
+			PROFIT = Double.parseDouble(properties.getProperty("profit"));
+			BINANCE_WS_URL = properties.getProperty("binance.ws.url");
+			SYMBOLS = Arrays.asList(properties.getProperty("bot.symbols").split(","));
 			LATENCY = Long.parseLong(properties.getProperty("message.millis.latency"));
 			BINANCE_PUBLIC_KEY = properties.getProperty("binance.public.key");
 			BINANCE_PRIVATE_KEY = properties.getProperty("binance.private.key");
@@ -46,7 +50,6 @@ public class Constants {
 			COMMISSION_APPLIED = new BigDecimal(1).add(new BigDecimal(properties.getProperty("binance.commission")));
 			MIN_BINANCE_USDT = new BigDecimal(properties.getProperty("binance.minimum.usdt"));
 			AMOUNT_REDUCER = new BigDecimal(properties.getProperty("amount.reducer"));
-			EWMA_CONSTANT = new BigDecimal(properties.getProperty("ewma.constant"));
 		} catch (IOException e) {
 			throw new IllegalStateException("Cannot load properties " + PROPERTY_PATH, e);
 		}
@@ -80,16 +83,6 @@ public class Constants {
 	
 	public static String format(BigDecimal amount) {
 		return DECIMAL_FORMAT.format(amount);
-	}
-	
-	public static BigDecimal ewma(BigDecimal y, BigDecimal prevousResult) {
-		if (prevousResult == null) {
-			return y;
-		} else {
-			BigDecimal firstPart = EWMA_CONSTANT.multiply(y);
-			BigDecimal secondPart = prevousResult.multiply(new BigDecimal(1).subtract(EWMA_CONSTANT));
-			return firstPart.add(secondPart).setScale(8, RoundingMode.CEILING);
-		}
 	}
 	
 	public static String format(Date date) {
