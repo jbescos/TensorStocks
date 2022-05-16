@@ -105,7 +105,7 @@ public class Simulation {
 		try {
 			load();
 			if (loader.first() != null) {
-				final double INITIAL_USDT = 1000;
+				final double INITIAL_USDT = 10000;
 				Map<String, Double> wallet = new HashMap<>();
 		        wallet.put(Utils.USDT, INITIAL_USDT);
 		        List<CsvRow> walletHistorical = new ArrayList<>();
