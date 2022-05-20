@@ -24,11 +24,13 @@ import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.Broker;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.IRow;
 import com.jbescos.common.Utils;
+import com.jbescos.test.util.TestFileInMemoryStorage;
 import com.jbescos.test.util.TestFileStorage;
 
 public class Simulation {
@@ -79,11 +81,14 @@ public class Simulation {
 		CsvRow first = symbol == null ? loader.first() : loader.first(symbol);
     	long now = first.getDate().getTime() + hoursBackMillis;
     	long last = loader.last(first.getSymbol()).getDate().getTime();
+        List<CsvTransactionRow> openTransactions = new ArrayList<>();
+        List<CsvProfitRow> profit = new ArrayList<>();
     	try {
 	    	while (now <= last) {
 	    		long previous = now - hoursBackMillis;
 	    		List<CsvRow> segment = symbol == null ? loader.get(previous, now) : loader.get(symbol, previous, now);
-	    		TestFileStorage fileManager = new TestFileStorage(testFolder + (symbol == null ? "/total_" : "/" + symbol + "_"), transactions, segment);
+//	    		TestFileStorage fileManager = new TestFileStorage(testFolder + (symbol == null ? "/total_" : "/" + symbol + "_"), transactions, segment);
+	    		TestFileInMemoryStorage fileManager = new TestFileInMemoryStorage(transactions, openTransactions, segment, profit);
 	    	    List<Broker> stats = new DefaultBrokerManager(loader.getCloudProperties(), fileManager).loadBrokers();
 		    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
 	            trader.execute(stats);
@@ -95,6 +100,8 @@ public class Simulation {
 	    	        break;
 	    	    }
 	    	}
+	    	TestFileInMemoryStorage fileManager = new TestFileInMemoryStorage(transactions, openTransactions, null, profit);
+	    	fileManager.persist(testFolder);
     	} catch (IOException e) {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
 			throw new RuntimeException("Error in " + testFolder, e);
