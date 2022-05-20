@@ -25,6 +25,9 @@ public class DataLoader {
     private static final Map<String, List<String>> EXCHANGES_DATA = new HashMap<>();
     public final CloudProperties cloudProperties;
     private final Map<String, List<CsvRow>> grouped = new HashMap<>();
+    // One week
+    private static final long CHUNK_OFFSET = 1000 * 60 * 60 * 24 * 7;
+    private final Map<String, SymbolDataChunk> fastGet = new HashMap<>();
     private final String from;
     private final String to;
     
@@ -100,8 +103,14 @@ public class DataLoader {
     }
     
     public List<CsvRow> get(String symbol, long from, long to) {
-        List<CsvRow> rows = grouped.get(symbol);
-        return rows.stream().filter(row -> row.getDate().getTime() > from && row.getDate().getTime() <= to).collect(Collectors.toList());
+    	SymbolDataChunk dataChunk = fastGet.get(symbol);
+    	if (dataChunk == null || from < dataChunk.from || to > dataChunk.to) {
+    		long weekPlus = to + CHUNK_OFFSET;
+    		List<CsvRow> rows = grouped.get(symbol).stream().filter(row -> row.getDate().getTime() >= from && row.getDate().getTime() <= weekPlus).collect(Collectors.toList());
+    		dataChunk = new SymbolDataChunk(from, weekPlus, rows);
+    		fastGet.put(symbol, dataChunk);
+    	}
+        return dataChunk.rows.stream().filter(row -> row.getDate().getTime() > from && row.getDate().getTime() <= to).collect(Collectors.toList());
     }
    
     public List<CsvRow> get(long from, long to) {
@@ -158,4 +167,16 @@ public class DataLoader {
 		return cloudProperties;
 	}
     
+	private static class SymbolDataChunk {
+		private final long from;
+		private final long to;
+		private final List<CsvRow> rows;
+		
+		public SymbolDataChunk(long from, long to, List<CsvRow> rows) {
+			this.from = from;
+			this.to = to;
+			this.rows = rows;
+		}
+		
+	}
 }
