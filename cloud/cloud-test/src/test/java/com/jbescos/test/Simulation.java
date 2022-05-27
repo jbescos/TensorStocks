@@ -90,7 +90,7 @@ public class Simulation {
 //	    		TestFileStorage fileManager = new TestFileStorage(testFolder + (symbol == null ? "/total_" : "/" + symbol + "_"), transactions, segment);
 	    		TestFileInMemoryStorage fileManager = new TestFileInMemoryStorage(transactions, openTransactions, segment, profit);
 	    	    List<Broker> stats = new DefaultBrokerManager(loader.getCloudProperties(), fileManager).loadBrokers();
-		    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, transactions, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
+		    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
 	            trader.execute(stats);
 	    	    CsvRow lastRow = segment.get(segment.size() - 1);
 	    	    CsvRow next = loader.next(lastRow.getSymbol(), lastRow);
@@ -137,7 +137,7 @@ public class Simulation {
 		            ChartGenerator.writeChart(fears, output, chart);
 		            ChartGenerator.save(output, chart);
 		        }
-		        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name());
+		        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name(), transactions.size());
 			} else {
 				return null;
 			}
@@ -214,7 +214,7 @@ public class Simulation {
 	
 	public static class Result implements Comparable<Result> {
 		
-		public static final String CSV_HEAD = "FROM,TO,EXCHANGE,USER_ID,INITIAL,FINAL,BENEFIT" + Utils.NEW_LINE;
+		public static final String CSV_HEAD = "FROM,TO,EXCHANGE,USER_ID,INITIAL,FINAL,TRANSACTIONS,BENEFIT" + Utils.NEW_LINE;
 		private final double initialAmount;
 		private final double finalAmount;
 		private final double benefitPercentage;
@@ -222,9 +222,10 @@ public class Simulation {
 		private final String to;
 		private final String userId;
 		private final String exchange;
+		private final int transactions;
 
 		public Result(double initialAmount, double finalAmount, double benefitPercentage, String from, String to,
-				String userId, String exchange) {
+				String userId, String exchange, int transactions) {
 			this.initialAmount = initialAmount;
 			this.finalAmount = finalAmount;
 			this.benefitPercentage = benefitPercentage;
@@ -232,6 +233,7 @@ public class Simulation {
 			this.to = to;
 			this.userId = userId;
 			this.exchange = exchange;
+			this.transactions = transactions;
 		}
 
 		public double getInitialAmount() {
@@ -265,7 +267,8 @@ public class Simulation {
 		public String toCsv() {
 			StringBuilder builder = new StringBuilder();
 			builder.append(from).append(",").append(to).append(",").append(exchange).append(",").append(userId).append(",")
-			.append(Utils.format(initialAmount)).append("$,").append(Utils.format(finalAmount)).append("$,").append(Utils.format(benefitPercentage))
+			.append(Utils.format(initialAmount)).append("$,").append(Utils.format(finalAmount)).append("$,").append(transactions)
+			.append(",").append(Utils.format(benefitPercentage))
 			.append("%").append(Utils.NEW_LINE);
 			return builder.toString();
 		}

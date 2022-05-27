@@ -11,13 +11,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
-import com.jbescos.common.Broker.Action;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvRow;
@@ -51,25 +46,7 @@ public class TestFileStorage implements FileManager {
 
 	@Override
 	public List<CsvTransactionRow> loadOpenTransactions(String userId) throws IOException {
-		return filterLastBuys(transactions);
-	}
-
-	private List<CsvTransactionRow> filterLastBuys(List<CsvTransactionRow> transactions) {
-		List<CsvTransactionRow> filtered = new ArrayList<>();
-		Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()
-				.collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
-		groupedTransactions.values().forEach(symbolTransactions -> {
-			for (int i = symbolTransactions.size() - 1; i >= 0; i--) {
-				CsvTransactionRow tx = symbolTransactions.get(i);
-				if (tx.getSide() == Action.BUY) {
-					filtered.add(tx);
-				} else {
-					break;
-				}
-			}
-		});
-		Collections.reverse(filtered);
-		return filtered;
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override

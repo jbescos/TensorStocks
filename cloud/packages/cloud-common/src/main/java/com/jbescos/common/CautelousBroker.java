@@ -25,8 +25,8 @@ public class CautelousBroker implements Broker {
     private final boolean panicPeriod;
 
     public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, TransactionsSummary summary, boolean panicPeriod) {
-    	this.panicPeriod = panicPeriod;
-    	this.cloudProperties = cloudProperties;
+        this.panicPeriod = panicPeriod;
+        this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
         this.max = Utils.getMinMax(values, false);
@@ -82,15 +82,15 @@ public class CautelousBroker implements Broker {
         return newest;
     }
 
-	@Override
-	public TransactionsSummary getPreviousTransactions() {
-		return summary;
-	}
+    @Override
+    public TransactionsSummary getPreviousTransactions() {
+        return summary;
+    }
 
-	public boolean inPercentileMin() {
-		return percentileMin;
-	}
-	
+    public boolean inPercentileMin() {
+        return percentileMin;
+    }
+    
     private Action evaluate(double price, List<CsvRow> values) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
@@ -104,7 +104,7 @@ public class CautelousBroker implements Broker {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
                             if (percentileMin) {
-                            	action = Action.BUY;
+                                action = Action.BUY;
                             } else {
 //                                LOGGER.info(() -> newest + " buy discarded because the price is higher than the acceptable value of " + Utils.format(percentileMin) + ". Min is " + min);
                             }
@@ -124,7 +124,7 @@ public class CautelousBroker implements Broker {
                     } else {
                         double expectedBenefit = Utils.minProfitSellAfterDays(lastPurchase, newest.getDate(), cloudProperties.BOT_MIN_PROFIT_SELL, cloudProperties.BOT_PROFIT_DAYS_SUBSTRACTOR, maxProfitSell, cloudProperties.BOT_LOWEST_ALLOWED_PROFIT_SELL);
                         if (benefit >= expectedBenefit) {
-                        	LOGGER.info(() -> newest + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit));
+                            LOGGER.info(() -> newest + " will try to sell. The expected benefit is " + Utils.format(expectedBenefit) + " and it is " + Utils.format(benefit));
                             action = Action.SELL;
                         } else {
 //                            LOGGER.info(() -> newest + " sell discarded because current benefit " + Utils.format(benefit) + " is lower than expected benefit " + Utils.format(expectedBenefit) + " calculated from last purchase " + Utils.fromDate(Utils.FORMAT_SECOND, lastPurchase));

@@ -150,8 +150,8 @@ public class BotExecution {
 		return new BotExecution(cloudProperties, new ConnectAPIImpl(cloudProperties, api, storage, msgSender));
 	}
 	
-	public static BotExecution test(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, double minTransaction) {
-		return new BotExecution(cloudProperties, new ConnectAPITest(cloudProperties, storage, wallet, transactions, walletHistorical, minTransaction));
+	public static BotExecution test(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvRow> walletHistorical, double minTransaction) {
+		return new BotExecution(cloudProperties, new ConnectAPITest(cloudProperties, storage, wallet, walletHistorical, minTransaction));
 	}
 	
 	private static interface ConnectAPI {
@@ -282,15 +282,13 @@ public class BotExecution {
 		private final FileManager storage;
 		private final List<CsvTransactionRow> newTransactions = new ArrayList<>();
 		private final Map<String, Double> wallet;
-		private final List<CsvTransactionRow> totalTransactions;
 		private final List<CsvRow> walletHistorical;
 		private final double minTransaction;
 		
-		private ConnectAPITest(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvTransactionRow> totalTransactions, List<CsvRow> walletHistorical, double minTransaction) {
+		private ConnectAPITest(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvRow> walletHistorical, double minTransaction) {
 			this.cloudProperties = cloudProperties;
 			this.storage = storage;
 			this.wallet = wallet;
-			this.totalTransactions = totalTransactions;
 			this.walletHistorical = walletHistorical;
 			this.minTransaction = minTransaction;
 		}
@@ -309,7 +307,6 @@ public class BotExecution {
 				transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString(), stat.getAction(), quantity, stat.getNewest().getPrice(), cloudProperties.BOT_SELL_COMMISSION);
 			}
 			newTransactions.add(transaction);
-			totalTransactions.add(transaction);
 			return transaction;
 		}
 
