@@ -1,4 +1,4 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -23,8 +23,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.jbescos.common.Account.Balances;
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Account.Balances;
+import com.jbescos.exchange.Broker.Action;
 
 public class SecuredBinanceAPI implements SecuredAPI {
 
@@ -188,9 +188,9 @@ public class SecuredBinanceAPI implements SecuredAPI {
 		return new SecuredBinanceAPI(client, publicKey, privateKey);
 	}
 	
-	public static SecuredBinanceAPI create(CloudProperties cloudProperties, Client client)
+	public static SecuredBinanceAPI create(PropertiesBinance cloudProperties, Client client)
 			throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		return new SecuredBinanceAPI(client, cloudProperties.BINANCE_PUBLIC_KEY, cloudProperties.BINANCE_PRIVATE_KEY);
+		return new SecuredBinanceAPI(client, cloudProperties.binancePublicKey(), cloudProperties.binancePrivateKey());
 	}
 
 	@Override

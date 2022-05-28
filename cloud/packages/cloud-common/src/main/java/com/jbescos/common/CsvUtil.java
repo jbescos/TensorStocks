@@ -16,7 +16,14 @@ import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.CsvAccountRow;
+import com.jbescos.exchange.CsvContent;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.CsvTxSummaryRow;
+import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.Broker.Action;
 
 public class CsvUtil {
 

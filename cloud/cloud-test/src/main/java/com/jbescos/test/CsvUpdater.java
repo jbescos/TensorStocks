@@ -24,11 +24,11 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.FearGreedIndex;
-import com.jbescos.common.PublicAPI;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.FearGreedIndex;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.Utils;
 
 public class CsvUpdater {
 	

@@ -1,4 +1,4 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
@@ -22,7 +22,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker.Action;
 
 public class SecuredKucoinAPI implements SecuredAPI {
 
@@ -200,8 +200,8 @@ public class SecuredKucoinAPI implements SecuredAPI {
 				.findAny().get();
 	}
 	
-	public static SecuredKucoinAPI create(CloudProperties cloudProperties, Client client) throws InvalidKeyException, NoSuchAlgorithmException {
-		return new SecuredKucoinAPI(client, cloudProperties.KUCOIN_PUBLIC_KEY, cloudProperties.KUCOIN_PRIVATE_KEY, cloudProperties.KUCOIN_API_PASSPHRASE, cloudProperties.KUCOIN_API_VERSION, cloudProperties.BOT_BUY_COMMISSION, cloudProperties.BOT_SELL_COMMISSION);
+	public static SecuredKucoinAPI create(PropertiesKucoin cloudProperties, Client client) throws InvalidKeyException, NoSuchAlgorithmException {
+		return new SecuredKucoinAPI(client, cloudProperties.kucoinPublicKey(), cloudProperties.kucoinPrivateKey(), cloudProperties.kucoinApiPassPhrase(), cloudProperties.kucoinApiVersion(), cloudProperties.kucoinBuyCommission(), cloudProperties.kucoinSellCommission());
 	}
 	
 	private static class SymbolLimits {

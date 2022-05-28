@@ -1,4 +1,4 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +20,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker.Action;
 
 public class SecuredMizarAPI implements SecuredAPI {
 
@@ -30,13 +30,13 @@ public class SecuredMizarAPI implements SecuredAPI {
 	private static final String URL = "https://api.mizar.ai/api/v1";
 	private static final String HEADER_API = "mizar-api-key";
     private final Client client;
-    private final CloudProperties cloudProperties;
+    private final PropertiesMizar cloudProperties;
 
-    private SecuredMizarAPI(CloudProperties cloudProperties, Client client) {
+    private SecuredMizarAPI(PropertiesMizar cloudProperties, Client client) {
     	this.cloudProperties = cloudProperties;
         this.client = client;
         wallet.put(Utils.USDT, DEFAULT_WALLET_CONTENT);
-    	for (String symbol : cloudProperties.BOT_WHITE_LIST_SYMBOLS) {
+    	for (String symbol : cloudProperties.mizarWhiteListSymbols()) {
     		String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
     		wallet.put(walletSymbol, DEFAULT_WALLET_CONTENT);
     	}
@@ -62,8 +62,8 @@ public class SecuredMizarAPI implements SecuredAPI {
     			.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("UP" + Utils.USDT))
 				.filter(mizarSymbol -> !mizarSymbol.symbol.endsWith("DOWN" + Utils.USDT))
     			.map(mizarSymbol -> mizarSymbol.symbol);
-    	if (!cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty()) {
-    	    stream = stream.filter(symbol -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(symbol));
+    	if (!cloudProperties.mizarWhiteListSymbols().isEmpty()) {
+    	    stream = stream.filter(symbol -> cloudProperties.mizarWhiteListSymbols().contains(symbol));
     	}
     	return stream.collect(Collectors.toList());   
     }
@@ -74,7 +74,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     }
     
     public OpenPositions getOpenAllPositions() {
-    	OpenPositions response = get("/all-open-positions", new GenericType<OpenPositions>(){}, "strategy_id", Integer.toString(cloudProperties.MIZAR_STRATEGY_ID));
+    	OpenPositions response = get("/all-open-positions", new GenericType<OpenPositions>(){}, "strategy_id", Integer.toString(cloudProperties.mizarStrategyId()));
     	return response;
     }
     
@@ -96,7 +96,7 @@ public class SecuredMizarAPI implements SecuredAPI {
    
     public OpenPositionResponse openPosition(String base_asset, String quote_asset, double size) {
     	Map<String, Object> obj = new LinkedHashMap<>();
-    	obj.put("strategy_id", cloudProperties.MIZAR_STRATEGY_ID);
+    	obj.put("strategy_id", cloudProperties.mizarStrategyId());
     	obj.put("base_asset", base_asset);
     	obj.put("quote_asset", quote_asset);
     	obj.put("is_long", true);
@@ -146,14 +146,14 @@ public class SecuredMizarAPI implements SecuredAPI {
     }
     
     private CsvTransactionRow buy(String symbol, double factor, Double currentUsdtPrice) {
-    	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
+    	if (cloudProperties.mizarLimitTransactionAmount() < 0) {
     		throw new IllegalStateException("SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
-    	if (cloudProperties.BOT_BUY_IGNORE_FACTOR_REDUCER) {
+    	if (cloudProperties.mizarBuyIgnoreFactorReducer()) {
     		factor = 1;
     	}
     	String asset = symbol.replaceFirst(Utils.USDT, "");
-    	double usdtToBuy = cloudProperties.LIMIT_TRANSACTION_AMOUNT * factor;
+    	double usdtToBuy = cloudProperties.mizarLimitTransactionAmount() * factor;
     	OpenPositionResponse open = openPosition(asset, Utils.USDT, factor);
     	Double currentPrice = Double.parseDouble(open.open_price);
     	if (currentUsdtPrice != null && (currentPrice.isNaN() || currentPrice.isInfinite() || currentPrice == 0)) {
@@ -167,7 +167,7 @@ public class SecuredMizarAPI implements SecuredAPI {
 
     // symbol comes with the symbol + USDT
     public CsvTransactionRow sell(String symbol, Action action) {
-    	if (cloudProperties.LIMIT_TRANSACTION_AMOUNT < 0) {
+    	if (cloudProperties.mizarLimitTransactionAmount() < 0) {
     		throw new IllegalStateException("SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
     	ClosePositionsResponse response = closeAllBySymbol(symbol);
@@ -177,7 +177,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     		return transaction;
     	} else {
 	    	StringBuilder orderIds = new StringBuilder();
-	    	double totalQuantity = Utils.totalQuantity(cloudProperties.LIMIT_TRANSACTION_AMOUNT, response.closed_positions);
+	    	double totalQuantity = Utils.totalQuantity(cloudProperties.mizarLimitTransactionAmount(), response.closed_positions);
 	    	for (ClosePositionResponse position : response.closed_positions) {
 	    		if (orderIds.length() != 0) {
 	    			orderIds.append("-");
@@ -194,7 +194,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     public ClosePositionsResponse closeAllBySymbol(String symbol) {
     	String baseAsset = symbol.replaceFirst(Utils.USDT, "");
     	Map<String, Object> obj = new LinkedHashMap<>();
-    	obj.put("strategy_id", cloudProperties.MIZAR_STRATEGY_ID);
+    	obj.put("strategy_id", cloudProperties.mizarStrategyId());
     	obj.put("base_asset", baseAsset);
     	obj.put("quote_asset", Utils.USDT);
     	LOGGER.info(() -> "SecuredMizarAPI> Close all positions: " + obj);
@@ -217,7 +217,7 @@ public class SecuredMizarAPI implements SecuredAPI {
                 queryStr.append(key).append("=").append(value);
             }
         }
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.MIZAR_API_KEY);
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.mizarApiKey());
         try (Response response = builder.get()) {
         	response.bufferEntity();
             if (response.getStatus() == 200) {
@@ -235,7 +235,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     
 	private <I, O> O post(String path, I obj, GenericType<O> responseType) {
 		WebTarget webTarget = client.target(URL).path(path);;
-		Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.MIZAR_API_KEY);
+		Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.mizarApiKey());
 		try (Response response = builder.post(Entity.json(obj))) {
 			response.bufferEntity();
 			if (response.getStatus() == 200) {
@@ -328,7 +328,7 @@ public class SecuredMizarAPI implements SecuredAPI {
 		}
     }
 
-    public static SecuredMizarAPI create(CloudProperties cloudProperties, Client client) {
+    public static SecuredMizarAPI create(PropertiesMizar cloudProperties, Client client) {
         return new SecuredMizarAPI(cloudProperties, client);
     }
     

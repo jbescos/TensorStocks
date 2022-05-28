@@ -9,20 +9,20 @@ import javax.ws.rs.client.ClientBuilder;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
-import com.jbescos.common.Broker;
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvProfitRow;
-import com.jbescos.common.CsvTransactionRow;
 import com.jbescos.common.DefaultBrokerManager;
-import com.jbescos.common.PublicAPI;
-import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.SellPanicBrokerManager;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
-import com.jbescos.common.Utils;
 
 //Entry: com.jbescos.cloudbot.BotFunction
 public class BotFunction implements HttpFunction {

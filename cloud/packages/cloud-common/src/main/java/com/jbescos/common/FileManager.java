@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.util.List;
 
 import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.CsvTransactionRow;
 
 public interface FileManager {
 

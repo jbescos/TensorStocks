@@ -17,7 +17,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.Utils;
 import com.jbescos.test.Simulation.Result;
 import com.jbescos.test.util.TestFileStorage;
 

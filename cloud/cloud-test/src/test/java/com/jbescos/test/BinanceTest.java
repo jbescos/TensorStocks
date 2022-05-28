@@ -13,10 +13,10 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.common.Kline;
-import com.jbescos.common.PublicAPI;
-import com.jbescos.common.PublicAPI.Interval;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.Kline;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.PublicAPI.Interval;
 
 public class BinanceTest {
 

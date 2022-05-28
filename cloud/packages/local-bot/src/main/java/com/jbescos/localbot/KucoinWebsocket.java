@@ -15,7 +15,8 @@ import javax.ws.rs.client.Client;
 
 import org.glassfish.tyrus.client.ClientManager;
 
-import com.jbescos.localbot.KucoinRestAPI.WebsocketInfo;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.PublicAPI.WebsocketInfo;
 import com.jbescos.localbot.PricesWorker.Price;
 
 import jakarta.websocket.ClientEndpointConfig;
@@ -40,7 +41,7 @@ public class KucoinWebsocket implements IWebsocket {
 
 	@Override
 	public void start() throws DeploymentException, IOException, URISyntaxException {
-		KucoinRestAPI api = new KucoinRestAPI(client);
+		PublicAPI api = new PublicAPI(client);
 		WebsocketInfo websocketInfo = api.websocketInfo();
 		LOGGER.log(Level.INFO, "Kucoin Websocket info " + websocketInfo);
 		ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();

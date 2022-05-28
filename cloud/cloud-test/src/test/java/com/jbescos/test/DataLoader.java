@@ -15,9 +15,9 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.Utils;
 
 public class DataLoader {
 

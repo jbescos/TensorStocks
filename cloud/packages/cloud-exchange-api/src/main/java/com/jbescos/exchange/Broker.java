@@ -1,4 +1,4 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 public interface Broker {
 

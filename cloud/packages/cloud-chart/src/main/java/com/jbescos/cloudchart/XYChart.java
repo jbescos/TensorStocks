@@ -18,7 +18,7 @@ import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
-import com.jbescos.common.IRow;
+import com.jbescos.exchange.IRow;
 
 public class XYChart implements IChart<IRow> {
 

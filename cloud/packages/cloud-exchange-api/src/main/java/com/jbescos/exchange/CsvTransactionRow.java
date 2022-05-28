@@ -1,8 +1,8 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.util.Date;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker.Action;
 
 public class CsvTransactionRow implements IRow {
 

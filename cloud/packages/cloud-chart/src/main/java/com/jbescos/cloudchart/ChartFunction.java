@@ -15,7 +15,7 @@ import com.jbescos.cloudchart.ChartGenerator.TxSummaryChartCsv;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.StorageInfo;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudchart.ChartFunction
 public class ChartFunction implements HttpFunction {

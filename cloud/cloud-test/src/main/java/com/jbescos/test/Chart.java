@@ -16,10 +16,10 @@ import java.util.logging.Logger;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.IChart;
 import com.jbescos.cloudchart.XYChart;
-import com.jbescos.common.CsvRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.IRow;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.IRow;
+import com.jbescos.exchange.Utils;
 
 public class Chart {
 	

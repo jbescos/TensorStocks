@@ -22,8 +22,17 @@ import javax.ws.rs.client.Client;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
+import com.jbescos.exchange.PropertiesBinance;
+import com.jbescos.exchange.PropertiesKucoin;
+import com.jbescos.exchange.PropertiesMizar;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.SecuredBinanceAPI;
+import com.jbescos.exchange.SecuredKucoinAPI;
+import com.jbescos.exchange.SecuredMizarAPI;
+import com.jbescos.exchange.Utils;
 
-public class CloudProperties {
+public class CloudProperties implements PropertiesBinance, PropertiesKucoin, PropertiesMizar {
 
     private static final Logger LOGGER = Logger.getLogger(CloudProperties.class.getName());
     public final String PROPERTIES_BUCKET;
@@ -363,4 +372,69 @@ public class CloudProperties {
         public abstract Map<String, Double> price(PublicAPI publicApi);
 
     }
+
+	@Override
+	public String binancePublicKey() {
+		return BINANCE_PUBLIC_KEY;
+	}
+
+	@Override
+	public String binancePrivateKey() {
+		return BINANCE_PRIVATE_KEY;
+	}
+
+	@Override
+	public String kucoinPublicKey() {
+		return KUCOIN_PUBLIC_KEY;
+	}
+
+	@Override
+	public String kucoinPrivateKey() {
+		return KUCOIN_PRIVATE_KEY;
+	}
+
+	@Override
+	public String kucoinApiPassPhrase() {
+		return KUCOIN_API_PASSPHRASE;
+	}
+
+	@Override
+	public String kucoinApiVersion() {
+		return KUCOIN_API_VERSION;
+	}
+
+	@Override
+	public double kucoinBuyCommission() {
+		return BOT_BUY_COMMISSION;
+	}
+
+	@Override
+	public double kucoinSellCommission() {
+		return BOT_SELL_COMMISSION;
+	}
+
+	@Override
+	public List<String> mizarWhiteListSymbols() {
+		return BOT_WHITE_LIST_SYMBOLS;
+	}
+
+	@Override
+	public int mizarStrategyId() {
+		return MIZAR_STRATEGY_ID;
+	}
+
+	@Override
+	public String mizarApiKey() {
+		return MIZAR_API_KEY;
+	}
+
+	@Override
+	public double mizarLimitTransactionAmount() {
+		return LIMIT_TRANSACTION_AMOUNT;
+	}
+
+	@Override
+	public boolean mizarBuyIgnoreFactorReducer() {
+		return BOT_BUY_IGNORE_FACTOR_REDUCER;
+	}
 }

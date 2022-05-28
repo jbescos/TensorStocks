@@ -17,10 +17,10 @@ import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.SecuredBinanceAPI;
+import com.jbescos.exchange.Utils;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.PublicAPI;
-import com.jbescos.common.SecuredBinanceAPI;
-import com.jbescos.common.Utils;
 
 public class SecuredBinanceAPITest {
 

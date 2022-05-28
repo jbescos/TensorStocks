@@ -5,6 +5,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Logger;
 
+import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.TransactionsSummary;
+import com.jbescos.exchange.Utils;
+
 public class CautelousBroker implements Broker {
 
     private static final Logger LOGGER = Logger.getLogger(CautelousBroker.class.getName());

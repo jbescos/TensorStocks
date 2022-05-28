@@ -8,12 +8,12 @@ import java.io.InputStreamReader;
 import java.util.List;
 
 import com.jbescos.common.CloudProperties.Exchange;
-import com.jbescos.common.CsvProfitRow;
-import com.jbescos.common.CsvRow;
-import com.jbescos.common.CsvTransactionRow;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.Utils;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.FileManager;
-import com.jbescos.common.Utils;
 
 public class TestFileInMemoryStorage implements FileManager {
 

@@ -16,6 +16,7 @@
 
 
 	<modules>
+		<module>cloud-exchange-api</module>
 		<module>cloud-common</module>
 		<module>cloud-storage</module>
 		<module>cloud-chart</module>

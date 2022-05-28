@@ -1,10 +1,10 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.util.Map;
 
 import javax.ws.rs.client.Client;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker.Action;
 
 public interface SecuredAPI {
     

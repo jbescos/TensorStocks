@@ -13,20 +13,20 @@ import javax.ws.rs.client.ClientBuilder;
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
-import com.jbescos.common.Broker;
 import com.jbescos.common.BrokerManager;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvProfitRow;
-import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.DefaultBrokerManager;
-import com.jbescos.common.PublicAPI;
-import com.jbescos.common.SecuredAPI;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
-import com.jbescos.common.TransactionsSummary;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvTxSummaryRow;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.TransactionsSummary;
+import com.jbescos.exchange.Utils;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
 public class BotSubscriber implements BackgroundFunction<PubSubMessage> {

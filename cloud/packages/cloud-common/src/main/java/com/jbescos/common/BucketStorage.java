@@ -27,6 +27,10 @@ import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.Utils;
 
 public class BucketStorage implements FileManager {
 	

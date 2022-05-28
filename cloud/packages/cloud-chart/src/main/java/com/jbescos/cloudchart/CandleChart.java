@@ -13,7 +13,7 @@ import org.jfree.data.time.Day;
 import org.jfree.data.time.ohlc.OHLCSeries;
 import org.jfree.data.time.ohlc.OHLCSeriesCollection;
 
-import com.jbescos.common.Kline;
+import com.jbescos.exchange.Kline;
 
 public class CandleChart implements IChart<Kline> {
 

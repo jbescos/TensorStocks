@@ -4,7 +4,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.Broker.Action;
 
 public class SellPanicBrokerManager extends DefaultBrokerManager {
 

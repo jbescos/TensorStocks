@@ -22,12 +22,12 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvAccountRow;
-import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.CsvTxSummaryRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.IRow;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.CsvAccountRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.CsvTxSummaryRow;
+import com.jbescos.exchange.IRow;
+import com.jbescos.exchange.Utils;
 
 public class ChartGenerator {
 

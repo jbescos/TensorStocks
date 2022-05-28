@@ -20,9 +20,9 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.jbescos.common.CsvProfitRow;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.Utils;
 import com.jbescos.test.util.TestFileStorage;
 
 public class CsvUtilTest {

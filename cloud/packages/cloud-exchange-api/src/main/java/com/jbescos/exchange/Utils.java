@@ -1,4 +1,4 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,8 +24,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.jbescos.common.Broker.Action;
-import com.jbescos.common.SecuredMizarAPI.ClosePositionResponse;
+import com.jbescos.exchange.Broker.Action;
+import com.jbescos.exchange.SecuredMizarAPI.ClosePositionResponse;
 
 public class Utils {
 

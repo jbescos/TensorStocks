@@ -16,15 +16,15 @@ import java.util.stream.Collectors;
 
 import org.junit.Test;
 
-import com.jbescos.common.Broker;
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.TransactionsSummary;
+import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.Broker.Action;
+import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvProfitRow;
-import com.jbescos.common.CsvRow;
-import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.PublicAPI.Interval;
-import com.jbescos.common.TransactionsSummary;
-import com.jbescos.common.Utils;
 
 public class UtilsTest {
 

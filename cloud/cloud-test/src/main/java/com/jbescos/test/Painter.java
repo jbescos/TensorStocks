@@ -13,7 +13,7 @@ import java.util.Date;
 // Java extension packages
 import javax.swing.JFrame;
 
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.Utils;
 
 public class Painter extends JFrame {
 	

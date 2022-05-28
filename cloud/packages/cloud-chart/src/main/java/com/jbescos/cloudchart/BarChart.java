@@ -13,9 +13,9 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
 
-import com.jbescos.common.Broker.Action;
-import com.jbescos.common.CsvTransactionRow;
-import com.jbescos.common.IRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.IRow;
+import com.jbescos.exchange.Broker.Action;
 
 public class BarChart implements IChart<IRow> {
 	

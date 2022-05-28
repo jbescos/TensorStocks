@@ -21,8 +21,8 @@ import org.jfree.data.time.Day;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 
-import com.jbescos.common.IRow;
-import com.jbescos.common.Utils;
+import com.jbescos.exchange.IRow;
+import com.jbescos.exchange.Utils;
 
 public class DateChart implements IChart<IRow> {
 

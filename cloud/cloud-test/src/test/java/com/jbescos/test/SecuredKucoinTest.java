@@ -15,9 +15,9 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.common.Broker.Action;
+import com.jbescos.exchange.SecuredKucoinAPI;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.SecuredKucoinAPI;
 
 public class SecuredKucoinTest {
 

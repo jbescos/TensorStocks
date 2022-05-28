@@ -1,4 +1,4 @@
-package com.jbescos.common.kucoin;
+package com.jbescos.exchange;
 
 import java.util.Collections;
 import java.util.List;
