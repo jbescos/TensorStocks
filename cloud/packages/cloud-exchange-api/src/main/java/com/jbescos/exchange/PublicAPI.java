@@ -18,6 +18,8 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.jbescos.exchange.SecuredKucoinAPI.KucoinResponse;
+
 
 public final class PublicAPI {
 
@@ -146,6 +148,23 @@ public final class PublicAPI {
 			klines.add(Kline.fromArray(symbol, values));
 		}
 		return klines;
+	}
+	
+	public boolean isSymbolBinanceEnabled(String symbol) {
+		Map<String, Object> exchangeInfo = get(BINANCE_URL, "/api/v3/exchangeInfo", new GenericType<Map<String, Object>>() {}, "symbol", symbol);
+	    Map<String, Object> symbolData = ((List<Map<String, Object>>) exchangeInfo.get("symbols")).get(0);
+	    return (boolean) symbolData.get("isSpotTradingAllowed");
+	}
+	
+	public boolean isSymbolKucoinEnabled(String symbol) {
+		KucoinResponse<Map<String, Object>> result = get(KUCOIN_URL, "/api/v1/currencies/" + symbol.replaceFirst(Utils.USDT, ""), new GenericType<KucoinResponse<Map<String, Object>>>() {});
+		boolean withdraw = (boolean) result.getData().get("isWithdrawEnabled");
+		boolean margin = (boolean) result.getData().get("isDepositEnabled");
+		return withdraw && margin;
+	}
+	
+	public boolean isSymbolEnabled(String symbol) {
+		return isSymbolBinanceEnabled(symbol) && isSymbolKucoinEnabled(symbol);
 	}
 
 	@SuppressWarnings("unchecked")

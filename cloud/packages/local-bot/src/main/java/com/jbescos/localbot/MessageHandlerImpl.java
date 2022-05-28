@@ -49,7 +49,7 @@ public class MessageHandlerImpl<T extends Symbolable> implements MessageHandler.
 				}
 			}
 		} catch (JsonProcessingException e) {
-			LOGGER.warning("Couldn't parse " + message + " in " + messageType);
+			LOGGER.fine("Couldn't parse " + message + " in " + messageType);
 		} catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "Unexpected error", e);
 		}
