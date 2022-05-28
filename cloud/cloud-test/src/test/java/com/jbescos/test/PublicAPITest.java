@@ -17,11 +17,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.cloudchart.CandleChart;
+import com.jbescos.common.CloudProperties;
 import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Kline;
 import com.jbescos.exchange.PublicAPI;
-import com.jbescos.exchange.Utils;
 import com.jbescos.exchange.PublicAPI.Interval;
+import com.jbescos.exchange.Utils;
 
 public class PublicAPITest {
 
@@ -89,4 +90,25 @@ public class PublicAPITest {
 		System.out.println("Compatible symbols: " + compatibleSymbols);
 	}
 	
+	@Test
+	@Ignore
+	public void prices() {
+		Client client = ClientBuilder.newClient();
+		PublicAPI publicAPI = new PublicAPI(client);
+		Map<String, Double> binancePrices = publicAPI.priceBinance();
+		Map<String, Double> kucoinSellPrices = publicAPI.priceKucoin();
+		Map<String, Double> kucoinBuyPrices = publicAPI.priceKucoin(ticker -> Double.parseDouble(ticker.getSell()));
+		for (String symbol : new CloudProperties("binance", null).BOT_WHITE_LIST_SYMBOLS) {
+			Double binanceSellPrice = binancePrices.get(symbol);
+			Double kucoinSellPrice = kucoinSellPrices.get(symbol);
+			Double kucoinBuyPrice = kucoinBuyPrices.get(symbol);
+			if (binanceSellPrice != null)
+				System.out.println("Binance price: " + Utils.format(binanceSellPrice) + " " + symbol);
+			if (kucoinBuyPrice != null)
+				System.out.println("Kucoin buy price: " + Utils.format(kucoinBuyPrice) + " " + symbol);
+			if (kucoinSellPrice != null)
+				System.out.println("Kucoin sell price: " + Utils.format(kucoinSellPrice) + " " + symbol);
+		}
+		client.close();
+	}
 }

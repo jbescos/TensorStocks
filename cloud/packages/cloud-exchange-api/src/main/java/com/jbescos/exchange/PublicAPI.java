@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +19,7 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.jbescos.exchange.AllTickers.Ticker;
 import com.jbescos.exchange.SecuredKucoinAPI.KucoinResponse;
 
 
@@ -95,13 +97,17 @@ public final class PublicAPI {
 	}
 	
 	public Map<String, Double> priceKucoin() {
+		return priceKucoin(ticker -> Double.parseDouble(ticker.getBuy()));
+	}
+
+	public Map<String, Double> priceKucoin(Function<Ticker, Double> price) {
 		AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {});
 		Map<String, Double> pricesBySymbol = new HashMap<>();
 		allTickers.getData().getTicker().stream()
 				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3L-" + Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3S-" + Utils.USDT))
-				.forEach(ticker -> pricesBySymbol.put(ticker.getSymbol().replaceFirst("-", ""), Double.parseDouble(ticker.getBuy())));
+				.forEach(ticker -> pricesBySymbol.put(ticker.getSymbol().replaceFirst("-", ""), price.apply(ticker)));
 		return pricesBySymbol;
 	}
 	
