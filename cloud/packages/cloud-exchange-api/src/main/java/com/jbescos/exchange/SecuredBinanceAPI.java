@@ -182,6 +182,13 @@ public class SecuredBinanceAPI implements SecuredAPI {
 		LOGGER.info(() -> "SecuredBinanceAPI> TEST. Completed order: " + response);
 		return response;
 	}
+	
+	public String depositAddress(String symbol) {
+		String coin = symbol.replaceFirst(Utils.USDT, "");
+		Map<String, String> response = get("/sapi/v1/capital/deposit/address", new GenericType<Map<String, String>>() {}, "coin", coin, "timestamp", Long.toString(System.currentTimeMillis()));
+		LOGGER.info(() -> "SecuredBinanceAPI> " + coin + " address: " + response);
+		return response.get("address");
+	}
 
 	public static SecuredBinanceAPI create(Client client, String publicKey, String privateKey)
 			throws InvalidKeyException, NoSuchAlgorithmException {

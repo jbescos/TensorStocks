@@ -48,6 +48,15 @@ public class SecuredBinanceAPITest {
 	}
 	
 	@Test
+	@Ignore
+	public void address() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		Client client = ClientBuilder.newClient();
+		SecuredBinanceAPI api = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
+		System.out.println("Address:" + api.depositAddress("RLC"));
+		client.close();
+	}
+	
+	@Test
 	public void signature() throws InvalidKeyException, NoSuchAlgorithmException {
 		Client client = ClientBuilder.newClient();
 		SecuredBinanceAPI api = SecuredBinanceAPI.create(client, "vmPUZE6mv9SD5VNHk4HlWFsOr6aKE2zvsw0MuIgwCIPy6utIco14y7Ju91duEh8A", "NhqPtmdSJYdKjVHjA7PZj4Mge3R5YNiP1e3UZjInClVN65XAbvqqM6A7H5fATj0j");
