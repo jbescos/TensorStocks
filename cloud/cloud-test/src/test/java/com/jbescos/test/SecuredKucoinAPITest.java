@@ -15,13 +15,12 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.exchange.SecuredKucoinAPI;
-import com.jbescos.exchange.Broker.Action;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.exchange.SecuredKucoinAPI;
 
-public class SecuredKucoinTest {
+public class SecuredKucoinAPITest {
 
-	private static final Logger LOGGER = Logger.getLogger(SecuredKucoinTest.class.getName());
+	private static final Logger LOGGER = Logger.getLogger(SecuredKucoinAPITest.class.getName());
 	private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties(null);
 	private static final Client client = ClientBuilder.newClient();
 	
@@ -56,5 +55,14 @@ public class SecuredKucoinTest {
 	public void limits() throws InvalidKeyException, NoSuchAlgorithmException {
 		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
 		System.out.println("KUCOIN: " + api.getSymbolLimits("FLAMEUSDT"));
+	}
+
+	@Test
+	@Ignore
+	public void address() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		Client client = ClientBuilder.newClient();
+		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
+		System.out.println("Address:" + api.depositAddress("USDTUSDT"));
+		client.close();
 	}
 }

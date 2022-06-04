@@ -5,6 +5,7 @@ import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -17,10 +18,11 @@ import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredBinanceAPI;
+import com.jbescos.exchange.SecuredKucoinAPI;
 import com.jbescos.exchange.Utils;
-import com.jbescos.common.CsvUtil;
 
 public class SecuredBinanceAPITest {
 
@@ -53,6 +55,30 @@ public class SecuredBinanceAPITest {
 		Client client = ClientBuilder.newClient();
 		SecuredBinanceAPI api = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
 		System.out.println("Address:" + api.depositAddress("RLC"));
+		client.close();
+	}
+	
+	@Test
+	@Ignore
+	public void checkExploits() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		Client client = ClientBuilder.newClient();
+		List<String> symbols = Arrays.asList("VIDTUSDT", "TKOUSDT", "PUNDIXUSDT", "LUNAUSDT", "HARDUSDT");
+		SecuredBinanceAPI binance = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
+		Map<String, String> binanceWallet = binance.wallet();
+		SecuredKucoinAPI kucoin = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
+		Map<String, String> kucoinWallet = kucoin.wallet();
+		for (String symbol : symbols) {
+			try {
+				System.out.println(symbol + " Wallet: " + kucoinWallet.get(symbol) + " Kucoin Address:" + kucoin.depositAddress(symbol));
+			} catch (Exception e) {
+				System.out.println(symbol + " Wallet: " + kucoinWallet.get(symbol) + " Kucoin Addresss: " + e.getMessage());
+			}
+			try {
+				System.out.println(symbol + " Wallet: " + binanceWallet.get(symbol) + " Binance Address:" + binance.depositAddress(symbol));
+			} catch (Exception e) {
+				System.out.println(symbol + " Wallet: " + binanceWallet.get(symbol) + " Binance Address: " + e.getMessage());
+			}
+		}
 		client.close();
 	}
 	

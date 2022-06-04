@@ -200,6 +200,20 @@ public class SecuredKucoinAPI implements SecuredAPI {
 				.findAny().get();
 	}
 	
+	public String depositAddress(String symbol) {
+		String coin = symbol.replaceFirst(Utils.USDT, "");
+		Map<String, String> response = get("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, "currency", coin).getData();
+		LOGGER.info("SecuredKucoinAPI> " + coin + " address: " + response);
+		if (response == null) {
+			// FIXME Not tested
+			StringBuilder body = new StringBuilder("{");
+			body.append("\"currency\":").append("\"").append(coin).append("\"");
+			body.append("}");
+			response = post("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, body.toString()).getData();
+		}
+		return response.get("address");
+	}
+	
 	public static SecuredKucoinAPI create(PropertiesKucoin cloudProperties, Client client) throws InvalidKeyException, NoSuchAlgorithmException {
 		return new SecuredKucoinAPI(client, cloudProperties.kucoinPublicKey(), cloudProperties.kucoinPrivateKey(), cloudProperties.kucoinApiPassPhrase(), cloudProperties.kucoinApiVersion(), cloudProperties.kucoinBuyCommission(), cloudProperties.kucoinSellCommission());
 	}
