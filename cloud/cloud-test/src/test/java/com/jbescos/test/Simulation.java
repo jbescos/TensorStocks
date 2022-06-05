@@ -25,13 +25,13 @@ import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.IRow;
 import com.jbescos.exchange.Utils;
 import com.jbescos.test.util.TestFileInMemoryStorage;
-import com.jbescos.test.util.TestFileStorage;
 
 public class Simulation {
 
@@ -137,7 +137,9 @@ public class Simulation {
 		            ChartGenerator.writeChart(fears, output, chart);
 		            ChartGenerator.save(output, chart);
 		        }
-		        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name(), transactions.size());
+		        List<CsvTransactionRow> buys = transactions.stream().filter(tx -> tx.getSide() == Action.BUY).collect(Collectors.toList());
+		        double buyValue = (totalPrice - INITIAL_USDT) / buys.size();
+		        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name(), buys.size(), buyValue);
 			} else {
 				return null;
 			}
@@ -214,7 +216,7 @@ public class Simulation {
 	
 	public static class Result implements Comparable<Result> {
 		
-		public static final String CSV_HEAD = "FROM,TO,EXCHANGE,USER_ID,INITIAL,FINAL,TRANSACTIONS,BENEFIT" + Utils.NEW_LINE;
+		public static final String CSV_HEAD = "FROM,TO,EXCHANGE,USER_ID,INITIAL,FINAL,BUYS,BUY_VALUE,BENEFIT" + Utils.NEW_LINE;
 		private final double initialAmount;
 		private final double finalAmount;
 		private final double benefitPercentage;
@@ -222,10 +224,11 @@ public class Simulation {
 		private final String to;
 		private final String userId;
 		private final String exchange;
-		private final int transactions;
+		private final int purchases;
+		private final double buyValue;
 
 		public Result(double initialAmount, double finalAmount, double benefitPercentage, String from, String to,
-				String userId, String exchange, int transactions) {
+				String userId, String exchange, int purchases, double buyValue) {
 			this.initialAmount = initialAmount;
 			this.finalAmount = finalAmount;
 			this.benefitPercentage = benefitPercentage;
@@ -233,7 +236,8 @@ public class Simulation {
 			this.to = to;
 			this.userId = userId;
 			this.exchange = exchange;
-			this.transactions = transactions;
+			this.purchases = purchases;
+			this.buyValue = buyValue;
 		}
 
 		public double getInitialAmount() {
@@ -267,7 +271,8 @@ public class Simulation {
 		public String toCsv() {
 			StringBuilder builder = new StringBuilder();
 			builder.append(from).append(",").append(to).append(",").append(exchange).append(",").append(userId).append(",")
-			.append(Utils.format(initialAmount)).append("$,").append(Utils.format(finalAmount)).append("$,").append(transactions)
+			.append(Utils.format(initialAmount)).append("$,").append(Utils.format(finalAmount)).append("$,").append(purchases)
+			.append("$,").append(Utils.format(buyValue))
 			.append(",").append(Utils.format(benefitPercentage))
 			.append("%").append(Utils.NEW_LINE);
 			return builder.toString();
