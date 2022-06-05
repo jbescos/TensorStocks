@@ -66,9 +66,13 @@ public class BucketStorage implements FileManager {
             CsvRow previous = previousRows.get(price.getKey());
             CsvRow newRow = null;
             if (previous != null) {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), Utils.ewma(Utils.EWMA_CONSTANT, price.getValue(), previous.getAvg()), Utils.ewma(Utils.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()), fearGreedIndex);
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), 
+                		Utils.ewma(Utils.EWMA_CONSTANT, price.getValue(), previous.getAvg()), 
+                		Utils.ewma(Utils.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()),
+                		fearGreedIndex,
+                		Utils.dynamicEwma(Utils.EWMA_CONSTANT, Utils.EWMA_2_CONSTANT, fearGreedIndex, previous.getFearGreedIndexAvg()));
             } else {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue(), fearGreedIndex);
+                newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue(), fearGreedIndex, (double) fearGreedIndex);
             }
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());

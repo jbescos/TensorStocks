@@ -36,10 +36,10 @@ public class CsvUpdater {
 	private static final CloudProperties cloudProperties = new CloudProperties(null);
 
 	public static void main(String args[]) throws IOException {
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\binance", "2021-05-08.csv");
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\kucoin", "2021-10-23.csv");
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\ftx", "2021-11-07.csv");
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\okex", "2021-11-07.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\binance", "2021-05-08.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\kucoin", "2021-10-23.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\ftx", "2021-11-07.csv");
+		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\okex", "2021-11-07.csv");
 		LOGGER.info(() -> "Finished");
 	}
 	
@@ -114,18 +114,22 @@ public class CsvUpdater {
 							for (CsvRow row : values) {
 								double avg;
 								double avg2;
+								double fearGreedIdxAvg;
+								fearGreedIdx = find(row.getDate(), fearGreedIndex);
+								row.setFearGreedIndex(fearGreedIndex.get(fearGreedIdx).getValue());
 								if (last == null) {
 									last = row;
 									avg = Utils.ewma(Utils.EWMA_CONSTANT, row.getPrice(), null);
 									avg2 = Utils.ewma(Utils.EWMA_2_CONSTANT, row.getPrice(), null);
+									fearGreedIdxAvg = Utils.dynamicEwma(Utils.EWMA_CONSTANT, Utils.EWMA_2_CONSTANT, row.getFearGreedIndex(), null);
 								} else {
 									avg = Utils.ewma(Utils.EWMA_CONSTANT, row.getPrice(), last.getAvg());
 									avg2 = Utils.ewma(Utils.EWMA_2_CONSTANT, row.getPrice(), last.getAvg2());
+									fearGreedIdxAvg = Utils.dynamicEwma(Utils.EWMA_CONSTANT, Utils.EWMA_2_CONSTANT, row.getFearGreedIndex(), last.getFearGreedIndexAvg());
 								}
 								row.setAvg(avg);
 								row.setAvg2(avg2);
-								fearGreedIdx = find(row.getDate(), fearGreedIndex);
-								row.setFearGreedIndex(fearGreedIndex.get(fearGreedIdx).getValue());
+								row.setFearGreedIndexAvg(fearGreedIdxAvg);
 								last = row;
 							}
 							lastPrices.put(last.getSymbol(), last);

@@ -41,7 +41,7 @@ public class Utils {
     public static final String USDT = "USDT";
     public static final String TOTAL_USDT = "TOTAL_USDT";
     public static final String NEW_LINE = "\r\n";
-    public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX" + NEW_LINE;
+    public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG" + NEW_LINE;
     public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
     public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST" + NEW_LINE;
     public static final String LAST_PRICE = "last_price.csv";
@@ -302,12 +302,24 @@ public class Utils {
      *  Y is the new value
      *  prevousResult is the previous result
      */
-    public static double ewma(double contant, double y, Double previousResult) {
+    public static double ewma(double constant, double y, Double previousResult) {
         if (previousResult == null) {
             return y;
         } else {
-            return (contant * y) + (1 - contant) * previousResult;
+            return (constant * y) + (1 - constant) * previousResult;
         }
+    }
+    
+    public static double dynamicEwma(double constantYHigher, double constantYLower, double y, Double previousResult) {
+    	 if (previousResult == null) {
+             return y;
+         } else {
+        	 if (y < previousResult) {
+        		 return ewma(constantYLower, y, previousResult);
+        	 } else {
+        		 return ewma(constantYHigher, y, previousResult);
+        	 }
+         }
     }
     
     public static String filterLotSizeQuantity(String quantity, String minQty, String maxQty, String stepSize) {
@@ -463,18 +475,24 @@ public class Utils {
         return fearGreedIndex < 30;
     }
     
-    public static double factorFearGreedAdjusted(double factorBase, int fearGreedIndex) {
-        if (fearGreedIndex < 10) {
-            return factorBase + 0.3;
-        } else if (fearGreedIndex < 15) {
-            return factorBase + 0.2;
-        } else if (fearGreedIndex < 20) {
-            return factorBase + 0.15;
-        } else if (fearGreedIndex < 30) {
-            return factorBase + 0.1;
-        } else {
-        	return factorBase;
-        }
+    public static double factorFearGreedAdjusted(double factorBase, CsvRow row) {
+    	if (row.getFearGreedIndexAvg() < 24) {
+    		// It has been long time in fear, lets make it normal
+    		return factorBase;
+    	} else {
+	    	int fearGreedIndex = row.getFearGreedIndex();
+	        if (fearGreedIndex < 10) {
+	            return factorBase + 0.3;
+	        } else if (fearGreedIndex < 15) {
+	            return factorBase + 0.2;
+	        } else if (fearGreedIndex < 20) {
+	            return factorBase + 0.15;
+	        } else if (fearGreedIndex < 30) {
+	            return factorBase + 0.1;
+	        } else {
+	        	return factorBase;
+	        }
+    	}
     }
     
     public static boolean isTime(Date now, int expectedHour) {

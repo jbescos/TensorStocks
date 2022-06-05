@@ -313,7 +313,7 @@ public class Simulation {
 
         @Override
         public Double getAvg() {
-            return null;
+            return row.getFearGreedIndexAvg();
         }
 
         @Override
