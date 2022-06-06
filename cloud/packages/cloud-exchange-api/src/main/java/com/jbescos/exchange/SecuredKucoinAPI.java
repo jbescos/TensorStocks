@@ -200,18 +200,44 @@ public class SecuredKucoinAPI implements SecuredAPI {
 				.findAny().get();
 	}
 	
-	public String depositAddress(String symbol) {
+	private Map<String, Object> withdrawalQuotas(String symbol) {
 		String coin = symbol.replaceFirst(Utils.USDT, "");
-		Map<String, String> response = get("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, "currency", coin).getData();
-		LOGGER.info("SecuredKucoinAPI> " + coin + " address: " + response);
-		if (response == null) {
-			// FIXME Not tested
-			StringBuilder body = new StringBuilder("{");
-			body.append("\"currency\":").append("\"").append(coin).append("\"");
-			body.append("}");
-			response = post("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, body.toString()).getData();
+		return get("/api/v1/withdrawals/quotas", new GenericType<KucoinResponse<Map<String, Object>>>() {}, "currency", coin).getData();
+	}
+	
+	public Deposit depositAddress(String symbol, Map<String, Double> sellPrices) {
+		double usdUnit = sellPrices.get(symbol);
+		String coin = symbol.replaceFirst(Utils.USDT, "");
+		Map<String, Object> quotas = withdrawalQuotas(symbol);
+		Deposit deposit = new Deposit(coin, (Boolean) quotas.get("isWithdrawEnabled"), (String) quotas.get("withdrawMinFee"), (String) quotas.get("remainAmount"), (String) quotas.get("withdrawMinSize"), (String) quotas.get("chain"));
+		deposit.setRemainAmountUsd(Utils.format(Utils.usdValue(Double.parseDouble(deposit.getRemainAmount()), usdUnit)));
+		deposit.setWithdrawMinFeeUsd(Utils.format(Utils.usdValue(Double.parseDouble(deposit.getWithdrawMinFee()), usdUnit)));
+		deposit.setWithdrawMinSizeUsd(Utils.format(Utils.usdValue(Double.parseDouble(deposit.getWithdrawMinSize()), usdUnit)));
+		deposit.setUsdUnit(Utils.format(usdUnit));
+		if (deposit.isWithdrawEnabled()) {
+			Map<String, String> response = get("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, "currency", coin).getData();
+			LOGGER.info("SecuredKucoinAPI> " + coin + " address: " + response);
+			if (response == null) {
+				StringBuilder body = new StringBuilder("{");
+				body.append("\"currency\":").append("\"").append(coin).append("\"");
+				body.append("}");
+				response = post("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, body.toString()).getData();
+			}
+			deposit.setAddress(response.get("address"));
 		}
-		return response.get("address");
+		return deposit;
+	}
+	
+	public String applyWithdraw(String remoteAddress, double amount, Deposit info) {
+		info.calculate(amount);
+		StringBuilder body = new StringBuilder("{");
+		body.append("\"currency\":").append("\"").append(info.getCurrency()).append("\"").append(",");
+		body.append("\"amount\":").append(Utils.format(amount)).append(",");
+		body.append("\"isInner\":").append("false").append(",");
+		body.append("\"memo\":").append("\"").append(info.getMemo()).append("\"").append(",");
+		body.append("}");
+		Map<String, String> response = post("/api/v1/withdrawals", new GenericType<KucoinResponse<Map<String, String>>>() {}, body.toString()).getData();
+		return response.get("withdrawalId");
 	}
 	
 	public static SecuredKucoinAPI create(PropertiesKucoin cloudProperties, Client client) throws InvalidKeyException, NoSuchAlgorithmException {

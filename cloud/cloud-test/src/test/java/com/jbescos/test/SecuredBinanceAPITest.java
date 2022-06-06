@@ -62,14 +62,16 @@ public class SecuredBinanceAPITest {
 	@Ignore
 	public void checkExploits() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		Client client = ClientBuilder.newClient();
-		List<String> symbols = Arrays.asList("VIDTUSDT", "TKOUSDT", "PUNDIXUSDT", "LUNAUSDT", "HARDUSDT");
+		PublicAPI publicAPI = new PublicAPI(client);
+		Map<String, Double> kucoinSellPrices = publicAPI.priceKucoin();
+		List<String> symbols = Arrays.asList("VIDTUSDT", "TKOUSDT", "PUNDIXUSDT", "LUNAUSDT", "HARDUSDT", "BTCUSDT");
 		SecuredBinanceAPI binance = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
 		Map<String, String> binanceWallet = binance.wallet();
 		SecuredKucoinAPI kucoin = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
 		Map<String, String> kucoinWallet = kucoin.wallet();
 		for (String symbol : symbols) {
 			try {
-				System.out.println(symbol + " Wallet: " + kucoinWallet.get(symbol) + " Kucoin Address:" + kucoin.depositAddress(symbol));
+				System.out.println(symbol + " Wallet: " + kucoinWallet.get(symbol) + " Kucoin Address:" + kucoin.depositAddress(symbol, kucoinSellPrices));
 			} catch (Exception e) {
 				System.out.println(symbol + " Wallet: " + kucoinWallet.get(symbol) + " Kucoin Addresss: " + e.getMessage());
 			}

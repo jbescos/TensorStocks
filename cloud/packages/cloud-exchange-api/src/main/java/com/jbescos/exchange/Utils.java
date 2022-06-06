@@ -54,6 +54,7 @@ public class Utils {
     public static final double MIN_WALLET_VALUE_TO_RECORD = 0.1;
     public static final double EWMA_CONSTANT = 0.01;
     public static final double EWMA_2_CONSTANT = 0.001;
+    public static final double TRANSFER_MIN_PROFIT_UNIT = 0.03;
 
     public static Properties fromClasspath(String properties) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(properties)) {
