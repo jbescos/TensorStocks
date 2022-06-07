@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.FearGreedIndex;
@@ -33,13 +32,13 @@ import com.jbescos.exchange.Utils;
 public class CsvUpdater {
 	
 	private static final Logger LOGGER = Logger.getLogger(CsvUpdater.class.getName());
-	private static final CloudProperties cloudProperties = new CloudProperties(null);
+	private static final String DATA_PATH = "C:/workspace/TensorStocks/cloud/cloud-test/src/test/resources/data/";
 
 	public static void main(String args[]) throws IOException {
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\binance", "2021-05-08.csv");
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\kucoin", "2021-10-23.csv");
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\ftx", "2021-11-07.csv");
-		updateCsv("C:\\workspace\\TensorStocks\\cloud\\cloud-test\\src\\test\\resources\\data\\okex", "2021-11-07.csv");
+		updateCsv(DATA_PATH + "binance", "2021-05-08.csv");
+		updateCsv(DATA_PATH + "kucoin", "2021-10-23.csv");
+		updateCsv(DATA_PATH + "ftx", "2021-11-07.csv");
+		updateCsv(DATA_PATH + "okex", "2021-11-07.csv");
 		LOGGER.info(() -> "Finished");
 	}
 	
