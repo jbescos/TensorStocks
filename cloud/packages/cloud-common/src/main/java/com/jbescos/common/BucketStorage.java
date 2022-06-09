@@ -24,7 +24,6 @@ import com.google.cloud.storage.Acl.User;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage.BlobListOption;
-import com.google.cloud.storage.Storage.ComposeRequest;
 import com.google.cloud.storage.StorageClass;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.CsvProfitRow;
@@ -84,18 +83,23 @@ public class BucketStorage implements FileManager {
 	@Override
 	public String updateFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
-		BlobInfo retrieve = storageInfo.getStorage().get(BlobInfo.newBuilder(storageInfo.getBucket(), fileName).build().getBlobId());
-		if (retrieve == null) {
-			retrieve = storageInfo.getStorage().create(createBlobInfo(storageInfo, fileName, false), header);
+		Blob retrieve = storageInfo.getStorage().get(BlobInfo.newBuilder(storageInfo.getBucket(), fileName).build().getBlobId());
+		StringBuilder text = new StringBuilder();
+		if (retrieve != null) {
+			try (ReadChannel readChannel = retrieve.reader();
+                    BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+				String line = null;
+				while ((line = reader.readLine()) != null) {
+					text.append(line).append(Utils.NEW_LINE);
+				}
+			}
+			storageInfo.getStorage().delete(retrieve.getBlobId());
+		} else {
+			text.append(new String(header, Utils.UTF8));
 		}
-		final String TEMP_FILE = fileName + ".tmp";
-		storageInfo.getStorage().create(createBlobInfo(storageInfo, TEMP_FILE, false), content);
-		BlobInfo blobInfo = createBlobInfo(storageInfo, fileName, false);
-		ComposeRequest request = ComposeRequest.newBuilder().setTarget(blobInfo)
-				.addSource(fileName).addSource(TEMP_FILE).build();
-		blobInfo = storageInfo.getStorage().compose(request);
-		storageInfo.getStorage().delete(storageInfo.getBucket(), TEMP_FILE);
-		return blobInfo.getMediaLink();
+		text.append(new String(content, Utils.UTF8));
+		Blob blob = storageInfo.getStorage().create(createBlobInfo(storageInfo, fileName, false), text.toString().getBytes(Utils.UTF8));
+		return blob.getMediaLink();
 	}
 
 	private static BlobInfo createBlobInfo(StorageInfo storageInfo, String fileName, boolean acl) {
