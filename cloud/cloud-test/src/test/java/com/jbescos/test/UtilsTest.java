@@ -360,6 +360,11 @@ public class UtilsTest {
 				"First purchase: 1970-01-01 01:00:00\n" + 
 				"Buy / Sell: 10$ / 10$\n" + 
 				"Profit: 0$ (<b>0%</b>) ✅", profit.toString());
+		profit = CsvProfitRow.build("0", summary, new CsvTransactionRow(new Date(0), "1", Action.SELL, "test", "9", "10", 1));
+        assertEquals("test SELL 1970-01-01 01:00:00\n" + 
+                "First purchase: 1970-01-01 01:00:00\n" + 
+                "Buy / Sell: 10$ / 9$\n" + 
+                "Profit: -1$ (<b>-10%</b>) ❌", profit.toString());
 		assertEquals("ORDER ID: 1\ntest BUY 1970-01-01 01:00:00\n" + 
 				"Total USD (USD per unit): 10$ (1$) 💵", buy.toString());
 	}

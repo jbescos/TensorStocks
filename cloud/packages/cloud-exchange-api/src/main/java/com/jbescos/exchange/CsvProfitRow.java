@@ -117,7 +117,7 @@ public class CsvProfitRow {
     	.append("\nFirst purchase: ").append(Utils.fromDate(Utils.FORMAT_SECOND, firstBuyDate))
     	.append("\nBuy / Sell: ").append(quantityUsdtBuy).append("$ / ").append(quantityUsdtSell).append("$")
     	.append("\nProfit: ").append(usdtProfit).append("$ (<b>").append(profitPercentage).append("</b>)");
-    	if (profitPercentage.indexOf(0) == '-') {
+    	if (usdtProfit.contains("-")) {
     		content.append(" ❌");
     	} else {
     		content.append(" ✅");
