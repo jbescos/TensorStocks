@@ -20,7 +20,7 @@ public class CautelousBroker implements Broker {
     private final CsvRow min;
     private final CsvRow max;
     private final CsvRow newest;
-    private final Action action;
+    private Action action;
     private final double minProfitableSellPrice;
     private final boolean hasPreviousTransactions;
     private final Date lastPurchase;
@@ -28,8 +28,10 @@ public class CautelousBroker implements Broker {
     private final CloudProperties cloudProperties;
     private final boolean percentileMin;
     private final boolean panicPeriod;
+    private final List<CsvRow> values;
 
     public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, TransactionsSummary summary, boolean panicPeriod) {
+    	this.values = values;
         this.panicPeriod = panicPeriod;
         this.cloudProperties = cloudProperties;
         this.symbol = symbol;
@@ -48,7 +50,6 @@ public class CautelousBroker implements Broker {
         this.lastPurchase = summary.getLastPurchase();
         double percentileMin = ((avg - min.getPrice()) * cloudProperties.BOT_PERCENTILE_BUY_FACTOR) + min.getPrice();
         this.percentileMin = newest.getPrice() < percentileMin;
-        this.action = evaluate(newest.getPrice(), values);
     }
     
     public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
@@ -96,7 +97,7 @@ public class CautelousBroker implements Broker {
         return percentileMin;
     }
     
-    private Action evaluate(double price, List<CsvRow> values) {
+    private Action evaluate(double price, double benefitsAvg) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
         double maxProfitSell = panicPeriod || Utils.isFearMode(newest.getFearGreedIndex()) ? cloudProperties.BOT_MIN_PROFIT_SELL : cloudProperties.BOT_MAX_PROFIT_SELL;
@@ -104,7 +105,7 @@ public class CautelousBroker implements Broker {
             action = Action.SELL;
         } else {
             if (price < avg) {
-                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest);
+                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR : Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest, benefitsAvg);
                 if (!hasPreviousTransactions || (hasPreviousTransactions && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_PURCHASE_REDUCER))) {
                     if (factor > comparedFactor) {
                         if (Utils.isMin(values)) { // It is going up
@@ -156,5 +157,10 @@ public class CautelousBroker implements Broker {
         builder.append(", newest=").append(newest).append(", avg=").append(avg).append(", minProfitableSellPrice=").append(Utils.format(minProfitableSellPrice)).append(", action=").append(action.name()).append("\n");
         return builder.toString();
     }
+
+	@Override
+	public void evaluate(double benefitsAvg) {
+		this.action = evaluate(newest.getPrice(), benefitsAvg);
+	}
 
 }

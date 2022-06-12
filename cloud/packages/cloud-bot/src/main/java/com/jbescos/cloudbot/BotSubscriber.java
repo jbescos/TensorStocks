@@ -2,7 +2,6 @@ package com.jbescos.cloudbot;
 
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -25,7 +24,6 @@ import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredAPI;
-import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
@@ -59,13 +57,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 		        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
 		        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
 	        }
-	        Map<String, Double> benefits = new HashMap<>();
-	        for (Broker broker : brokers) {
-	        	TransactionsSummary summary = broker.getPreviousTransactions();
-	        	if (summary.isHasTransactions()) {
-	    		    benefits.put(broker.getSymbol(), Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice()));
-	    		}
-	        }
+	        Map<String, Double> benefits = Utils.calculateBenefits(brokers);
 	        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
 	        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
 	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);

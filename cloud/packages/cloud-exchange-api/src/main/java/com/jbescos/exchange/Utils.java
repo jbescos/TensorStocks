@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -42,7 +43,7 @@ public class Utils {
     public static final String TOTAL_USDT = "TOTAL_USDT";
     public static final String NEW_LINE = "\r\n";
     public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG" + NEW_LINE;
-    public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT" + NEW_LINE;
+    public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT,SCORE" + NEW_LINE;
     public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST" + NEW_LINE;
     public static final String LAST_PRICE = "last_price.csv";
     public static final String EMPTY_STR = "";
@@ -55,6 +56,7 @@ public class Utils {
     public static final double EWMA_CONSTANT = 0.01;
     public static final double EWMA_2_CONSTANT = 0.001;
     public static final double TRANSFER_MIN_PROFIT_UNIT = 0.03;
+    public static final String BENEFITS_AVG = "AVG";
 
     public static Properties fromClasspath(String properties) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(properties)) {
@@ -475,24 +477,36 @@ public class Utils {
     public static boolean isFearMode(int fearGreedIndex) {
         return fearGreedIndex < 30;
     }
-    
-    public static double factorFearGreedAdjusted(double factorBase, CsvRow row) {
-    	if (row.getFearGreedIndexAvg() < 24) {
+
+    public static double factorFearGreedAdjusted(double factorBase, CsvRow row, double benefitsAvg) {
+    	double adjustedFactor = factorBase;
+    	int fearGreedIndex = row.getFearGreedIndex();
+    	if (!bigVariationFearGreedIndex(row.getFearGreedIndexAvg(), fearGreedIndex)) {
     		// It has been long time in fear, lets make it normal
-    		return factorBase;
+    		adjustedFactor = factorBase;
     	} else {
-	    	int fearGreedIndex = row.getFearGreedIndex();
 	        if (fearGreedIndex < 10) {
-	            return factorBase + 0.3;
+	        	adjustedFactor = factorBase + 0.2;
 	        } else if (fearGreedIndex < 15) {
-	            return factorBase + 0.2;
+	        	adjustedFactor = factorBase + 0.15;
 	        } else if (fearGreedIndex < 20) {
-	            return factorBase + 0.15;
+	        	adjustedFactor = factorBase + 0.1;
 	        } else if (fearGreedIndex < 30) {
-	            return factorBase + 0.1;
-	        } else {
-	        	return factorBase;
+	        	adjustedFactor = factorBase + 0.05;
 	        }
+    	}
+    	if (benefitsAvg < 0) {
+			adjustedFactor = adjustedFactor + (benefitsAvg * -1 * 0.1);
+		}
+    	return adjustedFactor;
+    }
+
+    public static boolean bigVariationFearGreedIndex(double avgIndex, int currentIndex) {
+    	if (currentIndex >= avgIndex) {
+    		return false;
+    	} else {
+    		double result = (1 - (currentIndex / avgIndex));
+    		return result > 0.2;
     	}
     }
     
@@ -592,4 +606,25 @@ public class Utils {
     	}
     	return builder.toString();
     }
+    
+    public static Map<String, Double> calculateBenefits(List<Broker> brokers) {
+		Map<String, Double> benefits = new HashMap<>();
+        double sumBenefits = 0;
+        int count = 0;
+        for (Broker broker : brokers) {
+        	TransactionsSummary summary = broker.getPreviousTransactions();
+        	if (summary.isHasTransactions()) {
+        		count++;
+        		double benefit = Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice());
+        		sumBenefits = benefit + sumBenefits;
+    		    benefits.put(broker.getSymbol(), benefit);
+    		}
+        }
+        if (count > 0) {
+        	benefits.put(BENEFITS_AVG, sumBenefits / count);
+        } else {
+        	benefits.put(BENEFITS_AVG, 0.0);
+        }
+        return benefits;
+	}
 }

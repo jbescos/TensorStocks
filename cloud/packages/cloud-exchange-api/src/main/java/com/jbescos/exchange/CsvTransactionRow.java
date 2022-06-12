@@ -13,6 +13,7 @@ public class CsvTransactionRow implements IRow {
 	private String usdt;
 	private final String quantity;
 	private final double usdtUnit;
+	private double score = 0;
 	
 	public CsvTransactionRow(Date date, String orderId, Action side, String symbol, String usdt, String quantity,
 	        double usdtUnit) {
@@ -54,7 +55,15 @@ public class CsvTransactionRow implements IRow {
 		return usdtUnit;
 	}
 
-    @Override
+	public double getScore() {
+		return score;
+	}
+
+	public void setScore(double score) {
+		this.score = score;
+	}
+
+	@Override
     public String toString() {
     	StringBuilder content = new StringBuilder().append("ORDER ID: ").append(orderId).append("\n").append(symbol).append(" BUY ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
     	    	.append("\nTotal USD (USD per unit): ").append(usdt).append("$ (").append(Utils.format(usdtUnit, 2)).append("$) 💵");
@@ -63,7 +72,9 @@ public class CsvTransactionRow implements IRow {
 
 	public String toCsvLine() {
 	    StringBuilder data = new StringBuilder();
-        data.append(Utils.fromDate(Utils.FORMAT_SECOND, date)).append(",").append(orderId).append(",").append(side.name()).append(",").append(symbol).append(",").append(usdt).append(",").append(quantity).append(",").append(Utils.format(usdtUnit)).append("\r\n");
+        data.append(Utils.fromDate(Utils.FORMAT_SECOND, date)).append(",").append(orderId).append(",").append(side.name()).append(",").append(symbol).append(",").append(usdt).append(",").append(quantity).append(",").append(Utils.format(usdtUnit));
+        data.append(",").append(Utils.format(score));
+        data.append("\r\n");
 		return data.toString();
 	}
 

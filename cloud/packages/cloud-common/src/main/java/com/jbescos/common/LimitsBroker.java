@@ -18,9 +18,13 @@ public class LimitsBroker implements Broker {
     private final CsvRow max;
     private final double minMaxFactor;
     private final TransactionsSummary summary;
-    private final Action action;
+    private final List<CsvRow> values;
+    private final double fixedBuy;
+    private Action action;
 
     public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double fixedBuy, TransactionsSummary summary) {
+    	this.values = values;
+    	this.fixedBuy = fixedBuy;
     	this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.newest = values.get(values.size() - 1);
@@ -28,15 +32,6 @@ public class LimitsBroker implements Broker {
         this.max = Utils.getMinMax(values, false);
         this.minMaxFactor = Utils.calculateFactor(min, max);
         this.summary = summary;
-        double price = newest.getPrice();
-        double benefit = 1 - (summary.getMinProfitable() / newest.getPrice());
-        if (summary.isHasTransactions() && Utils.isMax(values) && isSell(benefit)) {
-            action = Action.SELL;
-        } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_LIMITS_PURCHASE_REDUCER)))) {
-            action = Action.BUY;
-        } else {
-        	action = Action.NOTHING;
-        }
     }
     
     private boolean isSell(double benefit) {
@@ -79,4 +74,17 @@ public class LimitsBroker implements Broker {
         builder.append(", newest=").append(newest).append(", action=").append(action.name()).append("\n");
         return builder.toString();
     }
+
+	@Override
+	public void evaluate(double benefitsAvg) {
+		double price = newest.getPrice();
+        double benefit = 1 - (summary.getMinProfitable() / newest.getPrice());
+        if (summary.isHasTransactions() && Utils.isMax(values) && isSell(benefit)) {
+            action = Action.SELL;
+        } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_LIMITS_PURCHASE_REDUCER)))) {
+            action = Action.BUY;
+        } else {
+        	action = Action.NOTHING;
+        }
+	}
 }

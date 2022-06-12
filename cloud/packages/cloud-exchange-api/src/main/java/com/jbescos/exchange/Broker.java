@@ -12,6 +12,8 @@ public interface Broker {
 	
 	TransactionsSummary getPreviousTransactions();
 	
+	void evaluate(double avgBenefits);
+	
 	public static enum Action {
 		BUY {
             @Override

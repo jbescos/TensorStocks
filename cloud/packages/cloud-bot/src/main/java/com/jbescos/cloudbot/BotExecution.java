@@ -32,6 +32,7 @@ public class BotExecution {
 	private final ConnectAPI connectAPI;
 	private final Map<String, Double> wallet;
 	private final CloudProperties cloudProperties;
+	private Map<String, Double> benefits;
 	
 	private BotExecution(CloudProperties cloudProperties, ConnectAPI connectAPI) {
 		this.cloudProperties = cloudProperties;
@@ -39,10 +40,13 @@ public class BotExecution {
 		this.wallet = connectAPI.wallet();
 	}
 	
-	public void execute(List<Broker> stats) throws IOException  {
+	public void execute(List<Broker> brokers) throws IOException  {
 		int purchases = 0;
-		Set<String> openSymbolPositions = openPositionSymbols(stats);
-		for (Broker stat : stats) {
+		Set<String> openSymbolPositions = openPositionSymbols(brokers);
+		this.benefits = Utils.calculateBenefits(brokers);
+		double avg = benefits.get(Utils.BENEFITS_AVG);
+		for (Broker stat : brokers) {
+			stat.evaluate(avg);
 			if (stat.getAction() == Action.BUY) {
 				if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
 					if (openSymbolPositions.contains(stat.getSymbol()) || openSymbolPositions.size() < cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
@@ -63,7 +67,7 @@ public class BotExecution {
 			    }
 			}
 		}
-		connectAPI.postActions(stats);
+		connectAPI.postActions(brokers, avg);
 	}
 	
 	private Set<String> openPositionSymbols(List<Broker> stats){
@@ -162,7 +166,7 @@ public class BotExecution {
 
 		double minTransaction();
 		
-		void postActions(List<Broker> stats);
+		void postActions(List<Broker> brokers, double avg);
 	}
 	
 	private static class ConnectAPIImpl implements ConnectAPI {
@@ -218,13 +222,16 @@ public class BotExecution {
 		}
 
 		@Override
-		public void postActions(List<Broker> stats) {
+		public void postActions(List<Broker> stats, double avg) {
 		    if (!transactions.isEmpty()) {
 		        LOGGER.info(() -> cloudProperties.USER_ID + ": Persisting " + transactions.size() + " transactions");
 		        Date now = transactions.get(0).getDate();
 		        String month = Utils.thisMonth(now);
 		        StringBuilder data = new StringBuilder();
-		        transactions.stream().forEach(r -> data.append(r.toCsvLine()));
+		        transactions.stream().forEach(r -> {
+		        	r.setScore(avg);
+		        	data.append(r.toCsvLine());
+		        });
 		        String transactionsCsv = cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv";
 		        try {
 		        	byte[] head = Utils.TX_ROW_HEADER.getBytes(Utils.UTF8);
@@ -337,7 +344,7 @@ public class BotExecution {
 		}
 
 		@Override
-		public void postActions(List<Broker> stats) {
+		public void postActions(List<Broker> stats, double avg) {
 			Map<String, Double> symbolSnapshot = usdtSnappshot(stats);
 			CsvRow newest = stats.get(0).getNewest();
 			for (Entry<String, Double> entry : symbolSnapshot.entrySet()) {
@@ -347,7 +354,10 @@ public class BotExecution {
 			if (!newTransactions.isEmpty()) {
 				try {
 					StringBuilder data = new StringBuilder();
-					newTransactions.stream().forEach(r -> data.append(r.toCsvLine()));
+					newTransactions.stream().forEach(r -> {
+						r.setScore(avg);
+						data.append(r.toCsvLine());
+					});
 					storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 					data.setLength(0);
 					Utils.openPossitions(stats, newTransactions).stream().forEach(r -> data.append(r.toCsvLine()));

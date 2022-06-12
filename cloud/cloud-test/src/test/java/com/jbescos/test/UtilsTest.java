@@ -14,17 +14,18 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
+import com.jbescos.common.CloudProperties;
 import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
-import com.jbescos.exchange.Broker.Action;
-import com.jbescos.exchange.PublicAPI.Interval;
-import com.jbescos.common.CloudProperties;
 
 public class UtilsTest {
 
@@ -268,7 +269,7 @@ public class UtilsTest {
 
 	@Test
 	public void expectedCsvLine() {
-	    String expectedLine = "2021-06-18 14:05:14,,BUY,any,12.62573000,19.70000000,0.6409\r\n";
+	    String expectedLine = "2021-06-18 14:05:14,,BUY,any,12.62573000,19.70000000,0.6409,0\r\n";
 	    CsvTransactionRow txRow = createCsvTransactionRow("2021-06-18 14:05:14", Action.BUY, "12.62573000", "19.70000000");
 	    assertEquals(expectedLine, txRow.toCsvLine());
 	}
@@ -417,6 +418,16 @@ public class UtilsTest {
 		assertEquals(Arrays.asList("4", "3", "6", "7"), result.stream().map(CsvTransactionRow::getOrderId).collect(Collectors.toList()));
 	}
 	
+	@Test
+	public void bigVariationFearGreedIndex() {
+		assertEquals(true, Utils.bigVariationFearGreedIndex(100, 10));
+		assertEquals(true, Utils.bigVariationFearGreedIndex(50, 10));
+		assertEquals(false, Utils.bigVariationFearGreedIndex(50, 50));
+		assertEquals(false, Utils.bigVariationFearGreedIndex(51, 50));
+		assertEquals(true, Utils.bigVariationFearGreedIndex(20, 10));
+		assertEquals(true, Utils.bigVariationFearGreedIndex(16, 12));
+	}
+
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}
@@ -462,6 +473,9 @@ public class UtilsTest {
 		public TransactionsSummary getPreviousTransactions() {
 			return new TransactionsSummary(hasPreviousTransactions, 0, 0, null, null, null);
 		}
+
+		@Override
+		public void evaluate(double benefitsAvg) {}
     	
     }
 }

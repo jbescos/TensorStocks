@@ -31,6 +31,7 @@ public class CautelousBrokerTest {
 			List<CsvTransactionRow> previousTransactions = CsvUtil.readCsvTransactionRows(true, ",", txReader);
 			TransactionsSummary summary = Utils.minSellProfitable(previousTransactions);
 			CautelousBroker broker = new CautelousBroker(cloudProperties, "GENSUSDT", values, summary, false);
+			broker.evaluate(0);
 			assertEquals(summary.toString(), Action.SELL, broker.getAction());
 		}
 	}

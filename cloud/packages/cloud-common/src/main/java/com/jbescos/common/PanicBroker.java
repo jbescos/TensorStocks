@@ -12,17 +12,14 @@ public class PanicBroker implements Broker {
 	private final String symbol;
 	private final CsvRow newest;
 	private final TransactionsSummary summary;
-	private final Action action;
+	private final Action specified;
+	private Action action;
 
-	public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, Action action) {
+	public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, Action specified) {
 		this.symbol = symbol;
 		this.newest = newest;
 		this.summary = summary;
-		if (!summary.isHasTransactions() && (action == Action.SELL || action == Action.SELL_PANIC)) {
-			this.action = Action.NOTHING;
-		} else {
-			this.action = action;
-		}
+		this.specified = specified;
 	}
 
 	@Override
@@ -48,6 +45,15 @@ public class PanicBroker implements Broker {
 	@Override
 	public TransactionsSummary getPreviousTransactions() {
 		return summary;
+	}
+
+	@Override
+	public void evaluate(double benefitsAvg) {
+		if (!summary.isHasTransactions() && (action == Action.SELL || action == Action.SELL_PANIC)) {
+			this.action = Action.NOTHING;
+		} else {
+			this.action = specified;
+		}
 	}
 
 }

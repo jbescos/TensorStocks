@@ -67,7 +67,13 @@ public class BotTest {
 	    	StringBuilder builder = new StringBuilder();
 	    	results.forEach(result -> builder.append(result.toCsv()));
 	    	double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
-	    	builder.append("AVG,").append(Utils.format(avg)).append("%");
+	    	builder.append("AVG,").append(Utils.format(avg)).append("%").append(Utils.NEW_LINE);
+	    	double avgBuyValue = results.stream().mapToDouble(Result::getBuyValue).average().getAsDouble();
+	    	builder.append("BUY_VALUE_AVG,").append(Utils.format(avgBuyValue)).append(Utils.NEW_LINE);
+	    	double min = results.stream().mapToDouble(Result::getBenefitPercentage).min().getAsDouble();
+	    	builder.append("MIN,").append(Utils.format(min)).append(Utils.NEW_LINE);
+	    	double max = results.stream().mapToDouble(Result::getBenefitPercentage).max().getAsDouble();
+	    	builder.append("MAX,").append(Utils.format(max)).append(Utils.NEW_LINE);
 	    	fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.CSV_HEAD.getBytes());
 	    	LOGGER.info("AVG: " + Utils.format(avg) + "%");
     	}

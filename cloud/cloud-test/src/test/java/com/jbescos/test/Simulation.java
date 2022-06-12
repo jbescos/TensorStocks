@@ -268,6 +268,10 @@ public class Simulation {
             return exchange;
         }
 
+		public double getBuyValue() {
+			return buyValue;
+		}
+
 		public String toCsv() {
 			StringBuilder builder = new StringBuilder();
 			builder.append(from).append(",").append(to).append(",").append(exchange).append(",").append(userId).append(",")

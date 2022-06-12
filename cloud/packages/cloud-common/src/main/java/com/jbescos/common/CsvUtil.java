@@ -156,6 +156,12 @@ public class CsvUtil {
 			String quantity = columns[5];
 			double usdtUnit = Double.parseDouble(columns[6]);
 			CsvTransactionRow row = new CsvTransactionRow(date, orderId, Action.valueOf(side), symbol, usdt, quantity, usdtUnit);
+			if (columns.length > 7) {
+				double score = Double.parseDouble(columns[7]);
+				row.setScore(score);
+			} else {
+				row.setScore(0.0);
+			}
 			return row;
 		}, reader);
 	}
