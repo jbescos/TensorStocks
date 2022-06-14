@@ -50,7 +50,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public final String KUCOIN_PUBLIC_KEY;
     public final String KUCOIN_PRIVATE_KEY;
     public final String KUCOIN_API_PASSPHRASE;
-    public final String KUCOIN_COMMERCE_KEY;
     public final String KUCOIN_API_VERSION;
     public final String MIZAR_API_KEY;
     public final int MIZAR_STRATEGY_ID;
@@ -144,7 +143,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         KUCOIN_PUBLIC_KEY = getProperty("kucoin.public.key");
         KUCOIN_PRIVATE_KEY = getProperty("kucoin.private.key");
         KUCOIN_API_PASSPHRASE = getProperty("kucoin.passphrase.key");
-        KUCOIN_COMMERCE_KEY = getProperty("kucoin.commerce.key");
         KUCOIN_API_VERSION = getProperty("kucoin.version");
         
         MIZAR_API_KEY = getProperty("mizar.api.key");

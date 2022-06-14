@@ -72,7 +72,7 @@ public class XYChart implements IChart<IRow> {
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesStroke(0, new BasicStroke(1.0f));
         DateAxis axis = new DateAxis();
-        axis.setDateFormatOverride(new SimpleDateFormat("MM-dd HH:mm"));
+        axis.setDateFormatOverride(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
         ((XYPlot) xylineChart.getPlot()).setDomainAxis(axis);
         ((XYPlot) xylineChart.getPlot()).setRenderer(renderer);
         ((XYPlot) xylineChart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
