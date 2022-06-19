@@ -164,6 +164,17 @@ public class BucketStorage implements FileManager {
 		}
 		return rows;
 	}
+	
+	public List<CsvTransactionRow> loadCsvTransactionRows(String txFile) {
+		List<CsvTransactionRow> transactions = new ArrayList<>();
+		try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), txFile);
+				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+			transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);
+		} catch (Exception e) {
+			// Eat it, no CSV was found is not an error
+		}
+		return transactions;
+	}
 
 	@Override
 	public String overwriteFile(String fileName, byte[] content, byte[] header)

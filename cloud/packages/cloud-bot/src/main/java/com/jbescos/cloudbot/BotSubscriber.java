@@ -21,6 +21,7 @@ import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredAPI;
@@ -61,6 +62,22 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 	        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
 	        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
 	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
+	        
+	        // Synchronize transactions with the exchange
+	        if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
+	        	List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+	        	for (String txFile : txFiles) {
+		        	List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);
+		        	boolean needUpdate = Utils.resyncTransactions(securedApi, transactions);
+		        	if (needUpdate) {
+		        		StringBuilder data = new StringBuilder();
+		        		transactions.stream().forEach(tx -> {
+		        			data.append(tx.toCsvLine());
+		        		});
+		        		bucketStorage.overwriteFile(txFile, data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+		        	}
+	        	}
+	        }
 	        
 	        // Report
 	        boolean report = isReportTime(now, cloudProperties);

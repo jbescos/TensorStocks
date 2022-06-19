@@ -336,4 +336,9 @@ public class SecuredMizarAPI implements SecuredAPI {
 	public Client getClient() {
 		return client;
 	}
+
+	@Override
+	public CsvTransactionRow synchronize(CsvTransactionRow precalculated) {
+		throw new IllegalStateException("Binance does not support synchornize transactions");
+	}
 }

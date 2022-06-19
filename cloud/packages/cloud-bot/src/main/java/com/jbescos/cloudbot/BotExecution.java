@@ -10,20 +10,21 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import com.jbescos.common.CloudProperties;
+import com.jbescos.common.FileManager;
+import com.jbescos.common.TelegramBot;
 import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
-import com.jbescos.exchange.Broker.Action;
-import com.jbescos.common.CloudProperties;
-import com.jbescos.common.FileManager;
-import com.jbescos.common.TelegramBot;
 
 public class BotExecution {
 	
@@ -285,6 +286,7 @@ public class BotExecution {
 	
 	private static class ConnectAPITest implements ConnectAPI {
 		
+		private static final AtomicLong ID_GENERATOR = new AtomicLong(1000000);
 		private final CloudProperties cloudProperties;
 		private final FileManager storage;
 		private final List<CsvTransactionRow> newTransactions = new ArrayList<>();
@@ -309,9 +311,9 @@ public class BotExecution {
 		public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd) {
 			CsvTransactionRow transaction = null;
 			if (stat.getAction() == Action.BUY) {
-				transaction = Utils.calculatedUsdtCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString(), stat.getAction(), quantityUsd, stat.getNewest().getPrice(), cloudProperties.BOT_BUY_COMMISSION);
+				transaction = Utils.calculatedUsdtCsvTransactionRow(stat.getNewest().getDate(), symbol, Long.toString(ID_GENERATOR.incrementAndGet()), stat.getAction(), quantityUsd, stat.getNewest().getPrice(), cloudProperties.BOT_BUY_COMMISSION);
 			} else {
-				transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString(), stat.getAction(), quantity, stat.getNewest().getPrice(), cloudProperties.BOT_SELL_COMMISSION);
+				transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol, Long.toString(ID_GENERATOR.incrementAndGet()), stat.getAction(), quantity, stat.getNewest().getPrice(), cloudProperties.BOT_SELL_COMMISSION);
 			}
 			newTransactions.add(transaction);
 			return transaction;

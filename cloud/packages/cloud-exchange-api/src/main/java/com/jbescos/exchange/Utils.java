@@ -43,7 +43,7 @@ public class Utils {
     public static final String TOTAL_USDT = "TOTAL_USDT";
     public static final String NEW_LINE = "\r\n";
     public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG" + NEW_LINE;
-    public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT,SCORE" + NEW_LINE;
+    public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT,SCORE,SYNC" + NEW_LINE;
     public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST" + NEW_LINE;
     public static final String LAST_PRICE = "last_price.csv";
     public static final String EMPTY_STR = "";
@@ -434,6 +434,10 @@ public class Utils {
         return currentSymbol * usdOfUnit;
     }
     
+    public static double usdUnitValue(double size, double usd) {
+        return usd / size;
+    }
+    
     public static double applyCommission(double originalPrice, double commission) {
         return originalPrice * (1 - commission);
     }
@@ -627,4 +631,23 @@ public class Utils {
         }
         return benefits;
 	}
+    
+    public static boolean resyncTransactions(SecuredAPI securedApi, List<CsvTransactionRow> transactions) {
+    	// Limit to avoid many requests
+    	int LIMIT_RESYNC = 5;
+    	int synced = 0;
+    	for (int i = 0; i < transactions.size(); i++) {
+    		if (synced < LIMIT_RESYNC) {
+    			CsvTransactionRow tx = transactions.get(i);
+    			if (!tx.isSync()) {
+    				CsvTransactionRow syncedTx = securedApi.synchronize(tx);
+    				transactions.set(i, syncedTx);
+    				synced++;
+    			}
+    		} else {
+    			break;
+    		}
+    	}
+    	return synced > 0;
+    }
 }

@@ -240,6 +240,25 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		return response.get("withdrawalId");
 	}
 	
+	@Override
+	public CsvTransactionRow synchronize(CsvTransactionRow precalculated) {
+		if (!precalculated.isSync()) {
+			Map<String, String> order = get("/api/v1/orders/" + precalculated.getOrderId(), new GenericType<KucoinResponse<Map<String, String>>>() {}).getData();
+			if (!Boolean.parseBoolean(order.get("isActive"))) {
+				if (precalculated.getOrderId().equals(order.get("id"))) {
+					CsvTransactionRow synced = new CsvTransactionRow(precalculated, order.get("dealFunds"), order.get("dealSize"));
+					LOGGER.info("CsvTransactionRow resynchronized, from:\n " + precalculated.toCsvLine() + " to:\n " + synced.toCsvLine());
+					return synced;
+				} else {
+					LOGGER.severe("Cannot sync order id: " + precalculated.getOrderId());
+				}
+			} else {
+				LOGGER.info("Order id " + precalculated.getOrderId() + " is still active, resync is postponed");
+			}
+		}
+		return precalculated;
+	}
+	
 	public static SecuredKucoinAPI create(PropertiesKucoin cloudProperties, Client client) throws InvalidKeyException, NoSuchAlgorithmException {
 		return new SecuredKucoinAPI(client, cloudProperties.kucoinPublicKey(), cloudProperties.kucoinPrivateKey(), cloudProperties.kucoinApiPassPhrase(), cloudProperties.kucoinApiVersion(), cloudProperties.kucoinBuyCommission(), cloudProperties.kucoinSellCommission());
 	}

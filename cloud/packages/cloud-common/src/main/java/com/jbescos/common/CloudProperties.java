@@ -267,7 +267,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     }
 
     public static enum Exchange {
-        BINANCE("/binance/", true) {
+        BINANCE("/binance/", true, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredBinanceAPI.create(cloudProperties, client);
@@ -277,7 +277,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
-        }, KUCOIN("/kucoin/", true) {
+        }, KUCOIN("/kucoin/", true, true) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredKucoinAPI.create(cloudProperties, client);
@@ -287,7 +287,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
-        }, MIZAR_KUCOIN("/kucoin/", false) {
+        }, MIZAR_KUCOIN("/kucoin/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
@@ -297,7 +297,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
-        }, MIZAR_OKEX("/okex/", false) {
+        }, MIZAR_OKEX("/okex/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
@@ -307,7 +307,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceOkex();
 			}
-        }, MIZAR_FTX("/ftx/", false) {
+        }, MIZAR_FTX("/ftx/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
@@ -317,7 +317,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceFtx();
 			}
-        }, MIZAR_BINANCE("/binance/", false) {
+        }, MIZAR_BINANCE("/binance/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
             	return SecuredMizarAPI.create(cloudProperties, client);
@@ -327,7 +327,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
-        }, FTX("/ftx/", true) {
+        }, FTX("/ftx/", true, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
             	throw new UnsupportedOperationException("FTX integration is not supported");
@@ -337,7 +337,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			public Map<String, Double> price(PublicAPI publicApi) {
 				return publicApi.priceFtx();
 			}
-        }, OKEX("/okex/", true) {
+        }, OKEX("/okex/", true, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
             	throw new UnsupportedOperationException("OKEX integration is not supported");
@@ -351,14 +351,20 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     	
     	private final String folder;
     	private final boolean supportWallet;
+    	private final boolean supportSyncTransaction;
     	
-    	private Exchange(String folder, boolean supportWallet) {
+    	private Exchange(String folder, boolean supportWallet, boolean supportSyncTransaction) {
     		this.folder = folder;
     		this.supportWallet = supportWallet;
+    		this.supportSyncTransaction = supportSyncTransaction;
     	}
         
         public boolean isSupportWallet() {
 			return supportWallet;
+		}
+
+        public boolean isSupportSyncTransaction() {
+			return supportSyncTransaction;
 		}
 
 		public String getFolder() {

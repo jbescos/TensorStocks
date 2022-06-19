@@ -14,6 +14,7 @@ public class CsvTransactionRow implements IRow {
 	private final String quantity;
 	private final double usdtUnit;
 	private double score = 0;
+	private boolean sync = false;
 	
 	public CsvTransactionRow(Date date, String orderId, Action side, String symbol, String usdt, String quantity,
 	        double usdtUnit) {
@@ -26,6 +27,18 @@ public class CsvTransactionRow implements IRow {
 		this.usdtUnit = usdtUnit;
 	}
 
+	public CsvTransactionRow(CsvTransactionRow unsynced, String usdt, String quantity) {
+		this.date = unsynced.getDate();
+		this.orderId = unsynced.getOrderId();
+		this.side = unsynced.getSide();
+		this.symbol = unsynced.getSymbol();
+		this.usdt = usdt;
+		this.quantity = quantity;
+		this.usdtUnit = Utils.usdUnitValue(Double.parseDouble(quantity), Double.parseDouble(usdt));
+		this.score = unsynced.getScore();
+		this.sync = true;
+	}
+			
 	@Override
 	public Date getDate() {
 		return date;
@@ -63,6 +76,14 @@ public class CsvTransactionRow implements IRow {
 		this.score = score;
 	}
 
+	public boolean isSync() {
+		return sync;
+	}
+
+	public void setSync(boolean sync) {
+		this.sync = sync;
+	}
+
 	@Override
     public String toString() {
     	StringBuilder content = new StringBuilder().append("ORDER ID: ").append(orderId).append("\n").append(symbol).append(" BUY ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
@@ -74,6 +95,7 @@ public class CsvTransactionRow implements IRow {
 	    StringBuilder data = new StringBuilder();
         data.append(Utils.fromDate(Utils.FORMAT_SECOND, date)).append(",").append(orderId).append(",").append(side.name()).append(",").append(symbol).append(",").append(usdt).append(",").append(quantity).append(",").append(Utils.format(usdtUnit));
         data.append(",").append(Utils.format(score));
+        data.append(",").append(sync);
         data.append("\r\n");
 		return data.toString();
 	}

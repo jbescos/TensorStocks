@@ -15,4 +15,6 @@ public interface SecuredAPI {
     CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice);
     
     Client getClient();
+
+	CsvTransactionRow synchronize(CsvTransactionRow precalculated);
 }

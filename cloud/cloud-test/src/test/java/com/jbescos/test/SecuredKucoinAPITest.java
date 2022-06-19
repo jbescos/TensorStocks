@@ -3,6 +3,8 @@ package com.jbescos.test;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -17,8 +19,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
+import com.jbescos.exchange.Broker.Action;
+import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredKucoinAPI;
+import com.jbescos.exchange.Utils;
 
 public class SecuredKucoinAPITest {
 
@@ -62,11 +67,21 @@ public class SecuredKucoinAPITest {
 	@Test
 	@Ignore
 	public void address() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
-		Client client = ClientBuilder.newClient();
 		PublicAPI publicAPI = new PublicAPI(client);
 		Map<String, Double> kucoinSellPrices = publicAPI.priceKucoin();
 		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
 		System.out.println("Address:" + api.depositAddress("BTCUSDT", kucoinSellPrices));
-		client.close();
+	}
+	
+	@Test
+	@Ignore
+	public void synchronize() throws InvalidKeyException, NoSuchAlgorithmException {
+		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
+		List<CsvTransactionRow> rows = new ArrayList<>();
+		CsvTransactionRow row1 = new CsvTransactionRow(Utils.fromString(Utils.FORMAT_SECOND, "2022-04-01 03:30:35"), "624671da73fcb30001f64238", Action.BUY, "BTCUSDT", "323", "0.00726401", 44421.3);
+		CsvTransactionRow row2 = new CsvTransactionRow(Utils.fromString(Utils.FORMAT_SECOND, "2022-05-14 12:00:24"), "627f99d72ed2df0001f7aff1", Action.BUY, "BTCUSDT", "323", "0.01111005", 29043.7);
+		rows.add(row1);
+		rows.add(row2);
+		Utils.resyncTransactions(api, rows);
 	}
 }

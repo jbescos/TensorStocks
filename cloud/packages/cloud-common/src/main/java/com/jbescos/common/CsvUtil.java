@@ -123,8 +123,14 @@ public class CsvUtil {
             String usdtProfit = columns[9];
             String netUsdtProfit = columns[10];
             String profitPercentage = columns[11];
+            String buyIds = "";
+            String sellId = "";
+            if (columns.length > 13) {
+            	buyIds = columns[12];
+            	sellId = columns[13];
+            }
             // "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISSION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%"
-            CsvProfitRow row = new CsvProfitRow(firstBuyDate, sellDate, symbol, quantityBuy, quantityUsdtBuy, quantitySell, quantityUsdtSell, commissionPercentage, commissionUsdt, usdtProfit, netUsdtProfit, profitPercentage);
+            CsvProfitRow row = new CsvProfitRow(firstBuyDate, sellDate, symbol, quantityBuy, quantityUsdtBuy, quantitySell, quantityUsdtSell, commissionPercentage, commissionUsdt, usdtProfit, netUsdtProfit, profitPercentage, buyIds, sellId);
             return row;
         }, reader);
 	}
@@ -159,6 +165,12 @@ public class CsvUtil {
 			if (columns.length > 7) {
 				double score = Double.parseDouble(columns[7]);
 				row.setScore(score);
+				if (columns.length > 8) {
+					boolean sync = Boolean.parseBoolean(columns[8]);
+					row.setSync(sync);
+				} else {
+					row.setSync(false);
+				}
 			} else {
 				row.setScore(0.0);
 			}

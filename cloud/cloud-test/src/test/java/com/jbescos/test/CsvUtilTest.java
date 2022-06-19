@@ -57,8 +57,8 @@ public class CsvUtilTest {
 	@Test
 	public void profitableCsv() throws IOException {
 		TestFileStorage storage = new TestFileStorage(BASE_TEST_FOLDER, Collections.emptyList(), Collections.emptyList());
-		CsvProfitRow row1 = new CsvProfitRow(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-04 00:46:01"), "symbol1", "1", "2", "3", "4", "10%", "11", "21", "16", "17%");
-		CsvProfitRow row2 = new CsvProfitRow(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-03 00:46:01"), "symbol2", "1.1", "2.1", "3.1", "4.1", "10.1%", "11.1", "21.1", "16.1", "17.1%");
+		CsvProfitRow row1 = new CsvProfitRow(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-01 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-04 00:46:01"), "symbol1", "1", "2", "3", "4", "10%", "11", "21", "16", "17%", "", "");
+		CsvProfitRow row2 = new CsvProfitRow(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-02 00:46:01"), Utils.fromString(Utils.FORMAT_SECOND, "2021-05-03 00:46:01"), "symbol2", "1.1", "2.1", "3.1", "4.1", "10.1%", "11.1", "21.1", "16.1", "17.1%", "", "");
 		StringBuilder builder = new StringBuilder().append(row1.toCsvLine()).append(row2.toCsvLine());
 		storage.updateFile("profitable.csv", builder.toString().getBytes(), CsvProfitRow.HEADER.getBytes());
 		List<CsvProfitRow> profits = storage.loadCsvProfitRows("userId", -1);
