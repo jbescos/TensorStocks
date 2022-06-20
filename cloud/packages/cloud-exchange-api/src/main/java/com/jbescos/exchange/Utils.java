@@ -57,6 +57,7 @@ public class Utils {
     public static final double EWMA_2_CONSTANT = 0.001;
     public static final double TRANSFER_MIN_PROFIT_UNIT = 0.03;
     public static final String BENEFITS_AVG = "AVG";
+    public static final String ORDER_ID_SPLIT = "-";
 
     public static Properties fromClasspath(String properties) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(properties)) {
@@ -648,6 +649,46 @@ public class Utils {
     			break;
     		}
     	}
+    	return synced > 0;
+    }
+    
+    public static boolean resyncProfit(Map<String, CsvTransactionRow> byOrderId, List<CsvProfitRow> profitRows, String commission) {
+    	double commissionD = Double.parseDouble(commission);
+    	int synced = 0;
+    	for (int i = 0; i < profitRows.size(); i++) {
+    		CsvProfitRow profitRow = profitRows.get(i);
+			if (!profitRow.isSync()) {
+				String[] buyIds = profitRow.getBuyIds().split(ORDER_ID_SPLIT);
+				String sellId = profitRow.getSellId();
+				CsvTransactionRow sellTx = byOrderId.get(sellId);
+				if (sellTx != null && sellTx.isSync()) {
+					boolean process = true;
+					double totalQuantityBuy = 0;
+					double totalUsdBuy = 0;
+					for (String buyId : buyIds) {
+						CsvTransactionRow tx = byOrderId.get(buyId);
+						if (tx != null && tx.isSync()) {
+							totalUsdBuy = totalUsdBuy + Double.parseDouble(tx.getUsdt());
+							totalQuantityBuy = totalQuantityBuy + Double.parseDouble(tx.getQuantity());
+						} else {
+							LOGGER.warning("No transaction with ID: " + buyId + " was found. Possibly transaction is too old or ID is wrong. Skipping CsvProfitRow.");
+							process = false;
+							break;
+						}
+					}
+					if (process) {
+						double usdtProfit = Double.parseDouble(sellTx.getUsdt()) - totalUsdBuy;
+						double commissionUsdt = usdtProfit * commissionD;
+						double netUsdtProfit = usdtProfit - commissionUsdt;
+						double profitPercentage = usdtProfit * 100 / totalUsdBuy;
+						CsvProfitRow newCsvProfitRow = new CsvProfitRow(profitRow, Utils.format(totalQuantityBuy, 2), Utils.format(totalUsdBuy, 2), Utils.format(Double.parseDouble(sellTx.getQuantity()), 2),
+								Utils.format(Double.parseDouble(sellTx.getUsdt()), 2), Utils.format(commissionUsdt, 2), Utils.format(usdtProfit, 2), Utils.format(netUsdtProfit, 2), Utils.format(profitPercentage, 2) + "%", Utils.format(commissionD * 100, 2) + "%");
+						profitRows.set(i, newCsvProfitRow);
+						synced++;
+					}
+				}
+			}
+		}
     	return synced > 0;
     }
 }

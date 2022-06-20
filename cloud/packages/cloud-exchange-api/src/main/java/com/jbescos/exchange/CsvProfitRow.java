@@ -7,7 +7,7 @@ import java.util.Date;
 public class CsvProfitRow {
 	
 	public static final String PREFIX = "profit/profit_";
-	public static final String HEADER = "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISSION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%,BUY_IDS,SELL_ID" + Utils.NEW_LINE;
+	public static final String HEADER = "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISSION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%,BUY_IDS,SELL_ID,SYNC" + Utils.NEW_LINE;
 	
 	private final Date sellDate;
 	private final Date firstBuyDate;
@@ -23,6 +23,7 @@ public class CsvProfitRow {
 	private final String profitPercentage;
 	private final String buyIds;
 	private final String sellId;
+	private boolean sync = false;
 	
 	public CsvProfitRow(Date firstBuyDate, Date sellDate, String symbol, String quantityBuy, String quantityUsdtBuy,
 			String quantitySell, String quantityUsdtSell, String commissionPercentage, String commissionUsdt,
@@ -41,6 +42,26 @@ public class CsvProfitRow {
 		this.profitPercentage = profitPercentage;
 		this.buyIds = buyIds;
 		this.sellId = sellId;
+		this.sync = false;
+	}
+	
+	public CsvProfitRow(CsvProfitRow old, String quantityBuy, String quantityUsdtBuy, String quantitySell, String quantityUsdtSell, String commissionUsdt,
+			String usdtProfit, String netUsdtProfit, String profitPercentage, String commissionPercentage) {
+		this.firstBuyDate = old.firstBuyDate;
+		this.sellDate = old.sellDate;
+		this.symbol = old.symbol;
+		this.quantityBuy = quantityBuy;
+		this.quantityUsdtBuy = quantityUsdtBuy;
+		this.quantitySell = quantitySell;
+		this.quantityUsdtSell = quantityUsdtSell;
+		this.commissionPercentage = commissionPercentage;
+		this.commissionUsdt = commissionUsdt;
+		this.usdtProfit = usdtProfit;
+		this.netUsdtProfit = netUsdtProfit;
+		this.profitPercentage = profitPercentage;
+		this.buyIds = old.buyIds;
+		this.sellId = old.sellId;
+		this.sync = true;
 	}
 
 	public String toCsvLine() {
@@ -48,7 +69,7 @@ public class CsvProfitRow {
 		data.append(Utils.fromDate(Utils.FORMAT_SECOND, sellDate)).append(",").append(Utils.fromDate(Utils.FORMAT_SECOND, firstBuyDate)).append(",").append(symbol)
 		.append(",").append(quantityBuy).append(",").append(quantitySell).append(",").append(quantityUsdtBuy).append(",").append(quantityUsdtSell).append(",").append(commissionPercentage)
 		.append(",").append(commissionUsdt).append(",").append(usdtProfit).append(",").append(netUsdtProfit).append(",").append(profitPercentage).append(",")
-		.append(buyIds).append(",").append(sellId).append(Utils.NEW_LINE);
+		.append(buyIds).append(",").append(sellId).append(",").append(sync).append(Utils.NEW_LINE);
 		return data.toString();
 	}
 	
@@ -96,7 +117,7 @@ public class CsvProfitRow {
 			StringBuilder buyIds = new StringBuilder();
 			for (CsvTransactionRow buy : summary.getPreviousBuys()) {
 				if (buyIds.length() != 0) {
-					buyIds.append("-");
+					buyIds.append(Utils.ORDER_ID_SPLIT);
 				}
 				buyIds.append(buy.getOrderId());
 			}
@@ -107,6 +128,10 @@ public class CsvProfitRow {
 		}
 	}
 	
+	public String getCommissionPercentage() {
+		return commissionPercentage;
+	}
+
 	public String getSymbol() {
 		return symbol;
 	}
@@ -121,6 +146,26 @@ public class CsvProfitRow {
 
 	public String getQuantityUsdtSell() {
 		return quantityUsdtSell;
+	}
+
+	public boolean isSync() {
+		return sync;
+	}
+
+	public void setSync(boolean sync) {
+		this.sync = sync;
+	}
+
+	public String getBuyIds() {
+		return buyIds;
+	}
+
+	public String getSellId() {
+		return sellId;
+	}
+
+	public String getProfitPercentage() {
+		return profitPercentage;
 	}
 
 	@Override

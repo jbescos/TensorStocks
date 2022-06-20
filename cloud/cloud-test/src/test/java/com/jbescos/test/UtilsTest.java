@@ -2,8 +2,13 @@ package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,10 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
@@ -282,12 +287,12 @@ public class UtilsTest {
 		TransactionsSummary summary = Utils.minSellProfitable(Arrays.asList(buy2, buy1));
 		CsvProfitRow profitRow = CsvProfitRow.build("0.03", summary, sell);
 		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
-		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,1000.84,3%,3,100.24,97.23,11.13%,," + Utils.NEW_LINE, profitRow.toCsvLine());
+		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,1000.84,3%,3,100.24,97.23,11.13%,,,false" + Utils.NEW_LINE, profitRow.toCsvLine());
 		// Sell quantity does not match with but quantity because the user bought out of the system. We only consider the bot proportion
 		sell = createCsvTransactionRow("2021-10-01 00:00:00", Action.SELL, "1538", "2");
 		profitRow = CsvProfitRow.build("0.03", summary, sell);
 		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
-		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,999.7,3%,2.97,99.1,96.12,11%,," + Utils.NEW_LINE, profitRow.toCsvLine());
+		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,999.7,3%,2.97,99.1,96.12,11%,,,false" + Utils.NEW_LINE, profitRow.toCsvLine());
 	}
 	
 	@Test
@@ -426,6 +431,30 @@ public class UtilsTest {
 		assertEquals(false, Utils.bigVariationFearGreedIndex(51, 50));
 		assertEquals(true, Utils.bigVariationFearGreedIndex(20, 10));
 		assertEquals(true, Utils.bigVariationFearGreedIndex(16, 12));
+	}
+	
+	@Test
+	public void resyncProfit() throws IOException {
+		List<CsvTransactionRow> transactions = null;
+		List<CsvProfitRow> profits = null;
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resync/zzzDaviX_transactions_transactions_2022-06.csv")))) {
+			transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);
+		}
+		assertNotNull(transactions);
+		try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resync/zzzDaviX_profit_profit_2022-06.csv")))) {
+			profits = CsvUtil.readCsvProfitRows(reader);
+		}
+		assertNotNull(profits);
+		Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
+		transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
+		assertEquals("-2.01%", profits.get(0).getProfitPercentage());
+		assertEquals("-2.18%", profits.get(1).getProfitPercentage());
+		assertEquals("8.39%", profits.get(2).getProfitPercentage());
+		assertTrue(Utils.resyncProfit(byOrderId, profits, "0.15"));
+		assertEquals("15%", profits.get(0).getCommissionPercentage());
+		assertEquals("-2.5%", profits.get(0).getProfitPercentage());
+		assertEquals("-2.3%", profits.get(1).getProfitPercentage());
+		assertEquals("6.2%", profits.get(2).getProfitPercentage());
 	}
 
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {

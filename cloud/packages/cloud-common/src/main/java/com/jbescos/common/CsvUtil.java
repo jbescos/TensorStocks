@@ -125,12 +125,17 @@ public class CsvUtil {
             String profitPercentage = columns[11];
             String buyIds = "";
             String sellId = "";
+            boolean sync = false;
             if (columns.length > 13) {
             	buyIds = columns[12];
             	sellId = columns[13];
+            	if (columns.length > 14) {
+            		sync = Boolean.parseBoolean(columns[14]);
+            	}
             }
             // "SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISSION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%"
             CsvProfitRow row = new CsvProfitRow(firstBuyDate, sellDate, symbol, quantityBuy, quantityUsdtBuy, quantitySell, quantityUsdtSell, commissionPercentage, commissionUsdt, usdtProfit, netUsdtProfit, profitPercentage, buyIds, sellId);
+            row.setSync(sync);
             return row;
         }, reader);
 	}

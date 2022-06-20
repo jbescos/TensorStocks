@@ -2,9 +2,11 @@ package com.jbescos.cloudbot;
 
 import java.util.Base64;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -66,6 +68,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 	        // Synchronize transactions with the exchange
 	        if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
 	        	List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+	        	Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
 	        	for (String txFile : txFiles) {
 		        	List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);
 		        	boolean needUpdate = Utils.resyncTransactions(securedApi, transactions);
@@ -76,6 +79,19 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 		        		});
 		        		bucketStorage.overwriteFile(txFile, data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
 		        	}
+		        	transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
+	        	}
+	        	List<String> profitFiles = Utils.monthsBack(now, 2, userId + "/" + CsvProfitRow.PREFIX, ".csv");
+	        	for (String profitFile : profitFiles) {
+	        		List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(profitFile);
+	        		boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows, cloudProperties.BROKER_COMMISSION);
+	        		if (needUpdate) {
+	        			StringBuilder data = new StringBuilder();
+	        			profitRows.stream().forEach(profit -> {
+		        			data.append(profit.toCsvLine());
+		        		});
+		        		bucketStorage.overwriteFile(profitFile, data.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+	        		}
 	        	}
 	        }
 	        

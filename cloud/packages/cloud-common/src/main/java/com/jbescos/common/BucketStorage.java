@@ -152,21 +152,25 @@ public class BucketStorage implements FileManager {
 	public List<CsvProfitRow> loadCsvProfitRows(String userId, int monthsBack) {
 		List<String> months = Utils.monthsBack(new Date(), monthsBack, userId + "/" + CsvProfitRow.PREFIX, ".csv");
 		List<CsvProfitRow> rows = new ArrayList<>();
-		List<CsvProfitRow> csvInMonth = null;
 		for (String month : months) {
-			try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), month);
-					BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-				csvInMonth = CsvUtil.readCsvProfitRows(reader);
-				rows.addAll(csvInMonth);
-			} catch (Exception e) {
-				// Eat it, no CSV was found is not an error
-			}
+			rows.addAll(loadCsvProfitRows(month));
 		}
 		return rows;
 	}
 	
+	public List<CsvProfitRow> loadCsvProfitRows(String profitFile) {
+		List<CsvProfitRow> profitRows = Collections.emptyList();
+		try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), profitFile);
+				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+			profitRows = CsvUtil.readCsvProfitRows(reader);
+		} catch (Exception e) {
+			// Eat it, no CSV was found is not an error
+		}
+		return profitRows;
+	}
+	
 	public List<CsvTransactionRow> loadCsvTransactionRows(String txFile) {
-		List<CsvTransactionRow> transactions = new ArrayList<>();
+		List<CsvTransactionRow> transactions = Collections.emptyList();
 		try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), txFile);
 				BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
 			transactions = CsvUtil.readCsvTransactionRows(true, ",", reader);
