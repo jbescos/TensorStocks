@@ -165,6 +165,7 @@ public class CsvUtil {
 			String symbol = columns[3];
 			String usdt = columns[4];
 			String quantity = columns[5];
+			String fee = "0";
 			double usdtUnit = Double.parseDouble(columns[6]);
 			CsvTransactionRow row = new CsvTransactionRow(date, orderId, Action.valueOf(side), symbol, usdt, quantity, usdtUnit);
 			if (columns.length > 7) {
@@ -173,12 +174,16 @@ public class CsvUtil {
 				if (columns.length > 8) {
 					boolean sync = Boolean.parseBoolean(columns[8]);
 					row.setSync(sync);
+					if (columns.length > 9) {
+						fee = columns[9];
+					}
 				} else {
 					row.setSync(false);
 				}
 			} else {
 				row.setScore(0.0);
 			}
+			row.setFee(fee);
 			return row;
 		}, reader);
 	}

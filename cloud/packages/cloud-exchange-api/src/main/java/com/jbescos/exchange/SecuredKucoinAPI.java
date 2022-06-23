@@ -243,10 +243,10 @@ public class SecuredKucoinAPI implements SecuredAPI {
 	@Override
 	public CsvTransactionRow synchronize(CsvTransactionRow precalculated) {
 		if (!precalculated.isSync()) {
-			Map<String, String> order = get("/api/v1/orders/" + precalculated.getOrderId(), new GenericType<KucoinResponse<Map<String, String>>>() {}).getData();
+			Map<String, String> order = getOrder(precalculated.getOrderId());
 			if (!Boolean.parseBoolean(order.get("isActive"))) {
 				if (precalculated.getOrderId().equals(order.get("id"))) {
-					CsvTransactionRow synced = new CsvTransactionRow(precalculated, order.get("dealFunds"), order.get("dealSize"));
+					CsvTransactionRow synced = new CsvTransactionRow(precalculated, order.get("dealFunds"), order.get("dealSize"), order.get("fee"));
 					LOGGER.info("CsvTransactionRow resynchronized, from:\n " + precalculated.toCsvLine() + " to:\n " + synced.toCsvLine());
 					return synced;
 				} else {

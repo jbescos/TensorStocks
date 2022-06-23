@@ -274,7 +274,7 @@ public class UtilsTest {
 
 	@Test
 	public void expectedCsvLine() {
-	    String expectedLine = "2021-06-18 14:05:14,,BUY,any,12.62573000,19.70000000,0.6409,0,false\r\n";
+	    String expectedLine = "2021-06-18 14:05:14,,BUY,any,12.62573000,19.70000000,0.6409,0,false,0\r\n";
 	    CsvTransactionRow txRow = createCsvTransactionRow("2021-06-18 14:05:14", Action.BUY, "12.62573000", "19.70000000");
 	    assertEquals(expectedLine, txRow.toCsvLine());
 	}
