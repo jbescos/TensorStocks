@@ -74,11 +74,11 @@ public class DateChart implements IChart<IRow> {
 		JFreeChart chart = ChartFactory.createTimeSeriesChart(title, horizontalLabel, verticalLabel, dataset, true,
 				true, true);
 		XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-		renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+		renderer.setSeriesStroke(0, new BasicStroke(0.2f));
 		chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		((XYPlot)chart.getPlot()).setRenderer(renderer);
 		((XYPlot)chart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
-		BufferedImage image = chart.createBufferedImage(1080, 1200);
+		BufferedImage image = chart.createBufferedImage(2560, 1440);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}
 

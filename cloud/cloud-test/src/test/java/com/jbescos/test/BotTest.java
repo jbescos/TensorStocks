@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Logger;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
@@ -78,45 +77,6 @@ public class BotTest {
 	    	LOGGER.info("AVG: " + Utils.format(avg) + "%");
     	}
     }
-    
-    @Test
-    @Ignore
-    public void separately() throws FileNotFoundException, IOException {
-    	final String BASE_TEST_FOLDER = "./target/test-results-separately/";
-    	DateFormat format = new SimpleDateFormat(Utils.FORMAT);
-    	List<CompletableFuture<?>> completables = new ArrayList<>();
-    	final int MONTHS_INTERVAL = 12;
-    	String[] users = new String [] {
-    			"kucoin-all", "2021-10-25",
-    			"binance-all", "2021-05-08",
-    			"ftx", "2021-11-09",
-    			"okex", "2021-11-09"
-    			};
-    	for (int i = 0; i < users.length; i = i + 2) {
-    		String userId = users[i];
-    		CloudProperties cloudProperties = new CloudProperties(userId, null);
-    		String from = users[i + 1];
-    		Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
-    		String toStr = Utils.fromDate(Utils.FORMAT, to);
-    		Simulation simulation = null;
-    		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
-    		    final Simulation sim = simulation;
-    		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runBySymbol()).thenAccept(scores -> {
-    		    	if (scores != null) {
-	    		    	Collections.sort(scores);
-	    		    	StringBuilder builder = new StringBuilder("bot.white.list=");
-	    		    	scores.stream().forEach(score -> builder.append(score.getSymbol()).append(","));
-	    		    	LOGGER.info(userId + ": " + builder.toString());
-    		    	}
-    		    });
-    		    completables.add(completable);
-    			from = toStr;
-    			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
-    			toStr = Utils.fromDate(Utils.FORMAT, to);
-    		}
-    	}
-    	CompletableFuture.allOf(completables.toArray(new CompletableFuture[0])).join();
-    }
 
     @Test
     public void round() {
@@ -130,36 +90,6 @@ public class BotTest {
         double result = quoteOrderQtyBD / executedQtyBD;
         String resultStr = Utils.format(result);
         assertEquals("24.74174423", resultStr);
-    }
-
-    private static class TestResult {
-        private final String symbol;
-        private final double trader;
-        private final double holder;
-        private final double absoluteBenefit;
-        private final double multiplier;
-        private final int transactions;
-        private final boolean success;
-        private final double transactionValue;
-
-        public TestResult(String symbol, double trader, double holder, int transactions) {
-            this.symbol = symbol;
-            this.trader = trader;
-            this.holder = holder;
-            this.absoluteBenefit = trader - holder;
-            this.multiplier = trader / holder;
-            this.transactions = transactions;
-            this.success = absoluteBenefit >= 0;
-            this.transactionValue = multiplier / transactions;
-        }
-
-        @Override
-        public String toString() {
-            return "\n TestResult [symbol=" + symbol + ", trader=" + trader + ", holder=" + holder + ", absoluteBenefit="
-                    + absoluteBenefit + ", multiplier=" + multiplier + ", transactions=" + transactions + ", transactionValue=" + Utils.format(transactionValue) + ", success="
-                    + success + "]";
-        }
-
     }
 
 }

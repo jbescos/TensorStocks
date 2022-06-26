@@ -70,14 +70,14 @@ public class XYChart implements IChart<IRow> {
 //	    logAxis.setAutoRange(true);
 //	    xyplot.setRangeAxis(logAxis);
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setSeriesStroke(0, new BasicStroke(1.0f));
+        renderer.setSeriesStroke(0, new BasicStroke(0.2f));
         DateAxis axis = new DateAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
         ((XYPlot) xylineChart.getPlot()).setDomainAxis(axis);
         ((XYPlot) xylineChart.getPlot()).setRenderer(renderer);
         ((XYPlot) xylineChart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
         xylineChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-        BufferedImage image = xylineChart.createBufferedImage(1080, 1200);
+        BufferedImage image = xylineChart.createBufferedImage(2560, 1440);
         ChartUtils.writeBufferedImageAsPNG(output, image);
     }
 

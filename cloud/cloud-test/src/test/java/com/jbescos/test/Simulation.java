@@ -7,8 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,7 +19,6 @@ import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;
-import com.jbescos.cloudchart.XYChart;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.exchange.Broker;
@@ -126,7 +123,7 @@ public class Simulation {
 		    	Path path = Paths.get(testFolder);
 		    	Files.createDirectories(path);
 		        try (FileOutputStream output = new FileOutputStream(chartFile)) {
-		        	IChart<IRow> chart = new XYChart();
+		        	IChart<IRow> chart = new DateChart();
 		        	ChartGenerator.writeChart(walletHistorical, output, chart);
 		            ChartGenerator.save(output, chart);
 		        }
@@ -139,6 +136,20 @@ public class Simulation {
 		        }
 		        List<CsvTransactionRow> buys = transactions.stream().filter(tx -> tx.getSide() == Action.BUY).collect(Collectors.toList());
 		        double buyValue = (totalPrice - INITIAL_USDT) / buys.size();
+		        Map<String, List<CsvTransactionRow>> txsBySymbol = transactions.stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
+		        txsBySymbol.entrySet().parallelStream().forEach(entry -> {
+		        	List<CsvRow> data = loader.get(entry.getKey());
+		        	File chartF = new File(testFolder + "/z_" + entry.getKey() + ".png");
+		        	entry.getValue().stream().forEach(tx -> tx.setUsdt(tx.getUsdtUnit()));
+		        	try (FileOutputStream output = new FileOutputStream(chartF)) {
+		        		IChart<IRow> chart = new DateChart();
+		        		ChartGenerator.writeChart(entry.getValue(), output, chart);
+		        		ChartGenerator.writeChart(data, output, chart);
+		        		ChartGenerator.save(output, chart);
+		        	} catch (IOException e) {
+		        		e.printStackTrace();
+		        	}
+		        });
 		        return new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID, loader.getCloudProperties().USER_EXCHANGE.name(), buys.size(), buyValue);
 			} else {
 				return null;
@@ -147,50 +158,6 @@ public class Simulation {
 			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
 			throw new RuntimeException("Error in " + testFolder, e);
 		}
-	}
-	
-	public List<Score> runBySymbol() {
-		try {
-			List<Score> scores = Collections.synchronizedList(new ArrayList<>());
-			load();
-			if (loader.first() != null) {
-				Collection<String> symbols = loader.symbols();
-				symbols.parallelStream().forEach(symbol -> {
-					List<CsvTransactionRow> transactions = new ArrayList<>();
-					List<CsvRow> walletHistorical = new ArrayList<>();
-					CsvRow first = loader.first(symbol);
-					Map<String, Double> wallet = new HashMap<>();
-			        wallet.put(Utils.USDT, first.getPrice());
-			        iterate(wallet, walletHistorical, transactions, symbol);
-			        List<CsvRow> total = loader.get(symbol);
-			        List<CsvRow> totalWalletHistorical = walletHistorical.stream().filter(row -> row.getSymbol().startsWith("TOTAL")).collect(Collectors.toList());
-			        int profit = 0;
-			        if (!totalWalletHistorical.isEmpty()) {
-			        	double last = totalWalletHistorical.get(totalWalletHistorical.size() - 1).getPrice();
-			        	profit = (int) ((last * 100 / first.getPrice()) - 100);
-			        }
-			        symbolCharts(symbol, total, transactions, totalWalletHistorical, profit);
-			        scores.add(new Score(profit, symbol));
-				});
-				return scores;
-			} else {
-				return null;
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
-			throw new RuntimeException("Error in " + testFolder, e);
-		}
-	}
-	
-	private void symbolCharts(String symbol, List<CsvRow> rows, List<CsvTransactionRow> transactions, List<CsvRow> walletHistorical, int profit) {
-		File chartFile = new File(testFolder + "/" + profit + "%_" + symbol + ".png");
-        try (FileOutputStream output = new FileOutputStream(chartFile)) {
-            IChart<IRow> chart = new XYChart();
-            ChartGenerator.writeChart(transactions, output, chart);
-            ChartGenerator.writeChart(rows, output, chart);
-            ChartGenerator.writeChart(walletHistorical, output, chart);
-            ChartGenerator.save(output, chart);
-        } catch (IOException e) {}
 	}
 	
 	public static class Score implements Comparable<Score> {
