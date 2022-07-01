@@ -2,6 +2,7 @@ package com.jbescos.test;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +14,7 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.SecuredMizarAPI;
 import com.jbescos.exchange.Utils;
 import com.jbescos.exchange.Broker.Action;
@@ -86,7 +88,19 @@ public class SecuredMizarAPITest {
 	@Ignore
 	public void getOpenAllPositions() {
 		// {"open_positions":[{"position_id":"454","strategy_id":"113","open_timestamp":1634914483529,"open_price":"10.882000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}]}
-		System.out.println(mizarApi.getOpenAllPositions());
+		OpenPositions openPossition = mizarApi.getOpenAllPositions();
+		StringBuilder data = new StringBuilder(Utils.TX_ROW_HEADER);
+		List<CsvTransactionRow> txs = new ArrayList<>();
+		for (OpenPositionResponse response : openPossition.open_positions) { 
+			String usdt = "10";
+			double quantity = Double.parseDouble(usdt) / Double.parseDouble(response.open_price);
+			CsvTransactionRow tx = new CsvTransactionRow(new Date(response.open_timestamp), Integer.toString(response.position_id),
+					Action.BUY, response.base_asset + response.quote_asset, usdt, Utils.format(quantity), Double.parseDouble(response.open_price));
+			txs.add(tx);
+		}
+		Collections.sort(txs, (a, b) -> a.getDate().compareTo(b.getDate()));
+		txs.stream().forEach(tx -> data.append(tx.toCsvLine()));
+		System.out.print(data.toString());
 	}
 	
 	@Test
