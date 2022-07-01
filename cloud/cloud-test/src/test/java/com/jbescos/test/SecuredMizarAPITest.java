@@ -14,13 +14,13 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.jbescos.common.CloudProperties;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.SecuredMizarAPI;
-import com.jbescos.exchange.Utils;
-import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.SecuredMizarAPI.OpenPositionResponse;
 import com.jbescos.exchange.SecuredMizarAPI.OpenPositions;
-import com.jbescos.common.CloudProperties;
+import com.jbescos.exchange.Utils;
 
 public class SecuredMizarAPITest {
 
@@ -115,7 +115,7 @@ public class SecuredMizarAPITest {
 		// buy
 		// open_price is the price of 1 unit in USDT
 		// {"position_id":"452","strategy_id":"113","open_timestamp":1634913294278,"open_price":"10.843000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}
-		System.out.println(mizarApi.openPosition("UNFI", "USDT", 0.1));
+		mizarApi.openPosition("UNFI", "USDT", 0.1);
 	}
 
 	@Test
@@ -123,7 +123,7 @@ public class SecuredMizarAPITest {
 	public void closePosition() {
 		// sell
 		// {"position_id":"453","strategy_id":"113","open_timestamp":1634913995389,"close_timestamp":1634914090671,"open_price":"10.827000000000","close_price":"10.843000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}
-		System.out.println(mizarApi.closePosition(452));
+		mizarApi.closePosition(452);
 	}
 
     @Test
@@ -131,7 +131,7 @@ public class SecuredMizarAPITest {
     public void closePositionAll() {
         OpenPositions openPositions = mizarApi.getOpenAllPositions();
         for (OpenPositionResponse position : openPositions.open_positions) {
-            System.out.println(mizarApi.closePosition(position.position_id));
+        	mizarApi.closePosition(position.position_id);
         }
     }
     
@@ -141,7 +141,7 @@ public class SecuredMizarAPITest {
     	mizarApi.openPosition("UNFI", "USDT", 0.1);
     	mizarApi.openPosition("UNFI", "USDT", 0.1);
     	System.out.println(mizarApi.getOpenAllPositions());
-    	System.out.println(mizarApi.sell("UNFIUSDT", Action.SELL));
+    	mizarApi.sell("UNFIUSDT", Action.SELL);
     	// {"closed_positions":[{"position_id":"769","strategy_id":"113","open_timestamp":1635404904035,"close_timestamp":1635405060644,"open_price":"10.822000000000","close_price":"10.822000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":true},{"position_id":"770","strategy_id":"113","open_timestamp":1635404911672,"close_timestamp":1635405060663,"open_price":"10.822000000000","close_price":"10.822000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":true}]}
 //    	System.out.println(mizarApi.closeAllBySymbol("UNFIUSDT"));
     }

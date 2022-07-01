@@ -205,8 +205,14 @@ public class BotExecution {
 					String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
 					// FIXME Sell only what was bought before to avoid selling external user purchases
 					transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol), currentUsdtPrice);
+					if (transaction == null) {
+						transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString().replaceAll("-", ""), stat.getAction(), quantity, currentUsdtPrice, cloudProperties.BOT_SELL_COMMISSION);
+					}
 				} else {
 				    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd, currentUsdtPrice);
+				    if (transaction == null) {
+				    	transaction = Utils.calculatedUsdtCsvTransactionRow(stat.getNewest().getDate(), symbol, UUID.randomUUID().toString().replaceAll("-", ""), stat.getAction(), quantityUsd, currentUsdtPrice, cloudProperties.BOT_BUY_COMMISSION);
+				    }
 				}
 				transactions.add(transaction);
 			} catch (Exception e) {

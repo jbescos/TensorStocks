@@ -2,7 +2,6 @@ package com.jbescos.exchange;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -94,7 +93,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     	return (int) response.get("strategy_id");
     }
    
-    public OpenPositionResponse openPosition(String base_asset, String quote_asset, double size) {
+    public void openPosition(String base_asset, String quote_asset, double size) {
     	Map<String, Object> obj = new LinkedHashMap<>();
     	obj.put("strategy_id", cloudProperties.mizarStrategyId());
     	obj.put("base_asset", base_asset);
@@ -102,18 +101,16 @@ public class SecuredMizarAPI implements SecuredAPI {
     	obj.put("is_long", true);
     	obj.put("size", size);
     	LOGGER.info(() -> "SecuredMizarAPI> Open position: " + obj);
-    	OpenPositionResponse response = post("/open-position", obj, new GenericType<OpenPositionResponse>(){});
+    	String response = post("/open-position", obj, new GenericType<String>(){});
     	LOGGER.info(() -> "SecuredMizarAPI> Response open position: " + response);
-    	return response;
     }
 
-    public ClosePositionResponse closePosition(int position_id) {
+    public void closePosition(int position_id) {
     	Map<String, Object> obj = new LinkedHashMap<>();
     	obj.put("position_id", position_id);
     	LOGGER.info(() -> "SecuredMizarAPI> Close position: " + obj);
-    	ClosePositionResponse response = post("/close-position", obj, new GenericType<ClosePositionResponse>(){});
+    	String response = post("/close-position", obj, new GenericType<String>(){});
     	LOGGER.info(() -> "SecuredMizarAPI> Response close position: " + response);
-    	return response;
     }
 
     @Override
@@ -123,29 +120,27 @@ public class SecuredMizarAPI implements SecuredAPI {
 
     @Override
     public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
-    	CsvTransactionRow transaction = null;
     	if (action == Action.BUY) {
     		double quoteOrderQtyD = Double.parseDouble(quoteOrderQty);
-    		transaction = buy(symbol, quoteOrderQtyD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
+    		buy(symbol, quoteOrderQtyD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
         } else {
-        	transaction = sell(symbol, action);
+        	sell(symbol, action);
         }
-        return transaction;
+        return null;
     }
 
     @Override
     public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
-    	CsvTransactionRow transaction = null;
     	if (action == Action.BUY) {
     		double quantityD = Double.parseDouble(quantity);
-    		transaction = buy(symbol, quantityD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
+    		buy(symbol, quantityD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
         } else {
-        	transaction = sell(symbol, action);
+        	sell(symbol, action);
         }
-        return transaction;
+        return null;
     }
     
-    private CsvTransactionRow buy(String symbol, double factor, Double currentUsdtPrice) {
+    private void buy(String symbol, double factor, Double currentUsdtPrice) {
     	if (cloudProperties.mizarLimitTransactionAmount() < 0) {
     		throw new IllegalStateException("SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
@@ -153,54 +148,26 @@ public class SecuredMizarAPI implements SecuredAPI {
     		factor = 1;
     	}
     	String asset = symbol.replaceFirst(Utils.USDT, "");
-    	double usdtToBuy = cloudProperties.mizarLimitTransactionAmount() * factor;
-    	OpenPositionResponse open = openPosition(asset, Utils.USDT, factor);
-    	Double currentPrice = Double.parseDouble(open.open_price);
-    	if (currentUsdtPrice != null && (currentPrice.isNaN() || currentPrice.isInfinite() || currentPrice == 0)) {
-    		LOGGER.warning("SecuredMizarAPI> Current open price from Mizar is not a valid number in " + open + ". Taking our value of " + Utils.format(currentUsdtPrice));
-    		currentPrice = currentUsdtPrice;
-    	}
-    	double quantity = Utils.symbolValue(usdtToBuy, currentPrice);
-    	CsvTransactionRow transaction = new CsvTransactionRow(new Date(open.open_timestamp), Integer.toString(open.position_id), Action.BUY, symbol, Utils.format(usdtToBuy), Utils.format(quantity), Double.parseDouble(open.open_price));
-    	return transaction;
+    	openPosition(asset, Utils.USDT, factor);
     }
 
     // symbol comes with the symbol + USDT
-    public CsvTransactionRow sell(String symbol, Action action) {
+    public void sell(String symbol, Action action) {
     	if (cloudProperties.mizarLimitTransactionAmount() < 0) {
     		throw new IllegalStateException("SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
     	}
-    	ClosePositionsResponse response = closeAllBySymbol(symbol);
-    	if (response.closed_positions == null || response.closed_positions.isEmpty()) {
-    		LOGGER.severe("SecuredMizarAPI> It was requested to sell " + symbol + ". But there are no open positions for that. There is a missmatch between the data we have and Mizar. " + response + ". Returning a fake transaction to bypass this.");
-    		CsvTransactionRow transaction = new CsvTransactionRow(new Date(), "ERROR", action, symbol, "0.000001", "0.000001", 0.000001);
-    		return transaction;
-    	} else {
-	    	StringBuilder orderIds = new StringBuilder();
-	    	double totalQuantity = Utils.totalQuantity(cloudProperties.mizarLimitTransactionAmount(), response.closed_positions);
-	    	for (ClosePositionResponse position : response.closed_positions) {
-	    		if (orderIds.length() != 0) {
-	    			orderIds.append("-");
-	    		}
-	    		orderIds.append(position.position_id);
-	    	}
-	    	ClosePositionResponse last = response.closed_positions.get(response.closed_positions.size() - 1);
-	    	double totalUsdt = Double.parseDouble(last.close_price) * totalQuantity;
-	    	CsvTransactionRow transaction = new CsvTransactionRow(new Date(last.close_timestamp), orderIds.toString(), action, symbol, Utils.format(totalUsdt), Utils.format(totalQuantity), Double.parseDouble(last.close_price));
-	    	return transaction;
-    	}
+    	closeAllBySymbol(symbol);
     }
     
-    public ClosePositionsResponse closeAllBySymbol(String symbol) {
+    public void closeAllBySymbol(String symbol) {
     	String baseAsset = symbol.replaceFirst(Utils.USDT, "");
     	Map<String, Object> obj = new LinkedHashMap<>();
     	obj.put("strategy_id", cloudProperties.mizarStrategyId());
     	obj.put("base_asset", baseAsset);
     	obj.put("quote_asset", Utils.USDT);
     	LOGGER.info(() -> "SecuredMizarAPI> Close all positions: " + obj);
-    	ClosePositionsResponse response = post("/close-all-positions", obj, new GenericType<ClosePositionsResponse>(){});
+    	String response = post("/close-all-positions", obj, new GenericType<String>(){});
     	LOGGER.info(() -> "SecuredMizarAPI> Response close all positions: " + response);
-    	return response;
     }
 
     private <T> T get(String path, GenericType<T> type, String... query) {
@@ -238,7 +205,7 @@ public class SecuredMizarAPI implements SecuredAPI {
 		Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header(HEADER_API, cloudProperties.mizarApiKey());
 		try (Response response = builder.post(Entity.json(obj))) {
 			response.bufferEntity();
-			if (response.getStatus() == 200) {
+			if (response.getStatus() == 200 || response.getStatus() == 201) {
 				try {
             		return response.readEntity(responseType);
             	} catch (ProcessingException e) {
@@ -266,37 +233,6 @@ public class SecuredMizarAPI implements SecuredAPI {
 			return "OpenPositionResponse [position_id=" + position_id + ", strategy_id=" + strategy_id
 					+ ", open_timestamp=" + open_timestamp + ", open_price=" + open_price + ", base_asset=" + base_asset
 					+ ", quote_asset=" + quote_asset + ", size=" + size + ", is_long=" + is_long + "]";
-		}
-	}
-	
-	public static class ClosePositionsResponse {
-		// {"closed_positions":[{"position_id":"769","strategy_id":"113","open_timestamp":1635404904035,"close_timestamp":1635405060644,"open_price":"10.822000000000","close_price":"10.822000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":true},{"position_id":"770","strategy_id":"113","open_timestamp":1635404911672,"close_timestamp":1635405060663,"open_price":"10.822000000000","close_price":"10.822000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":true}]}
-    	public List<ClosePositionResponse> closed_positions = Collections.emptyList();
-
-		@Override
-		public String toString() {
-			return "ClosePositionsResponse [closed_positions=" + closed_positions + "]";
-		}
-	}
-	
-	public static class ClosePositionResponse {
-		// {"position_id":"453","strategy_id":"113","open_timestamp":1634913995389,"close_timestamp":1634914090671,"open_price":"10.827000000000","close_price":"10.843000000000","base_asset":"UNFI","quote_asset":"USDT","size":0.1,"is_long":false}
-		public int position_id;
-		public int strategy_id;
-		public long open_timestamp;
-		public long close_timestamp;
-		public String open_price;
-		public String close_price;
-		public String base_asset;
-		public String quote_asset;
-		public double size;
-		public boolean is_long;
-		@Override
-		public String toString() {
-			return "ClosePositionResponse [position_id=" + position_id + ", strategy_id=" + strategy_id
-					+ ", open_timestamp=" + open_timestamp + ", close_timestamp=" + close_timestamp + ", open_price="
-					+ open_price + ", close_price=" + close_price + ", base_asset=" + base_asset + ", quote_asset="
-					+ quote_asset + ", size=" + size + ", is_long=" + is_long + "]";
 		}
 	}
 	

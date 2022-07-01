@@ -26,7 +26,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.jbescos.exchange.Broker.Action;
-import com.jbescos.exchange.SecuredMizarAPI.ClosePositionResponse;
 
 public class Utils {
 
@@ -450,16 +449,6 @@ public class Utils {
         } else {
             return result;
         }
-    }
-    
-    public static double totalQuantity(double limitUsdAmount, List<ClosePositionResponse> positions) {
-        double quantity = 0;
-        for (ClosePositionResponse position : positions) {
-            double spent = limitUsdAmount * position.size;
-            double currentPrice = Double.parseDouble(position.open_price);
-            quantity = quantity + symbolValue(spent, currentPrice);
-        }
-        return quantity;
     }
 
     /**
