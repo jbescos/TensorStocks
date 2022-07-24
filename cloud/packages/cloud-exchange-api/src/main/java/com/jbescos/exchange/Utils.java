@@ -489,9 +489,9 @@ public class Utils {
 	        	adjustedFactor = factorBase + 0.05;
 	        }
     	}
-    	if (benefitsAvg < 0) {
-			adjustedFactor = adjustedFactor + (benefitsAvg * -1 * 0.1);
-		}
+//    	if (benefitsAvg < 0) {
+//			adjustedFactor = adjustedFactor + (benefitsAvg * -1 * 0.1);
+//		}
     	return adjustedFactor;
     }
 
