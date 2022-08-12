@@ -31,6 +31,16 @@ public final class PublicAPI {
 	private static final String KUCOIN_URL = "https://api.kucoin.com";
 	private static final String OKEX_URL = "https://www.okx.com/";
 	private static final String FTX_URL = "https://ftx.com";
+	// https://mxcdevelop.github.io/APIDoc/
+	private static final String MEXC_URL = "https://www.mexc.com";
+	// https://bybit-exchange.github.io/docs/inverse
+	private static final String BYBIT_URL = "https://api.bybit.com";
+	// https://huobiapi.github.io/docs/spot/v1/en
+	private static final String HUOBI_URL = "https://api-aws.huobi.pro";
+	// https://woocommerce.github.io/woocommerce-rest-api-docs
+	private static final String WOO_URL = "todo";
+	// https://exchange-docs.crypto.com/spot/index.html
+	private static final String CRYPTOCOM_URL = "https://api.crypto.com/v2";
 	private final Client client;
 	
 	public PublicAPI(Client client) {
