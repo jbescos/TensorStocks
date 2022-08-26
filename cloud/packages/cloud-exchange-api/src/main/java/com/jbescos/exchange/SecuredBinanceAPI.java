@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -23,7 +22,6 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.jbescos.exchange.Account.Balances;
 import com.jbescos.exchange.Broker.Action;
 
 public class SecuredBinanceAPI implements SecuredAPI {
@@ -111,24 +109,19 @@ public class SecuredBinanceAPI implements SecuredAPI {
 			}
 		}
 	}
-
-	public Account account() {
-		Account account = get("/api/v3/account", new GenericType<Account>() {}, "timestamp", Long.toString(new Date().getTime()));
-		List<Balances> balances = account.getBalances().stream().filter(balance -> {
-			double free = Double.parseDouble(balance.getFree());
-			return free != 0;
-		}).collect(Collectors.toList());
-		account.setBalances(balances);
-		return account;
-	}
 	
 	@Override
 	public Map<String, String> wallet(){
-		Map<String, String> wallet = new HashMap<>();
-		Account account = account();
-		for (Balances balance : account.getBalances()) {
-			wallet.put(balance.getAsset(), balance.getFree());
-		}
+	    Map<String, String> wallet = new HashMap<>();
+	    Map<String, Object> account = get("/api/v3/account", new GenericType<Map<String, Object>>() {}, "timestamp", Long.toString(new Date().getTime()));
+	    List<Map<String, Object>> balances = (List<Map<String, Object>>) account.get("balances");
+	    for (Map<String, Object> symbol : balances) {
+	        String free = (String) symbol.get("free");
+	        if (Double.parseDouble(free) != 0) {
+    	        String asset = (String) symbol.get("asset");
+    	        wallet.put(asset, free);
+	        }
+	    }
 		return wallet;
 	}
 	
