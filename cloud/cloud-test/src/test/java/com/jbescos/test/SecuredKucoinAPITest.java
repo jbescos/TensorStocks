@@ -81,6 +81,13 @@ public class SecuredKucoinAPITest {
 	
 	@Test
 	@Ignore
+	public void depositAdresses() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
+		System.out.println("Address:" + api.depositAdresses("USDT"));
+	}
+	
+	@Test
+	@Ignore
 	public void synchronize() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		List<CsvTransactionRow> transactions = null;
 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/resync2/zzzDaviX_transactions_transactions_2022-06.csv")))) {

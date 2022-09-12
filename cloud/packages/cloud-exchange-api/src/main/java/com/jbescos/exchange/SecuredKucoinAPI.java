@@ -215,7 +215,7 @@ public class SecuredKucoinAPI implements SecuredAPI {
 		deposit.setWithdrawMinSizeUsd(Utils.format(Utils.usdValue(Double.parseDouble(deposit.getWithdrawMinSize()), usdUnit)));
 		deposit.setUsdUnit(Utils.format(usdUnit));
 		if (deposit.isWithdrawEnabled()) {
-			Map<String, String> response = get("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, "currency", coin).getData();
+			Map<String, String> response = depositAdresses(coin);
 			LOGGER.info("SecuredKucoinAPI> " + coin + " address: " + response);
 			if (response == null) {
 				StringBuilder body = new StringBuilder("{");
@@ -226,6 +226,11 @@ public class SecuredKucoinAPI implements SecuredAPI {
 			deposit.setAddress(response.get("address"));
 		}
 		return deposit;
+	}
+	
+	public Map<String, String> depositAdresses(String coin) {
+		Map<String, String> response = get("/api/v1/deposit-addresses", new GenericType<KucoinResponse<Map<String, String>>>() {}, "currency", coin).getData();
+		return response;
 	}
 	
 	public String applyWithdraw(String remoteAddress, double amount, Deposit info) {
