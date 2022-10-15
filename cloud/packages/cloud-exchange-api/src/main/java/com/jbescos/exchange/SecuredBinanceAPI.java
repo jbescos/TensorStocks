@@ -39,6 +39,8 @@ public class SecuredBinanceAPI implements SecuredAPI {
 		mac.init(new SecretKeySpec(privateKey.getBytes(), HMAC_SHA_256));
 		this.publicKey = publicKey;
 		this.client = client;
+		// Helps to make next request faster
+		new PublicAPI(client).time();
 	}
 
 	public String signature(String data) {

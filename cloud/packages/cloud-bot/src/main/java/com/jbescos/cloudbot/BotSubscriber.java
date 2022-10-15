@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -43,8 +42,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         Client client = ClientBuilder.newClient();
         CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
         PublicAPI publicAPI = new PublicAPI(client);
-        long time = publicAPI.time();
-        Date now = new Date(time);
+        Date now = new Date();
         BucketStorage bucketStorage = new BucketStorage(storageInfo);
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
