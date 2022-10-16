@@ -77,7 +77,7 @@ public class XYChart implements IChart<IRow> {
         ((XYPlot) xylineChart.getPlot()).setRenderer(renderer);
         ((XYPlot) xylineChart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
         xylineChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-        BufferedImage image = xylineChart.createBufferedImage(2560, 1440);
+        BufferedImage image = xylineChart.createBufferedImage(1920, 1080);
         ChartUtils.writeBufferedImageAsPNG(output, image);
     }
 

@@ -68,7 +68,7 @@ public class BarChart implements IChart<IRow> {
 		JFreeChart barChart = ChartFactory.createBarChart("Total buy/sell", "Symbols", "USDT", dataset,
 				PlotOrientation.VERTICAL, true, true, false);
 		barChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-		BufferedImage image = barChart.createBufferedImage(1080, 1200);
+		BufferedImage image = barChart.createBufferedImage(1920, 1080);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}
 

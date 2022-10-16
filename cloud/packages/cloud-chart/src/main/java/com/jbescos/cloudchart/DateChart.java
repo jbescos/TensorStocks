@@ -78,7 +78,7 @@ public class DateChart implements IChart<IRow> {
 		chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
 		((XYPlot)chart.getPlot()).setRenderer(renderer);
 		((XYPlot)chart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
-		BufferedImage image = chart.createBufferedImage(2560, 1440);
+		BufferedImage image = chart.createBufferedImage(1920, 1080);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}
 

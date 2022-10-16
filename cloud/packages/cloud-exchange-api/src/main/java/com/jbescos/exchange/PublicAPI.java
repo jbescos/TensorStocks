@@ -136,6 +136,7 @@ public final class PublicAPI {
 		.filter(ticker -> ticker.get("type").equals("spot"))
 		.filter(ticker -> ticker.get("quoteCurrency").equals(Utils.USDT))
 		.filter(ticker -> ticker.get("name") != null)
+		.filter(ticker -> ticker.get("price") != null)
 		.filter(ticker -> !ticker.get("name").endsWith("BULL/" + Utils.USDT))
 		.filter(ticker -> !ticker.get("name").endsWith("BEAR/" + Utils.USDT))
 		.forEach(ticker -> pricesBySymbol.put(ticker.get("name").replaceFirst("/", ""), Double.parseDouble(ticker.get("price"))));

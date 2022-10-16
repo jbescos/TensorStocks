@@ -33,7 +33,7 @@ public class CandleChart implements IChart<Kline> {
 			throws IOException {
 		JFreeChart chart = ChartFactory.createCandlestickChart(title, horizontalLabel, verticalLabel, candlestickDataset, true);
 		chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-		BufferedImage image = chart.createBufferedImage(1080, 1200);
+		BufferedImage image = chart.createBufferedImage(1920, 1080);
 		ChartUtils.writeBufferedImageAsPNG(output, image);
 	}
 
