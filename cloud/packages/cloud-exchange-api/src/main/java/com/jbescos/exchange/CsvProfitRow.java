@@ -75,7 +75,7 @@ public class CsvProfitRow {
 	
 	public static CsvProfitRow build(String commission, TransactionsSummary summary, CsvTransactionRow sell) {
 		if (!summary.getPreviousBuys().isEmpty()) {
-			CsvTransactionRow firstBuy = summary.getPreviousBuys().get(summary.getPreviousBuys().size() - 1);
+			CsvTransactionRow firstBuy = summary.getPreviousBuys().get(0);
 			Date firstBuyDate = firstBuy.getDate();
 			Date sellDate = sell.getDate();
 			String symbol = sell.getSymbol();

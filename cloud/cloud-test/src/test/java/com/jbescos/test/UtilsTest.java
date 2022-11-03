@@ -284,7 +284,7 @@ public class UtilsTest {
 		CsvTransactionRow sell = createCsvTransactionRow("2021-10-01 00:00:00", Action.SELL, "1000.8454", "1.3");
 		CsvTransactionRow buy1 = createCsvTransactionRow("2021-08-01 00:00:00", Action.BUY, "500.6", "0.7");
 		CsvTransactionRow buy2 = createCsvTransactionRow("2021-09-01 00:00:00", Action.BUY, "400", "0.6");
-		TransactionsSummary summary = Utils.minSellProfitable(Arrays.asList(buy2, buy1));
+		TransactionsSummary summary = Utils.minSellProfitable(Arrays.asList(buy1, buy2));
 		CsvProfitRow profitRow = CsvProfitRow.build("0.03", summary, sell);
 		// SELL_DATE,FIRST_BUY_DATE,SYMBOL,QUANTITY_BUY,QUANTITY_SELL,QUANTITY_USDT_BUY,QUANTITY_USDT_SELL,COMMISSION_%,COMMISION_USDT,USDT_PROFIT,NET_USDT_PROFIT,PROFIT_%
 		assertEquals("2021-10-01 00:00:00,2021-08-01 00:00:00,any,1.3,1.3,900.6,1000.84,3%,3,100.24,97.23,11.13%,,,false" + Utils.NEW_LINE, profitRow.toCsvLine());
