@@ -36,7 +36,7 @@ public class BotTest {
     			"binance", "2022-01-01",
     			"kucoin-all", "2022-01-01",
     			"binance-all", "2022-01-01",
-    			"ftx", "2022-01-01",
+    			"ftx", "2022-06-01",
     			"okex", "2022-01-01"
     			};
     	for (int i = 0; i < users.length; i = i + 2) {
