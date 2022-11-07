@@ -117,6 +117,7 @@ public final class PublicAPI {
 				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3L-" + Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3S-" + Utils.USDT))
+				.filter(ticker -> ticker.getBuy() != null)
 				.forEach(ticker -> pricesBySymbol.put(ticker.getSymbol().replaceFirst("-", ""), price.apply(ticker)));
 		return pricesBySymbol;
 	}
