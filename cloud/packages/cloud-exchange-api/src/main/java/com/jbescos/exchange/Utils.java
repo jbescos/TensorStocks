@@ -452,15 +452,15 @@ public class Utils {
     }
 
     /**
-     * Higher priority to symbols with previous purchases. Then the factor.
+     * Higher priority to symbols with NO previous purchases. Then the factor.
      */
     public static List<Broker> sortBrokers(Map<String, Broker> minMax) {
         return minMax.values().stream()
                 .sorted((e2, e1) -> {
                     if (!e2.getPreviousTransactions().isHasTransactions() && e1.getPreviousTransactions().isHasTransactions()) {
-                        return 1;
-                    } else if (e2.getPreviousTransactions().isHasTransactions() && !e1.getPreviousTransactions().isHasTransactions()) {
                         return -1;
+                    } else if (e2.getPreviousTransactions().isHasTransactions() && !e1.getPreviousTransactions().isHasTransactions()) {
+                        return 1;
                     } else {
                         return Double.compare(e1.getFactor(), e2.getFactor());
                     }

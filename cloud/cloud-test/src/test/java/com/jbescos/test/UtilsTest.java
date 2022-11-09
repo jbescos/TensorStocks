@@ -347,7 +347,12 @@ public class UtilsTest {
 		b = new TestBroker(Action.SELL, 0.2, false);
 		brokers.put("a", a);
 		brokers.put("b", b);
-		assertEquals(Arrays.asList(a, b), Utils.sortBrokers(brokers));
+		assertEquals(Arrays.asList(b, a), Utils.sortBrokers(brokers));
+		a = new TestBroker(Action.SELL, 0.2, true);
+		b = new TestBroker(Action.SELL, 0.1, false);
+		brokers.put("a", a);
+		brokers.put("b", b);
+		assertEquals(Arrays.asList(b, a), Utils.sortBrokers(brokers));
 		brokers.clear();
 		a = new TestBroker(Action.SELL, 0.1, false);
 		b = new TestBroker(Action.SELL, 0.2, false);
