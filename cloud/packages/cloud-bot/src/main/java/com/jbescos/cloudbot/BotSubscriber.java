@@ -65,6 +65,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 	        
 	        // Synchronize transactions with the exchange
 	        if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
+	        	// FIXME Take them from Utils.OPEN_POSSITIONS. If it needs sync, sync them and load the transactions/profits by name to sync them too.
 	        	List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
 	        	Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
 	        	for (String txFile : txFiles) {
