@@ -111,4 +111,22 @@ public class PublicAPITest {
 		}
 		client.close();
 	}
+	
+	@Test
+	@Ignore
+	public void priceCoingecko() {
+		Client client = ClientBuilder.newClient();
+		PublicAPI publicAPI = new PublicAPI(client);
+		System.out.println(publicAPI.priceCoingecko("ethereum"));
+		client.close();
+	}
+	
+	@Test
+	@Ignore
+	public void priceCoingeckoTop() {
+		Client client = ClientBuilder.newClient();
+		PublicAPI publicAPI = new PublicAPI(client);
+		System.out.println(publicAPI.priceCoingeckoTop(5, "ethereum"));
+		client.close();
+	}
 }

@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,6 +32,7 @@ public final class PublicAPI {
 	private static final String KUCOIN_URL = "https://api.kucoin.com";
 	private static final String OKEX_URL = "https://www.okx.com/";
 	private static final String FTX_URL = "https://ftx.com";
+	private static final String COINGEKO_URL = "https://api.coingecko.com";
 	// https://mxcdevelop.github.io/APIDoc/
 	private static final String MEXC_URL = "https://www.mexc.com";
 	// https://bybit-exchange.github.io/docs/inverse
@@ -166,6 +168,67 @@ public final class PublicAPI {
 			klines.add(Kline.fromArray(symbol, values));
 		}
 		return klines;
+	}
+	
+	public Map<String, Map<String, Object>> priceCoingecko(String platform) {
+		Map<String, Map<String, Object>> coinsById = getCoinsByPlatform(platform);
+		List<String> ids = new ArrayList<>(coinsById.keySet());
+		// Avoid the URL is too big to fail
+		final int LIST_LIMIT = 180;
+		int i = 0;
+		do {
+			int to = i + LIST_LIMIT;
+			if (to > ids.size()) {
+				to = ids.size();
+			}
+			List<String> subIds = ids.subList(i, to);
+			String key = String.join(",", subIds);
+			Map<String, Map<String, Object>> prices = get(COINGEKO_URL, "/api/v3/simple/price", new GenericType<Map<String, Map<String, Object>>>() {}, "precision", "full", "vs_currencies", "usd", "ids", key);
+			for (Entry<String, Map<String, Object>> price  : prices.entrySet()) {
+				String id = price.getKey();
+				Object usd = price.getValue().get("usd");
+				coinsById.get(id).put("price", usd);
+			}
+			i = to;
+		} while (i < ids.size());
+		return coinsById;
+	}
+	
+	public Map<String, Map<String, Object>> priceCoingeckoTop(int pages, String platform) {
+		Map<String, Map<String, Object>> filteredCoins = new HashMap<>();
+		Map<String, Map<String, Object>> coinsById = getCoinsByPlatform(platform);
+		int pageIdx = 0;
+		List<Map<String, Object>> page = null;
+		do {
+			page = get(COINGEKO_URL, "/api/v3/coins/markets", new GenericType<List<Map<String, Object>>>() {}, "sparkline", "false", "order", "market_cap_desc", "vs_currency", "usd", "per_page", "250", "page", Integer.toString(pageIdx));
+			for (Map<String, Object> price : page) {
+				String id = (String) price.get("id");
+				Map<String, Object> coinInfo = coinsById.get(id);
+				if (coinInfo != null) {
+					coinInfo.put("price", price.get("current_price"));
+					filteredCoins.put(id, coinInfo);
+				}
+			}
+			pageIdx++;
+		} while (pageIdx < pages && page != null);
+		return filteredCoins;
+	}
+	
+	private Map<String, Map<String, Object>> getCoinsByPlatform(String platform) {
+		List<Map<String, Object>> coins = get(COINGEKO_URL, "/api/v3/coins/list", new GenericType<List<Map<String, Object>>>() {}, "include_platform", "true");
+		// For performance, keep it as a HashMap
+		Map<String, Map<String, Object>> coinsById = new HashMap<>();
+		for (Map<String, Object> coin : coins) {
+			// Get only symbols that exists in ethereum
+			Map<String, String> platforms = (Map<String, String>) coin.get("platforms");
+			String token = platforms.get(platform);
+			if (token != null && !token.isEmpty()) {
+				String id = (String) coin.get("id");
+				coin.put("token", token);
+				coinsById.put(id, coin);
+			}
+		}
+		return coinsById;
 	}
 	
 	public boolean isSymbolBinanceEnabled(String symbol) {
