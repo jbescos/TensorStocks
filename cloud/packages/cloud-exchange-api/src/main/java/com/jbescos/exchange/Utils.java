@@ -41,7 +41,7 @@ public class Utils {
     public static final String USDT = "USDT";
     public static final String TOTAL_USDT = "TOTAL_USDT";
     public static final String NEW_LINE = "\r\n";
-    public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG" + NEW_LINE;
+    public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG,TOKEN" + NEW_LINE;
     public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT,SCORE,SYNC,FEE" + NEW_LINE;
     public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST" + NEW_LINE;
     public static final String LAST_PRICE = "last_price.csv";
@@ -679,5 +679,9 @@ public class Utils {
 			}
 		}
     	return synced > 0;
+    }
+    
+    public static Map<String, Double> simplePrices(Map<String, Price> prices) {
+    	return prices.values().stream().collect(Collectors.toMap(Price::getSymbol, Price::getPrice));
     }
 }

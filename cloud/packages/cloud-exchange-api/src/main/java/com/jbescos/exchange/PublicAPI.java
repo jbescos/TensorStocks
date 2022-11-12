@@ -97,44 +97,57 @@ public final class PublicAPI {
 		return list;
 	}
 	
-	public Map<String, Double> priceBinance() {
-		List<Price> prices = get(BINANCE_URL, "/api/v3/ticker/price", new GenericType<List<Price>>() {});
-		Map<String, Double> pricesBySymbol = new HashMap<>();
+	public Map<String, Price> priceBinance() {
+		List<Map<String, Object>> prices = get(BINANCE_URL, "/api/v3/ticker/price", new GenericType<List<Map<String, Object>>>() {});
+		Map<String, Price> pricesBySymbol = new HashMap<>();
 		prices.stream()
-				.filter(price -> price.getSymbol().endsWith(Utils.USDT))
-				.filter(price -> !price.getSymbol().endsWith("UP" + Utils.USDT))
-				.filter(price -> !price.getSymbol().endsWith("DOWN" + Utils.USDT))
-				.forEach(price -> pricesBySymbol.put(price.getSymbol(), price.getPrice()));
+			.filter(price -> {
+				String symbol = (String) price.get("symbol");
+				return symbol.endsWith(Utils.USDT) && !symbol.endsWith("UP" + Utils.USDT) && !symbol.endsWith("UP" + Utils.USDT) && !symbol.endsWith("DOWN" + Utils.USDT);
+			})
+				.forEach(price -> pricesBySymbol.put((String) price.get("symbol"), new Price((String) price.get("symbol"), Double.parseDouble((String) price.get("price")), "")));
 		return pricesBySymbol;
 	}
 	
-	public Map<String, Double> priceKucoin() {
+	public Map<String, Price> priceKucoin() {
 		return priceKucoin(ticker -> Double.parseDouble(ticker.getBuy()));
 	}
 
-	public Map<String, Double> priceKucoin(Function<Ticker, Double> price) {
+	public Map<String, Price> priceKucoin(Function<Ticker, Double> price) {
 		AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {});
-		Map<String, Double> pricesBySymbol = new HashMap<>();
+		Map<String, Price> pricesBySymbol = new HashMap<>();
 		allTickers.getData().getTicker().stream()
 				.filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3L-" + Utils.USDT))
 				.filter(ticker -> !ticker.getSymbol().endsWith("3S-" + Utils.USDT))
 				.filter(ticker -> ticker.getBuy() != null)
-				.forEach(ticker -> pricesBySymbol.put(ticker.getSymbol().replaceFirst("-", ""), price.apply(ticker)));
+				.forEach(ticker -> {
+					Double priceVal = price.apply(ticker);
+					if (priceVal != null) {
+						String symbol = ticker.getSymbol().replaceFirst("-", "");
+						pricesBySymbol.put(symbol, new Price(symbol, priceVal, ""));
+					}
+				});
 		return pricesBySymbol;
 	}
 	
-	public Map<String, Double> priceOkex() {
-		Map<String, Double> pricesBySymbol = new HashMap<>();
+	public Map<String, Price> priceOkex() {
+		Map<String, Price> pricesBySymbol = new HashMap<>();
 		List<Map<String, String>> data = (List<Map<String, String>>) get(OKEX_URL, "/api/v5/market/tickers", new GenericType<Map<String, Object>>() {}, "instType", "SPOT").get("data");
 		data.stream()
 		.filter(ticker -> ticker.get("instId").endsWith(Utils.USDT))
-		.forEach(ticker -> pricesBySymbol.put(ticker.get("instId").replaceFirst("-", ""), Double.parseDouble(ticker.get("last"))));
+		.forEach(ticker -> {
+			Double value = Double.parseDouble(ticker.get("last"));
+			if (value != null) {
+				String symbol = ticker.get("instId").replaceFirst("-", "");
+				pricesBySymbol.put(symbol, new Price(symbol, value, ""));
+			}
+		});
 		return pricesBySymbol;
 	}
 
-	public Map<String, Double> priceFtx() {
-		Map<String, Double> pricesBySymbol = new HashMap<>();
+	public Map<String, Price> priceFtx() {
+		Map<String, Price> pricesBySymbol = new HashMap<>();
 		get(FTX_URL, "/api/markets", new GenericType<FtxResult<List<Map<String, String>>>>() {}).getResult().stream()
 		.filter(ticker -> ticker.get("type").equals("spot"))
 		.filter(ticker -> ticker.get("quoteCurrency").equals(Utils.USDT))
@@ -142,7 +155,11 @@ public final class PublicAPI {
 		.filter(ticker -> ticker.get("price") != null)
 		.filter(ticker -> !ticker.get("name").endsWith("BULL/" + Utils.USDT))
 		.filter(ticker -> !ticker.get("name").endsWith("BEAR/" + Utils.USDT))
-		.forEach(ticker -> pricesBySymbol.put(ticker.get("name").replaceFirst("/", ""), Double.parseDouble(ticker.get("price"))));
+		.forEach(ticker -> {
+			String symbol = ticker.get("name").replaceFirst("/", "");
+			double value = Double.parseDouble(ticker.get("price"));
+			pricesBySymbol.put(symbol, new Price(symbol, value, ""));
+		});
 		return pricesBySymbol;
 	}
 	
@@ -205,13 +222,23 @@ public final class PublicAPI {
 				String id = (String) price.get("id");
 				Map<String, Object> coinInfo = coinsById.get(id);
 				if (coinInfo != null) {
-					coinInfo.put("price", price.get("current_price"));
+					coinInfo.put("price", (double) price.get("current_price"));
 					filteredCoins.put(id, coinInfo);
 				}
 			}
 			pageIdx++;
 		} while (pageIdx < pages && page != null);
 		return filteredCoins;
+	}
+	
+	public Map<String, Price> priceCoingeckoTopSimple(int pages, String platform) {
+		Map<String, Map<String, Object>> prices = priceCoingeckoTop(pages, platform);
+		Map<String, Price> simple = new HashMap<>();
+		for (Map<String, Object> price : prices.values()) {
+			String symbol = price.get("id") + Utils.USDT;
+			simple.put(symbol, new Price(symbol, (double) price.get("price"), (String) price.get("token")));
+		}
+		return simple;
 	}
 	
 	private Map<String, Map<String, Object>> getCoinsByPlatform(String platform) {

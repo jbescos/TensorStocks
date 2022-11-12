@@ -29,6 +29,7 @@ import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
 
 public class BucketStorage implements FileManager {
@@ -58,20 +59,20 @@ public class BucketStorage implements FileManager {
 		return previousRows;
 	}
 
-	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Double> prices, Date now, String lastPriceCsv, int fearGreedIndex) {
+	public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Price> prices, Date now, String lastPriceCsv, int fearGreedIndex) {
 	    StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
 	    List<CsvRow> newRows = new ArrayList<>();
-        for (Entry<String, Double> price : prices.entrySet()) {
+        for (Entry<String, Price> price : prices.entrySet()) {
             CsvRow previous = previousRows.get(price.getKey());
             CsvRow newRow = null;
             if (previous != null) {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), 
-                		Utils.ewma(Utils.EWMA_CONSTANT, price.getValue(), previous.getAvg()), 
-                		Utils.ewma(Utils.EWMA_2_CONSTANT, price.getValue(), previous.getAvg2()),
+                newRow = new CsvRow(now, price.getValue(), 
+                		Utils.ewma(Utils.EWMA_CONSTANT, price.getValue().getPrice(), previous.getAvg()), 
+                		Utils.ewma(Utils.EWMA_2_CONSTANT, price.getValue().getPrice(), previous.getAvg2()),
                 		fearGreedIndex,
                 		Utils.dynamicEwma(Utils.EWMA_CONSTANT, Utils.EWMA_2_CONSTANT, fearGreedIndex, previous.getFearGreedIndexAvg()));
             } else {
-                newRow = new CsvRow(now, price.getKey(), price.getValue(), price.getValue(), price.getValue(), fearGreedIndex, (double) fearGreedIndex);
+                newRow = new CsvRow(now, price.getValue(), price.getValue().getPrice(), price.getValue().getPrice(), fearGreedIndex, (double) fearGreedIndex);
             }
             newRows.add(newRow);
             builder.append(newRow.toCsvLine());

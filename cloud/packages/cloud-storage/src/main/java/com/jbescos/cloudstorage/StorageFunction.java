@@ -23,17 +23,18 @@ import com.google.cloud.storage.Blob;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
-import com.jbescos.exchange.CsvRow;
-import com.jbescos.exchange.FearGreedIndex;
-import com.jbescos.exchange.Kline;
-import com.jbescos.exchange.PublicAPI;
-import com.jbescos.exchange.Utils;
-import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.common.FileManager;
 import com.jbescos.common.PropertiesConfigurationException;
 import com.jbescos.common.PublisherMgr;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.FearGreedIndex;
+import com.jbescos.exchange.Kline;
+import com.jbescos.exchange.Price;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.PublicAPI.Interval;
+import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudstorage.StorageFunction
 public class StorageFunction implements HttpFunction {
@@ -87,30 +88,34 @@ public class StorageFunction implements HttpFunction {
 			if (!skip) {
 				Set<String> updatedExchanges = new HashSet<>();
 				for (Exchange exchange : Exchange.values()) {
-					if (updatedExchanges.add(exchange.getFolder())) {
-						try {
-							String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
-							Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
-						    // Update current prices
-				    		Map<String, Double> prices = exchange.price(publicAPI);
-				            String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
-				    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice, fearGreedIndex.getValue());
-				    		StringBuilder builder = new StringBuilder();
-				    		for (CsvRow row : updatedRows) {
-				    			builder.append(row.toCsvLine());
-				    		}
-				    		String downloadLink = storage.updateFile("data" + exchange.getFolder() + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
-				    		// Notify bot
-				    		List<String> userIds = groupedFolder.get(exchange.getFolder());
-				    		if (userIds != null) {
-					    		LOGGER.info("Sending bot messages to " + userIds + " for " + exchange.getFolder());
-					    		publisher.publish(userIds.toArray(new String[0]));
-				    		}
-				    		response.getWriter().write("<" + downloadLink + ">");
-						} catch (Exception e) {
-							response.getWriter().write("<ERROR: " + exchange.name() + ". " + e.getMessage() + ">");
-							LOGGER.log(Level.SEVERE, "Cannot process " + exchange.name(), e);
+					if (exchange.enabled()) {
+						if (updatedExchanges.add(exchange.getFolder())) {
+							try {
+								String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
+								Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
+							    // Update current prices
+					    		Map<String, Price> prices = exchange.price(publicAPI);
+					            String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
+					    		List<CsvRow> updatedRows = storage.updatedRowsAndSaveLastPrices(previousRows, prices, now, lastPrice, fearGreedIndex.getValue());
+					    		StringBuilder builder = new StringBuilder();
+					    		for (CsvRow row : updatedRows) {
+					    			builder.append(row.toCsvLine());
+					    		}
+					    		String downloadLink = storage.updateFile("data" + exchange.getFolder() + fileName, builder.toString().getBytes(Utils.UTF8), CSV_HEADER_TOTAL);
+					    		// Notify bot
+					    		List<String> userIds = groupedFolder.get(exchange.getFolder());
+					    		if (userIds != null) {
+						    		LOGGER.info("Sending bot messages to " + userIds + " for " + exchange.getFolder());
+						    		publisher.publish(userIds.toArray(new String[0]));
+					    		}
+					    		response.getWriter().write("<" + downloadLink + ">");
+							} catch (Exception e) {
+								response.getWriter().write("<ERROR: " + exchange.name() + ". " + e.getMessage() + ">");
+								LOGGER.log(Level.SEVERE, "Cannot process " + exchange.name(), e);
+							}
 						}
+					} else {
+						LOGGER.log(Level.WARNING, exchange.name() + " is disabled");
 					}
 				}
 			} else {

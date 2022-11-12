@@ -18,8 +18,10 @@ import org.junit.Test;
 
 import com.jbescos.cloudchart.CandleChart;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Kline;
+import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.exchange.Utils;
@@ -28,17 +30,26 @@ public class PublicAPITest {
 
 	@Test
 	@Ignore
+	public void simplePrices() {
+		Client client = ClientBuilder.newClient();
+        PublicAPI publicAPI = new PublicAPI(client);
+		System.out.println(Utils.simplePrices(Exchange.KUCOIN.price(publicAPI)));
+		client.close();
+	}
+	
+	@Test
+	@Ignore
     public void allPrices() {
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
-        Map<String, Double> prices = publicAPI.priceKucoin();
-        System.out.println("Kucoin " + prices.size() + " size: " + prices );
-        prices = publicAPI.priceBinance();
-        System.out.println("Binance " + prices.size() + " size: " + prices );
-        prices = publicAPI.priceOkex();
-        System.out.println("Okex " + prices.size() + " size: " + prices );
-        prices = publicAPI.priceFtx();
-        System.out.println("Ftx " + prices.size() + " size: " + prices );
+        Set<String> updatedExchanges = new HashSet<>();
+        for (Exchange exchange : Exchange.values()) {
+        	if (exchange.enabled()) {
+        		if (updatedExchanges.add(exchange.getFolder())) {
+        			System.out.println(exchange.name() + ": " + exchange.price(publicAPI));
+        		}
+        	}
+        }
         client.close();
 	}
 	
@@ -75,8 +86,8 @@ public class PublicAPITest {
 	public void compatibleSymbols() {
 		Client client = ClientBuilder.newClient();
 		PublicAPI publicAPI = new PublicAPI(client);
-		Map<String, Double> pricesKucoin = publicAPI.priceKucoin();
-		Map<String, Double> pricesBinance = publicAPI.priceBinance();
+		Map<String, Price> pricesKucoin = publicAPI.priceKucoin();
+		Map<String, Price> pricesBinance = publicAPI.priceBinance();
 		Set<String> compatibleSymbols = new HashSet<>();
 		for (String symbol : pricesBinance.keySet()) {
 			if (pricesKucoin.containsKey(symbol)) {
@@ -95,13 +106,13 @@ public class PublicAPITest {
 	public void prices() {
 		Client client = ClientBuilder.newClient();
 		PublicAPI publicAPI = new PublicAPI(client);
-		Map<String, Double> binancePrices = publicAPI.priceBinance();
-		Map<String, Double> kucoinSellPrices = publicAPI.priceKucoin();
-		Map<String, Double> kucoinBuyPrices = publicAPI.priceKucoin(ticker -> Double.parseDouble(ticker.getSell()));
+		Map<String, Price> binancePrices = publicAPI.priceBinance();
+		Map<String, Price> kucoinSellPrices = publicAPI.priceKucoin();
+		Map<String, Price> kucoinBuyPrices = publicAPI.priceKucoin(ticker -> Double.parseDouble(ticker.getSell()));
 		for (String symbol : new CloudProperties("binance", null).BOT_WHITE_LIST_SYMBOLS) {
-			Double binanceSellPrice = binancePrices.get(symbol);
-			Double kucoinSellPrice = kucoinSellPrices.get(symbol);
-			Double kucoinBuyPrice = kucoinBuyPrices.get(symbol);
+			Double binanceSellPrice = binancePrices.get(symbol).getPrice();
+			Double kucoinSellPrice = kucoinSellPrices.get(symbol).getPrice();
+			Double kucoinBuyPrice = kucoinBuyPrices.get(symbol).getPrice();
 			if (binanceSellPrice != null)
 				System.out.println("Binance price: " + Utils.format(binanceSellPrice) + " " + symbol);
 			if (kucoinBuyPrice != null)

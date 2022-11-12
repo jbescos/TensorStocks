@@ -22,6 +22,7 @@ import javax.ws.rs.client.Client;
 import com.google.cloud.ReadChannel;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
+import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PropertiesBinance;
 import com.jbescos.exchange.PropertiesKucoin;
 import com.jbescos.exchange.PropertiesMizar;
@@ -274,7 +275,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
         }, KUCOIN("/kucoin/", true, true) {
@@ -284,7 +285,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
         }, MIZAR_KUCOIN("/kucoin/", false, false) {
@@ -294,7 +295,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceKucoin();
 			}
         }, MIZAR_OKEX("/okex/", false, false) {
@@ -304,7 +305,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceOkex();
 			}
         }, MIZAR_FTX("/ftx/", false, false) {
@@ -314,8 +315,13 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceFtx();
+			}
+			
+			@Override
+			public boolean enabled() {
+				return false;
 			}
         }, MIZAR_BINANCE("/binance/", false, false) {
             @Override
@@ -324,7 +330,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceBinance();
 			}
         }, FTX("/ftx/", true, false) {
@@ -334,8 +340,13 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceFtx();
+			}
+			
+			@Override
+			public boolean enabled() {
+				return false;
 			}
         }, OKEX("/okex/", true, false) {
             @Override
@@ -344,8 +355,18 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             }
 
 			@Override
-			public Map<String, Double> price(PublicAPI publicApi) {
+			public Map<String, Price> price(PublicAPI publicApi) {
 				return publicApi.priceOkex();
+			}
+        }, CHAIN_ETHEREUM("/chain_ethereum/", true, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            	throw new UnsupportedOperationException("CHAIN_ETHEREUM integration is not supported");
+            }
+
+			@Override
+			public Map<String, Price> price(PublicAPI publicApi) {
+				return publicApi.priceCoingeckoTopSimple(5, "ethereum");
 			}
         };
     	
@@ -371,9 +392,13 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 			return folder;
 		}
 
+		public boolean enabled() {
+			return true;
+		}
+
 		public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
         
-        public abstract Map<String, Double> price(PublicAPI publicApi);
+        public abstract Map<String, Price> price(PublicAPI publicApi);
 
     }
 

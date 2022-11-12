@@ -2,56 +2,31 @@ package com.jbescos.exchange;
 
 public class Price {
 
-	private String symbol;
-	private double price;
+	private final String symbol;
+	private final double price;
+	private final String token;
 	
-	public Price() {}
-	
-	public Price(String symbol, double price) {
+	public Price(String symbol, double price, String token) {
 		this.symbol = symbol;
 		this.price = price;
+		this.token = token;
 	}
 
 	public String getSymbol() {
 		return symbol;
 	}
-	public void setSymbol(String symbol) {
-		this.symbol = symbol;
-	}
+
 	public double getPrice() {
 		return price;
 	}
-	public void setPrice(double price) {
-		this.price = price;
+
+	public String getToken() {
+		return token;
 	}
+
 	@Override
 	public String toString() {
-		return "[symbol=" + symbol + ", price=" + price + "]";
+		return Double.toString(price);
 	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((symbol == null) ? 0 : symbol.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		Price other = (Price) obj;
-		if (symbol == null) {
-			if (other.symbol != null)
-				return false;
-		} else if (!symbol.equals(other.symbol))
-			return false;
-		return true;
-	}
-
+	
 }

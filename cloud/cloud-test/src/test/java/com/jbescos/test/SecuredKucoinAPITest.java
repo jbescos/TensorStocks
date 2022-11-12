@@ -1,13 +1,10 @@
 package com.jbescos.test;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -24,8 +21,6 @@ import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
-import com.jbescos.exchange.Broker.Action;
-import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredKucoinAPI;
@@ -74,7 +69,7 @@ public class SecuredKucoinAPITest {
 	@Ignore
 	public void address() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		PublicAPI publicAPI = new PublicAPI(client);
-		Map<String, Double> kucoinSellPrices = publicAPI.priceKucoin();
+		Map<String, Double> kucoinSellPrices = Utils.simplePrices(publicAPI.priceKucoin());
 		SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
 		System.out.println("Address:" + api.depositAddress("BTCUSDT", kucoinSellPrices));
 	}

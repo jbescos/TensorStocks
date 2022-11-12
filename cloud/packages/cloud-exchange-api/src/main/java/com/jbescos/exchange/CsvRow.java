@@ -11,8 +11,9 @@ public class CsvRow implements IRow {
 	private Double avg2;
 	private int fearGreedIndex;
 	private Double fearGreedIndexAvg;
+	private String token = "";
 	
-	public CsvRow(Date date, String symbol, double price, Double avg, Double avg2, int fearGreedIndex, Double fearGreedIndexAvg) {
+	public CsvRow(Date date, String symbol, double price, Double avg, Double avg2, int fearGreedIndex, Double fearGreedIndexAvg, String token) {
 		this.date = date;
 		this.symbol = symbol;
 		this.price = price;
@@ -20,10 +21,22 @@ public class CsvRow implements IRow {
 		this.avg2 = avg2;
 		this.fearGreedIndex = fearGreedIndex;
 		this.fearGreedIndexAvg = fearGreedIndexAvg;
+		this.token = token;
+	}
+
+	public CsvRow(Date date, Price priceObj, Double avg, Double avg2, int fearGreedIndex, Double fearGreedIndexAvg) {
+		this.date = date;
+		this.symbol = priceObj.getSymbol();
+		this.price = priceObj.getPrice();
+		this.avg = avg;
+		this.avg2 = avg2;
+		this.fearGreedIndex = fearGreedIndex;
+		this.fearGreedIndexAvg = fearGreedIndexAvg;
+		this.token = priceObj.getToken();
 	}
 	
 	public CsvRow(Date date, String symbol, double price) {
-		this(date, symbol, price, null, null, 50, 50.0);
+		this(date, symbol, price, null, null, 50, 50.0, "");
 	}
 
 	public void setDate(Date date) {
@@ -99,7 +112,7 @@ public class CsvRow implements IRow {
 	public String toCsvLine() {
 		StringBuilder builder = new StringBuilder();
 		String dateStr = Utils.fromDate(Utils.FORMAT_SECOND, date);
-		builder.append(dateStr).append(",").append(getSymbol()).append(",").append(getPrice()).append(",").append(getAvg()).append(",").append(getAvg2()).append(",").append(getFearGreedIndex()).append(",").append(getFearGreedIndexAvg())
+		builder.append(dateStr).append(",").append(symbol).append(",").append(price).append(",").append(avg).append(",").append(avg2).append(",").append(fearGreedIndex).append(",").append(fearGreedIndexAvg).append(",").append(token)
 		.append(Utils.NEW_LINE);
 		return builder.toString();
 	}

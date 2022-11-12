@@ -54,7 +54,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 	        // Update wallet in case the exchange supports it
 	        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
 		        Map<String, String> wallet = securedApi.wallet();
-		        Map<String, Double> prices = cloudProperties.USER_EXCHANGE.price(publicAPI);
+		        Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
 		        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
 		        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
 	        }

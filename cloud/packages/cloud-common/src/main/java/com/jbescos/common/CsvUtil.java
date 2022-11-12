@@ -211,6 +211,7 @@ public class CsvUtil {
 					Double avg = null;
 					Double longAvg = null;
 					Double fearGreedIndexAvg = null;
+					String token = "";
 					int fearGreedIndex = 50;
 					if (columns.length > 3) {
 						avg = Double.parseDouble(columns[3]);
@@ -220,11 +221,14 @@ public class CsvUtil {
 								fearGreedIndex = Integer.parseInt(columns[5]);
 								if (columns.length > 6) {
 									fearGreedIndexAvg = Double.parseDouble(columns[6]);
+									if (columns.length > 7) {
+										token = columns[7];
+									}
 								}
 							}
 						}
 					}
-					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg, fearGreedIndex, fearGreedIndexAvg);
+					CsvRow row = new CsvRow(date, symbol, Double.parseDouble(columns[2]), avg, longAvg, fearGreedIndex, fearGreedIndexAvg, token);
 					return row;
 				}
 			}

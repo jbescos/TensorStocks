@@ -34,7 +34,7 @@ public class SecuredBinanceAPITest {
 		Client client = ClientBuilder.newClient();
 		SecuredBinanceAPI api = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
 		Map<String,String> wallet = api.wallet();
-		Map<String, Double> prices = Exchange.BINANCE.price(new PublicAPI(client));
+		Map<String, Double> prices = Utils.simplePrices(Exchange.BINANCE.price(new PublicAPI(client)));
 		List<Map<String, String>> rows = Utils.userUsdt(new Date(), prices, wallet);
 		System.out.println(CsvUtil.toString(rows));
 		client.close();
@@ -63,7 +63,7 @@ public class SecuredBinanceAPITest {
 	public void checkExploits() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
 		Client client = ClientBuilder.newClient();
 		PublicAPI publicAPI = new PublicAPI(client);
-		Map<String, Double> kucoinSellPrices = publicAPI.priceKucoin();
+		Map<String, Double> kucoinSellPrices = Utils.simplePrices(publicAPI.priceKucoin());
 		List<String> symbols = Arrays.asList("VIDTUSDT", "TKOUSDT", "PUNDIXUSDT", "LUNAUSDT", "HARDUSDT", "BTCUSDT");
 		SecuredBinanceAPI binance = SecuredBinanceAPI.create(CLOUD_PROPERTIES, client);
 		Map<String, String> binanceWallet = binance.wallet();
