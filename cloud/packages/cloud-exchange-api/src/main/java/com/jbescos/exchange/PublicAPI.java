@@ -217,16 +217,16 @@ public final class PublicAPI {
 		int pageIdx = 0;
 		List<Map<String, Object>> page = null;
 		do {
-			page = get(COINGEKO_URL, "/api/v3/coins/markets", new GenericType<List<Map<String, Object>>>() {}, "sparkline", "false", "order", "market_cap_desc", "vs_currency", "usd", "per_page", "250", "page", Integer.toString(pageIdx));
-			for (Map<String, Object> price : page) {
-				String id = (String) price.get("id");
-				Map<String, Object> coinInfo = coinsById.get(id);
-				if (coinInfo != null) {
-					coinInfo.put("price", (double) price.get("current_price"));
-					filteredCoins.put(id, coinInfo);
-				}
+		    page = get(COINGEKO_URL, "/api/v3/coins/markets", new GenericType<List<Map<String, Object>>>() {}, "sparkline", "false", "order", "market_cap_desc", "vs_currency", "usd", "per_page", "250", "page", Integer.toString(pageIdx));
+		    for (Map<String, Object> price : page) {
+			String id = (String) price.get("id");
+			Map<String, Object> coinInfo = coinsById.get(id);
+			if (coinInfo != null) {
+			    coinInfo.put("price", ((Number) price.get("current_price")).doubleValue());
+			    filteredCoins.put(id, coinInfo);
 			}
-			pageIdx++;
+		    }
+		    pageIdx++;
 		} while (pageIdx < pages && page != null);
 		return filteredCoins;
 	}
