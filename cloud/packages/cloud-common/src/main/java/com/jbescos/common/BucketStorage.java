@@ -193,4 +193,15 @@ public class BucketStorage implements FileManager {
 		return blobInfo.getMediaLink();
 	}
 
+    @Override
+    public String getRaw(String file) {
+        try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), file);
+                BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+            return reader.lines().collect(Collectors.joining());
+        } catch (Exception e) {
+                // Eat it, no CSV was found is not an error
+        }
+        return null;
+    }
+
 }

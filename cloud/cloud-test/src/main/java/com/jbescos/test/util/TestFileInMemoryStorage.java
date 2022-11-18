@@ -21,6 +21,7 @@ public class TestFileInMemoryStorage implements FileManager {
     private final List<CsvTransactionRow> openTransactions;
     private final List<CsvRow> previousRows;
     private final List<CsvProfitRow> profit;
+    private String baseUsdt;
     
     public TestFileInMemoryStorage(List<CsvTransactionRow> transactions, List<CsvTransactionRow> openTransactions,
             List<CsvRow> previousRows, List<CsvProfitRow> profit) {
@@ -84,5 +85,14 @@ public class TestFileInMemoryStorage implements FileManager {
         data.setLength(0);
         profit.stream().forEach(r -> data.append(r.toCsvLine()));
         storage.updateFile("profit.csv", data.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+    }
+
+    public void setBaseUsdt(String baseUsdt) {
+        this.baseUsdt = baseUsdt;
+    }
+
+    @Override
+    public String getRaw(String file) {
+        return baseUsdt;
     }
 }

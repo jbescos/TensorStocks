@@ -20,4 +20,6 @@ public interface FileManager {
 	List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols) throws IOException;
 
 	List<CsvProfitRow> loadCsvProfitRows(String userId, int monthsBack);
+	
+	String getRaw(String file);
 }

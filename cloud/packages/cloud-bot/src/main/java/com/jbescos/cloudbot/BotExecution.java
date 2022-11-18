@@ -33,11 +33,14 @@ public class BotExecution {
 	private final ConnectAPI connectAPI;
 	private final Map<String, Double> wallet;
 	private final CloudProperties cloudProperties;
+	// Calculated
+	private final String baseUsdt;
 	private Map<String, Double> benefits;
 	
-	private BotExecution(CloudProperties cloudProperties, ConnectAPI connectAPI) {
+	private BotExecution(CloudProperties cloudProperties, ConnectAPI connectAPI, FileManager storage) {
 		this.cloudProperties = cloudProperties;
 		this.connectAPI = connectAPI;
+		this.baseUsdt = storage.getRaw(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE);
 		this.wallet = connectAPI.wallet();
 	}
 	
@@ -94,7 +97,11 @@ public class BotExecution {
     	    		    buy = buy * stat.getFactor();
     	    		}
     	    		if (cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT > 0) {
-    	    		    buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
+    	    		    if (baseUsdt != null) {
+    	    		        buy = Double.parseDouble(baseUsdt) * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
+    	    		    } else {
+    	    		        buy = buy * cloudProperties.LIMIT_TRANSACTION_RATIO_AMOUNT;
+    	    		    }
     	            }
     	    		if (cloudProperties.LIMIT_TRANSACTION_AMOUNT > 0 && buy > cloudProperties.LIMIT_TRANSACTION_AMOUNT) {
     	    			buy = cloudProperties.LIMIT_TRANSACTION_AMOUNT;
@@ -152,11 +159,11 @@ public class BotExecution {
 	}
 	
 	public static BotExecution production(CloudProperties cloudProperties, SecuredAPI api, FileManager storage, TelegramBot msgSender) {
-		return new BotExecution(cloudProperties, new ConnectAPIImpl(cloudProperties, api, storage, msgSender));
+		return new BotExecution(cloudProperties, new ConnectAPIImpl(cloudProperties, api, storage, msgSender), storage);
 	}
 	
 	public static BotExecution test(CloudProperties cloudProperties, FileManager storage, Map<String, Double> wallet, List<CsvRow> walletHistorical, double minTransaction) {
-		return new BotExecution(cloudProperties, new ConnectAPITest(cloudProperties, storage, wallet, walletHistorical, minTransaction));
+		return new BotExecution(cloudProperties, new ConnectAPITest(cloudProperties, storage, wallet, walletHistorical, minTransaction), storage);
 	}
 	
 	private static interface ConnectAPI {

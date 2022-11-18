@@ -84,4 +84,9 @@ public class TestFileStorage implements FileManager {
 		}
 	}
 
+    @Override
+    public String getRaw(String file) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
 }

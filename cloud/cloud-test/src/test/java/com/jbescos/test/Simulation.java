@@ -1,20 +1,5 @@
 package com.jbescos.test;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
-
 import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.DateChart;
@@ -29,6 +14,21 @@ import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.IRow;
 import com.jbescos.exchange.Utils;
 import com.jbescos.test.util.TestFileInMemoryStorage;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Simulation {
 
@@ -39,6 +39,7 @@ public class Simulation {
 	private final long hoursBackMillis;
 	private final String from;
 	private final String to;
+	private final CloudProperties cloudProperties;
 	private boolean loaded;
 	private double benefit;
 
@@ -46,6 +47,7 @@ public class Simulation {
 		this.loader = new DataLoader(from, to, cloudProperties);
 		this.from = from;
 		this.to = to;
+		this.cloudProperties = cloudProperties;
 		String testFolder = baseTestFolder + cloudProperties.USER_ID + "/" + from;
 		if (to != null) {
 			testFolder = testFolder + "_" + to;
@@ -74,18 +76,36 @@ public class Simulation {
 		}
 	}
 	
+	private String getBaseUsdt(Map<String, Double> wallet) {
+	    List<Map<String, String>> walletRows = new ArrayList<>();
+	    for (Entry<String, Double> entry : wallet.entrySet()) {
+	        Map<String, String> row = new HashMap<>();
+	        row.put("SYMBOL", entry.getKey());
+	        row.put(Utils.USDT, Utils.format(entry.getValue()));
+	        walletRows.add(row);
+	    }
+	    String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), walletRows);
+	    return baseUsdt;
+	}
+	
 	private void iterate(Map<String, Double> wallet, List<CsvRow> walletHistorical, List<CsvTransactionRow> transactions, String symbol) {
 		CsvRow first = symbol == null ? loader.first() : loader.first(symbol);
     	long now = first.getDate().getTime() + hoursBackMillis;
     	long last = loader.last(first.getSymbol()).getDate().getTime();
         List<CsvTransactionRow> openTransactions = new ArrayList<>();
         List<CsvProfitRow> profit = new ArrayList<>();
+        String baseUsdt = null;
     	try {
 	    	while (now <= last) {
 	    		long previous = now - hoursBackMillis;
 	    		List<CsvRow> segment = symbol == null ? loader.get(previous, now) : loader.get(symbol, previous, now);
 //	    		TestFileStorage fileManager = new TestFileStorage(testFolder + (symbol == null ? "/total_" : "/" + symbol + "_"), transactions, segment);
 	    		TestFileInMemoryStorage fileManager = new TestFileInMemoryStorage(transactions, openTransactions, segment, profit);
+	    		String newBaseUsdt = getBaseUsdt(wallet);
+	    		if (newBaseUsdt != null) {
+	    		    baseUsdt = newBaseUsdt;
+	    		}
+	                fileManager.setBaseUsdt(baseUsdt);
 	    	    List<Broker> stats = new DefaultBrokerManager(loader.getCloudProperties(), fileManager).loadBrokers();
 		    	BotExecution trader = BotExecution.test(loader.getCloudProperties(), fileManager, wallet, walletHistorical, loader.getCloudProperties().MIN_TRANSACTION);
 	            trader.execute(stats);
@@ -243,7 +263,7 @@ public class Simulation {
 			StringBuilder builder = new StringBuilder();
 			builder.append(from).append(",").append(to).append(",").append(exchange).append(",").append(userId).append(",")
 			.append(Utils.format(initialAmount)).append("$,").append(Utils.format(finalAmount)).append("$,").append(purchases)
-			.append("$,").append(Utils.format(buyValue))
+			.append(",").append(Utils.format(buyValue))
 			.append(",").append(Utils.format(benefitPercentage))
 			.append("%").append(Utils.NEW_LINE);
 			return builder.toString();
