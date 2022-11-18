@@ -63,6 +63,7 @@ public class BotTest {
 	    	Collections.sort(results);
 	    	TestFileStorage fileStorage = new TestFileStorage(BASE_TEST_FOLDER, null, null);
 	    	StringBuilder builder = new StringBuilder();
+	    	Collections.sort(results, (res1, res2) -> res1.getUserId().compareTo(res2.getUserId()));
 	    	results.forEach(result -> builder.append(result.toCsv()));
 	    	double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
 	    	builder.append("AVG,").append(Utils.format(avg)).append("%").append(Utils.NEW_LINE);
