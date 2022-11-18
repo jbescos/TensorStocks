@@ -57,6 +57,10 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 		        Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
 		        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
 		        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+		        String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rows);
+		        if (baseUsdt != null) {
+		            bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE, baseUsdt.getBytes(), null);
+		        }
 	        }
 	        Map<String, Double> benefits = Utils.calculateBenefits(brokers);
 	        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);

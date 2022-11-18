@@ -3,6 +3,7 @@ package com.jbescos.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
@@ -462,6 +463,31 @@ public class UtilsTest {
 		assertEquals("6.2%", profits.get(2).getProfitPercentage());
 	}
 
+    @Test
+    public void baseUsdt() {
+        List<Map<String, String>> wallet = new ArrayList<>();
+        wallet.add(createWalletRow("HAKA", "82.55813899"));
+        wallet.add(createWalletRow("OPCT", "80.29847612"));
+        wallet.add(createWalletRow("BTC", "1277.34226914"));
+        wallet.add(createWalletRow("MKR", "837.91411086"));
+        wallet.add(createWalletRow("USDT", "1449.36508141"));
+        wallet.add(createWalletRow("TOTAL_USDT", "5606.27348021"));
+        assertNull(Utils.baseUsdt(Arrays.asList("BTCUSDT", "MKRUSDT"), wallet));
+        wallet = new ArrayList<>();
+        wallet.add(createWalletRow("BTC", "1277.34226914"));
+        wallet.add(createWalletRow("MKR", "837.91411086"));
+        wallet.add(createWalletRow("USDT", "1449.36508141"));
+        wallet.add(createWalletRow("TOTAL_USDT", "5606.27348021"));
+        assertEquals("1449.36508141", Utils.baseUsdt(Arrays.asList("BTCUSDT", "MKRUSDT"), wallet));
+    }
+    
+    private Map<String, String> createWalletRow(String symbol, String usdt) {
+        Map<String, String> row = new HashMap<>();
+        row.put("SYMBOL", symbol);
+        row.put(Utils.USDT, usdt);
+        return row;
+    }
+    
 	private CsvTransactionRow createCsvTransactionRow(Action side, String usdt, String quantity) {
 		return createCsvTransactionRow("2021-01-01 00:00:00", side, usdt, quantity);
 	}

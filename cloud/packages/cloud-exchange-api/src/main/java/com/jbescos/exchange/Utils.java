@@ -1,5 +1,6 @@
 package com.jbescos.exchange;
 
+import com.jbescos.exchange.Broker.Action;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,8 +26,6 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
-import com.jbescos.exchange.Broker.Action;
 
 public class Utils {
 
@@ -49,9 +49,10 @@ public class Utils {
     public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
     public static final String CONTEXT_PREFIX = "context/";
     public static final String OPEN_POSSITIONS = CONTEXT_PREFIX + "open_positions.csv";
+    public static final String CONTEXT_DATA_FILE = CONTEXT_PREFIX + "contextData.csv";
     public static final String WALLET_PREFIX = "wallet/wallet_";
     public static final String TX_SUMMARY_PREFIX = "tx_summary/tx_summary_";
-    public static final double MIN_WALLET_VALUE_TO_RECORD = 0.1;
+    public static final double MIN_WALLET_VALUE_TO_RECORD = 9.5;
     public static final double EWMA_CONSTANT = 0.01;
     public static final double EWMA_2_CONSTANT = 0.001;
     public static final double TRANSFER_MIN_PROFIT_UNIT = 0.03;
@@ -683,5 +684,19 @@ public class Utils {
     
     public static Map<String, Double> simplePrices(Map<String, Price> prices) {
     	return prices.values().stream().collect(Collectors.toMap(Price::getSymbol, Price::getPrice));
+    }
+    
+    // Get the USDT of the wallet when there is nothing else
+    public static String baseUsdt(Collection<String> excludeLimits, List<Map<String, String>> wallet) {
+        wallet.removeIf(entry -> excludeLimits.contains(entry.get("SYMBOL") + USDT) || TOTAL_USDT.equals(entry.get("SYMBOL")));
+        if (wallet.size() == 1) {
+            Map<String, String> usdt = wallet.get(0);
+            if (Utils.USDT.equals(usdt.get("SYMBOL"))) {
+                return usdt.get(Utils.USDT);
+            } else {
+                LOGGER.warning("Unexpected symbol found. Symbol should be USDT: " + usdt);
+            }
+        }
+        return null;
     }
 }

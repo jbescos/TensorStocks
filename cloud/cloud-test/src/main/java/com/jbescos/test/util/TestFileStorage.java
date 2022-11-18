@@ -38,7 +38,9 @@ public class TestFileStorage implements FileManager {
 		File file = path.toFile();
 		if (!file.exists()) {
 			Files.createDirectories(path.getParent());
-			Files.write(path, header, StandardOpenOption.CREATE);
+			if (header != null) {
+			    Files.write(path, header, StandardOpenOption.CREATE);
+			}
 		}
 		Files.write(path, content, StandardOpenOption.APPEND);
 		return file.getAbsolutePath();

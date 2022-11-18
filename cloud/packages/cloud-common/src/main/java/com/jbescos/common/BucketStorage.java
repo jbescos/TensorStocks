@@ -185,7 +185,9 @@ public class BucketStorage implements FileManager {
 	public String overwriteFile(String fileName, byte[] content, byte[] header)
 			throws FileNotFoundException, IOException {
 		ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-		outputStream.write(header);
+		if (header != null) {
+		    outputStream.write(header);
+		}
 		outputStream.write(content);
 		BlobInfo blobInfo = storageInfo.getStorage().create(createBlobInfo(storageInfo, fileName, false), outputStream.toByteArray());
 		return blobInfo.getMediaLink();
