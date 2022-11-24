@@ -1,5 +1,7 @@
 package com.jbescos.cloudbot;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
@@ -36,7 +38,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
 
     @Override
     public void accept(PubSubMessage payload, Context context) throws Exception {
-    	long millis = System.currentTimeMillis();
+        long millis = System.currentTimeMillis();
         String userId = new String(Base64.getDecoder().decode(payload.data));
         StorageInfo storageInfo = StorageInfo.build();
         Client client = ClientBuilder.newClient();
@@ -48,74 +50,90 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
         List<Broker> brokers = brokerManager.loadBrokers();
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
-	        BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage, telegram);
-	        bot.execute(brokers);
-	
-	        // Update wallet in case the exchange supports it
-	        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-		        Map<String, String> wallet = securedApi.wallet();
-		        Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
-		        List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
-		        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv", CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
-		        String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rows);
-		        if (baseUsdt != null) {
-		            bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE, baseUsdt.getBytes(), null);
-		        }
-	        }
-	        Map<String, Double> benefits = Utils.calculateBenefits(brokers);
-	        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
-	        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
-	        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8), CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
-	        
-	        // Synchronize transactions with the exchange
-	        if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
-	        	// FIXME Take them from Utils.OPEN_POSSITIONS. If it needs sync, sync them and load the transactions/profits by name to sync them too.
-	        	List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
-	        	Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
-	        	for (String txFile : txFiles) {
-		        	List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);
-		        	boolean needUpdate = Utils.resyncTransactions(securedApi, transactions);
-		        	if (needUpdate) {
-		        		StringBuilder data = new StringBuilder();
-		        		transactions.stream().forEach(tx -> {
-		        			data.append(tx.toCsvLine());
-		        		});
-		        		bucketStorage.overwriteFile(txFile, data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
-		        	}
-		        	transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
-	        	}
-	        	List<String> profitFiles = Utils.monthsBack(now, 2, userId + "/" + CsvProfitRow.PREFIX, ".csv");
-	        	for (String profitFile : profitFiles) {
-	        		List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(profitFile);
-	        		boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows, cloudProperties.BROKER_COMMISSION);
-	        		if (needUpdate) {
-	        			StringBuilder data = new StringBuilder();
-	        			profitRows.stream().forEach(profit -> {
-		        			data.append(profit.toCsvLine());
-		        		});
-		        		bucketStorage.overwriteFile(profitFile, data.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
-	        		}
-	        	}
-	        }
-	        
-	        // Report
-	        boolean report = isReportTime(now, cloudProperties);
-	        if (report) {
-	            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-	            	telegram.sendHtmlLink();
-	            }
-	            List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
-	            StringBuilder profits = new StringBuilder().append("opened-closed, profit(%)");
-	            profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
-	            profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
-	            profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
-	            telegram.sendMessage(profits.toString());
-	        }
+            BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage, telegram);
+            bot.execute(brokers);
+
+            // Update wallet in case the exchange supports it
+            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                Map<String, String> wallet = securedApi.wallet();
+                Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
+                List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
+                bucketStorage.updateFile(
+                        cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv",
+                        CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+                String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rows);
+                if (baseUsdt != null) {
+                    bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE,
+                            baseUsdt.getBytes(), null);
+                }
+            }
+            Map<String, Double> benefits = Utils.calculateBenefits(brokers);
+            LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
+            String body = CsvTxSummaryRow.toCsvBody(now, benefits);
+            bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX
+                    + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8),
+                    CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
+
+            // Synchronize transactions with the exchange
+            if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
+                // FIXME Use synchronized Utils.OPEN_POSSITIONS to update the other CSVs.
+                ResyncTx resync = synchronizeTransactions(securedApi, bucketStorage, userId + "/" + Utils.OPEN_POSSITIONS);
+                if (resync.needUpdate) {
+                    List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+                    Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
+                    for (String txFile : txFiles) {
+                        List<CsvTransactionRow> transactions = synchronizeTransactions(securedApi, bucketStorage, txFile).transactions;
+                        transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
+                    }
+                    List<String> profitFiles = Utils.monthsBack(now, 2, userId + "/" + CsvProfitRow.PREFIX, ".csv");
+                    for (String profitFile : profitFiles) {
+                        List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(profitFile);
+                        boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows, cloudProperties.BROKER_COMMISSION);
+                        if (needUpdate) {
+                            StringBuilder data = new StringBuilder();
+                            profitRows.stream().forEach(profit -> {
+                                data.append(profit.toCsvLine());
+                            });
+                            bucketStorage.overwriteFile(profitFile, data.toString().getBytes(Utils.UTF8),
+                                    CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+                        }
+                    }
+                }
+            }
+
+            // Report
+            boolean report = isReportTime(now, cloudProperties);
+            if (report) {
+                if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                    telegram.sendHtmlLink();
+                }
+                List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
+                StringBuilder profits = new StringBuilder().append("opened-closed, profit(%)");
+                profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
+                profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
+                profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+                telegram.sendMessage(profits.toString());
+            }
         }
         client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
-    
+
+    private ResyncTx synchronizeTransactions(SecuredAPI securedApi, BucketStorage bucketStorage,
+            String txFile) throws FileNotFoundException, IOException {
+        List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);
+        boolean needUpdate = Utils.resyncTransactions(securedApi, transactions);
+        if (needUpdate) {
+            StringBuilder data = new StringBuilder();
+            transactions.stream().forEach(tx -> {
+                data.append(tx.toCsvLine());
+            });
+            bucketStorage.overwriteFile(txFile, data.toString().getBytes(Utils.UTF8),
+                    Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+        }
+        return new ResyncTx(needUpdate, transactions);
+    }
+
     // Reports if the bot run between 6:00 and 6:10
     private boolean isReportTime(Date now, CloudProperties cloudProperties) {
         if (cloudProperties.TELEGRAM_BOT_ENABLED) {
@@ -129,5 +147,14 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         Map<String, String> attributes;
         String messageId;
         String publishTime;
+    }
+    
+    private static class ResyncTx {
+        private final boolean needUpdate;
+        private final List<CsvTransactionRow> transactions;
+        public ResyncTx(boolean needUpdate, List<CsvTransactionRow> transactions) {
+            this.needUpdate = needUpdate;
+            this.transactions = transactions;
+        }
     }
 }
