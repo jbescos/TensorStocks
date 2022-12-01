@@ -57,7 +57,7 @@ public class BinanceTest {
     }
 
     @Test
-//    @Ignore
+    @Ignore
     public void serverTime() {
     	Client client = ClientBuilder.newClient();
     	long time = new PublicAPI(client).time();
