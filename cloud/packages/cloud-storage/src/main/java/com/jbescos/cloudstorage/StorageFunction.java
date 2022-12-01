@@ -76,12 +76,10 @@ public class StorageFunction implements HttpFunction {
 				}
 			}
 		}
-		long time = publicAPI.time();
-		Date now = new Date(time);
+		Date now = new Date();
 		LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
 		
 		CloudProperties cloudProperties = new CloudProperties(storageInfo);
-		klines(now, storage, publicAPI, cloudProperties);
 		
 		FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
 		try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
@@ -92,7 +90,7 @@ public class StorageFunction implements HttpFunction {
 						if (updatedExchanges.add(exchange.getFolder())) {
 							try {
 								String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
-								Map<String, CsvRow> previousRows = storage.previousRows(time, lastPrice);
+								Map<String, CsvRow> previousRows = storage.previousRows(now.getTime(), lastPrice);
 							    // Update current prices
 					    		Map<String, Price> prices = exchange.price(publicAPI);
 					            String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
