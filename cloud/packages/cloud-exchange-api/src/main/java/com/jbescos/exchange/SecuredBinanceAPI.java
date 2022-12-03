@@ -29,7 +29,7 @@ public class SecuredBinanceAPI implements SecuredAPI {
 	private static final Logger LOGGER = Logger.getLogger(SecuredBinanceAPI.class.getName());
 	private static final char[] HEX_ARRAY = "0123456789abcdef".toCharArray();
 	private static final String HMAC_SHA_256 = "HmacSHA256";
-	private static final String URL = PublicAPI.BINANCE_URL;
+	private static final String URL = "https://api.binance.com";
 	private final Mac mac;
 	private final String publicKey;
 	private final Client client;
