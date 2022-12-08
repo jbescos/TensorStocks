@@ -1,5 +1,19 @@
 package com.jbescos.common;
 
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Storage;
+import com.jbescos.exchange.Price;
+import com.jbescos.exchange.PropertiesBinance;
+import com.jbescos.exchange.PropertiesKucoin;
+import com.jbescos.exchange.PropertiesMizar;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.PublicAPI.News;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.SecuredBinanceAPI;
+import com.jbescos.exchange.SecuredKucoinAPI;
+import com.jbescos.exchange.SecuredMizarAPI;
+import com.jbescos.exchange.Utils;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -16,22 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
-
 import javax.ws.rs.client.Client;
-
-import com.google.cloud.ReadChannel;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Storage;
-import com.jbescos.exchange.Price;
-import com.jbescos.exchange.PropertiesBinance;
-import com.jbescos.exchange.PropertiesKucoin;
-import com.jbescos.exchange.PropertiesMizar;
-import com.jbescos.exchange.PublicAPI;
-import com.jbescos.exchange.SecuredAPI;
-import com.jbescos.exchange.SecuredBinanceAPI;
-import com.jbescos.exchange.SecuredKucoinAPI;
-import com.jbescos.exchange.SecuredMizarAPI;
-import com.jbescos.exchange.Utils;
 
 public class CloudProperties implements PropertiesBinance, PropertiesKucoin, PropertiesMizar {
 
@@ -91,7 +90,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public final List<String> KLINES_LIST;
     private final Properties mainProperties;
     private final Properties idProperties;
-    
+
     public CloudProperties(StorageInfo storageInfo) {
         this(null, storageInfo);
     }
@@ -101,26 +100,27 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         try {
             Properties mainProperties = null;
             if (storageInfo != null) {
-            	// Cloud
-            	idProperties = new Properties();
+                // Cloud
+                idProperties = new Properties();
                 PROJECT_ID = storageInfo.getProjectId();
                 mainProperties = new Properties();
                 BUCKET = storageInfo.getBucket();
                 PROPERTIES_BUCKET = storageInfo.getPropertiesBucket();
                 loadProperties(PROPERTIES_BUCKET, mainProperties, storageInfo.getStorage(), PROPERTIES_FILE);
                 if (USER_ID != null) {
-                    loadProperties(PROPERTIES_BUCKET, idProperties, storageInfo.getStorage(), USER_ID + "/" + PROPERTIES_FILE);
+                    loadProperties(PROPERTIES_BUCKET, idProperties, storageInfo.getStorage(),
+                            USER_ID + "/" + PROPERTIES_FILE);
                 }
             } else {
-            	// Test
-            	mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
+                // Test
+                mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
                 PROJECT_ID = "test";
                 PROPERTIES_BUCKET = "";
                 BUCKET = "";
                 if (USER_ID != null) {
-                	idProperties = Utils.fromClasspath("/" + USER_ID + "/" + PROPERTIES_FILE);
+                    idProperties = Utils.fromClasspath("/" + USER_ID + "/" + PROPERTIES_FILE);
                 } else {
-                	idProperties = new Properties();
+                    idProperties = new Properties();
                 }
             }
             this.mainProperties = mainProperties;
@@ -145,7 +145,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         KUCOIN_PRIVATE_KEY = getProperty("kucoin.private.key");
         KUCOIN_API_PASSPHRASE = getProperty("kucoin.passphrase.key");
         KUCOIN_API_VERSION = getProperty("kucoin.version");
-        
+
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));
         LIMIT_TRANSACTION_RATIO_AMOUNT = Double.parseDouble(getProperty("limit.transaction.ratio.amount"));
@@ -153,9 +153,9 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         String value = getProperty("bot.white.list");
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
-        BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
+        BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("klines.list");
-        KLINES_LIST = "".equals(value) ? Collections.emptyList() :  Arrays.asList(value.split(","));
+        KLINES_LIST = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         BROKER_COMMISSION = getProperty("broker.commission");
         BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
         BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
@@ -195,19 +195,22 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         }
         FIXED_SELL = fixedSell;
     }
-    
+
     private String getProperty(String name) {
         String value = idProperties.getProperty(name);
         if (value == null) {
             value = mainProperties.getProperty(name);
             if (value == null) {
-                throw new PropertiesConfigurationException("Property " + name + " was not found in properties files", new TelegramInfo(TELEGRAM_BOT_ENABLED, USER_ID, TELEGRAM_BOT_TOKEN, TELEGRAM_BOT_EXCEPTION_TOKEN, TELEGRAM_CHAT_ID, CHART_URL));
+                throw new PropertiesConfigurationException("Property " + name + " was not found in properties files",
+                        new TelegramInfo(TELEGRAM_BOT_ENABLED, USER_ID, TELEGRAM_BOT_TOKEN,
+                                TELEGRAM_BOT_EXCEPTION_TOKEN, TELEGRAM_CHAT_ID, CHART_URL));
             }
         }
         return value;
     }
 
-    private void loadProperties(String bucket, Properties properties, Storage storage, String propertiesFile) throws IOException {
+    private void loadProperties(String bucket, Properties properties, Storage storage, String propertiesFile)
+            throws IOException {
         Blob blob = storage.get(bucket, propertiesFile);
         if (blob == null) {
             throw new IllegalStateException("There is no " + propertiesFile);
@@ -219,16 +222,15 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             while ((line = reader.readLine()) != null) {
                 builder.append(line).append("\r\n");
             }
-            InputStream inputStream = new ByteArrayInputStream(
-                    builder.toString().getBytes(StandardCharsets.UTF_8));
+            InputStream inputStream = new ByteArrayInputStream(builder.toString().getBytes(StandardCharsets.UTF_8));
             properties.load(inputStream);
         }
     }
 
-    private  Map<String, Double> createMinSell(Properties properties) {
+    private Map<String, Double> createMinSell(Properties properties) {
         Map<String, Double> minSell = new HashMap<>();
         @SuppressWarnings("unchecked")
-		Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+        Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
         while (enums.hasMoreElements()) {
             String key = enums.nextElement();
             if (key.startsWith("bot.min.sell")) {
@@ -239,25 +241,25 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         }
         return Collections.unmodifiableMap(minSell);
     }
-    
+
     private Map<String, Double> fixedLimits(Properties properties, String limitBuyOrSellKey) {
         Map<String, Double> fixedLimits = new HashMap<>();
         if (LIMITS_BROKER_ENABLE) {
-	        @SuppressWarnings("unchecked")
-			Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
-	        while (enums.hasMoreElements()) {
-	            String key = enums.nextElement();
-	            if (key.startsWith(limitBuyOrSellKey)) {
-	                String symbol = key.split("\\.")[4];
-	                if (!fixedLimits.containsKey(symbol)) {
-	                    String value = properties.getProperty(limitBuyOrSellKey + symbol);
-	                    if (value != null) {
-    	                    double limit = Double.parseDouble(value);
-    	                    fixedLimits.put(symbol, limit);
-	                    }
-	                }
-	            }
-	        }
+            @SuppressWarnings("unchecked")
+            Enumeration<String> enums = (Enumeration<String>) properties.propertyNames();
+            while (enums.hasMoreElements()) {
+                String key = enums.nextElement();
+                if (key.startsWith(limitBuyOrSellKey)) {
+                    String symbol = key.split("\\.")[4];
+                    if (!fixedLimits.containsKey(symbol)) {
+                        String value = properties.getProperty(limitBuyOrSellKey + symbol);
+                        if (value != null) {
+                            double limit = Double.parseDouble(value);
+                            fixedLimits.put(symbol, limit);
+                        }
+                    }
+                }
+            }
         }
         return Collections.unmodifiableMap(fixedLimits);
     }
@@ -270,200 +272,227 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public static enum Exchange {
         BINANCE("/binance/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredBinanceAPI.create(cloudProperties, client);
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceBinance();
-			}
-        }, KUCOIN("/kucoin/", true, true) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceBinance();
+            }
+        },
+        KUCOIN("/kucoin/", true, true) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredKucoinAPI.create(cloudProperties, client);
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceKucoin();
-			}
-        }, MIZAR_KUCOIN("/kucoin/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceKucoin();
+            }
+            
+            @Override
+            public List<News> news(PublicAPI publicApi, long fromTimestamp) {
+                return publicApi.delistedKucoin(fromTimestamp);
+            }
+        },
+        MIZAR_KUCOIN("/kucoin/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceKucoin();
-			}
-        }, MIZAR_OKEX("/okex/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceKucoin();
+            }
+        },
+        MIZAR_OKEX("/okex/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceOkex();
-			}
-        }, MIZAR_FTX("/ftx/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceOkex();
+            }
+        },
+        MIZAR_FTX("/ftx/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceFtx();
-			}
-			
-			@Override
-			public boolean enabled() {
-				return false;
-			}
-        }, MIZAR_BINANCE("/binance/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-            	return SecuredMizarAPI.create(cloudProperties, client);
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceFtx();
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceBinance();
-			}
-        }, FTX("/ftx/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-            	throw new UnsupportedOperationException("FTX integration is not supported");
+            public boolean enabled() {
+                return false;
+            }
+        },
+        MIZAR_BINANCE("/binance/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredMizarAPI.create(cloudProperties, client);
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceFtx();
-			}
-			
-			@Override
-			public boolean enabled() {
-				return false;
-			}
-        }, OKEX("/okex/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-            	throw new UnsupportedOperationException("OKEX integration is not supported");
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceBinance();
+            }
+        },
+        FTX("/ftx/", true, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                throw new UnsupportedOperationException("FTX integration is not supported");
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceOkex();
-			}
-        }, CHAIN_ETHEREUM("/chain_ethereum/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException {
-            	throw new UnsupportedOperationException("CHAIN_ETHEREUM integration is not supported");
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceFtx();
             }
 
-			@Override
-			public Map<String, Price> price(PublicAPI publicApi) {
-				return publicApi.priceCoingeckoTopSimple(5, "ethereum");
-			}
+            @Override
+            public boolean enabled() {
+                return false;
+            }
+        },
+        OKEX("/okex/", true, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                throw new UnsupportedOperationException("OKEX integration is not supported");
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceOkex();
+            }
+        },
+        CHAIN_ETHEREUM("/chain_ethereum/", true, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                throw new UnsupportedOperationException("CHAIN_ETHEREUM integration is not supported");
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceCoingeckoTopSimple(5, "ethereum");
+            }
         };
-    	
-    	private final String folder;
-    	private final boolean supportWallet;
-    	private final boolean supportSyncTransaction;
-    	
-    	private Exchange(String folder, boolean supportWallet, boolean supportSyncTransaction) {
-    		this.folder = folder;
-    		this.supportWallet = supportWallet;
-    		this.supportSyncTransaction = supportSyncTransaction;
-    	}
-        
+
+        private final String folder;
+        private final boolean supportWallet;
+        private final boolean supportSyncTransaction;
+
+        private Exchange(String folder, boolean supportWallet, boolean supportSyncTransaction) {
+            this.folder = folder;
+            this.supportWallet = supportWallet;
+            this.supportSyncTransaction = supportSyncTransaction;
+        }
+
         public boolean isSupportWallet() {
-			return supportWallet;
-		}
+            return supportWallet;
+        }
 
         public boolean isSupportSyncTransaction() {
-			return supportSyncTransaction;
-		}
+            return supportSyncTransaction;
+        }
 
-		public String getFolder() {
-			return folder;
-		}
+        public String getFolder() {
+            return folder;
+        }
 
-		public boolean enabled() {
-			return true;
-		}
+        public boolean enabled() {
+            return true;
+        }
 
-		public abstract SecuredAPI create(CloudProperties cloudProperties, Client client) throws KeyException, IOException, NoSuchAlgorithmException;
-        
+        public List<News> news(PublicAPI publicApi, long fromTimestamp) {
+            return Collections.emptyList();
+        }
+
+        public abstract SecuredAPI create(CloudProperties cloudProperties, Client client)
+                throws KeyException, IOException, NoSuchAlgorithmException;
+
         public abstract Map<String, Price> price(PublicAPI publicApi);
 
     }
 
-	@Override
-	public String binancePublicKey() {
-		return BINANCE_PUBLIC_KEY;
-	}
+    @Override
+    public String binancePublicKey() {
+        return BINANCE_PUBLIC_KEY;
+    }
 
-	@Override
-	public String binancePrivateKey() {
-		return BINANCE_PRIVATE_KEY;
-	}
+    @Override
+    public String binancePrivateKey() {
+        return BINANCE_PRIVATE_KEY;
+    }
 
-	@Override
-	public String kucoinPublicKey() {
-		return KUCOIN_PUBLIC_KEY;
-	}
+    @Override
+    public String kucoinPublicKey() {
+        return KUCOIN_PUBLIC_KEY;
+    }
 
-	@Override
-	public String kucoinPrivateKey() {
-		return KUCOIN_PRIVATE_KEY;
-	}
+    @Override
+    public String kucoinPrivateKey() {
+        return KUCOIN_PRIVATE_KEY;
+    }
 
-	@Override
-	public String kucoinApiPassPhrase() {
-		return KUCOIN_API_PASSPHRASE;
-	}
+    @Override
+    public String kucoinApiPassPhrase() {
+        return KUCOIN_API_PASSPHRASE;
+    }
 
-	@Override
-	public String kucoinApiVersion() {
-		return KUCOIN_API_VERSION;
-	}
+    @Override
+    public String kucoinApiVersion() {
+        return KUCOIN_API_VERSION;
+    }
 
-	@Override
-	public double kucoinBuyCommission() {
-		return BOT_BUY_COMMISSION;
-	}
+    @Override
+    public double kucoinBuyCommission() {
+        return BOT_BUY_COMMISSION;
+    }
 
-	@Override
-	public double kucoinSellCommission() {
-		return BOT_SELL_COMMISSION;
-	}
+    @Override
+    public double kucoinSellCommission() {
+        return BOT_SELL_COMMISSION;
+    }
 
-	@Override
-	public List<String> mizarWhiteListSymbols() {
-		return BOT_WHITE_LIST_SYMBOLS;
-	}
+    @Override
+    public List<String> mizarWhiteListSymbols() {
+        return BOT_WHITE_LIST_SYMBOLS;
+    }
 
-	@Override
-	public int mizarStrategyId() {
-		return MIZAR_STRATEGY_ID;
-	}
+    @Override
+    public int mizarStrategyId() {
+        return MIZAR_STRATEGY_ID;
+    }
 
-	@Override
-	public String mizarApiKey() {
-		return MIZAR_API_KEY;
-	}
+    @Override
+    public String mizarApiKey() {
+        return MIZAR_API_KEY;
+    }
 
-	@Override
-	public double mizarLimitTransactionAmount() {
-		return LIMIT_TRANSACTION_AMOUNT;
-	}
+    @Override
+    public double mizarLimitTransactionAmount() {
+        return LIMIT_TRANSACTION_AMOUNT;
+    }
 
-	@Override
-	public boolean mizarBuyIgnoreFactorReducer() {
-		return BOT_BUY_IGNORE_FACTOR_REDUCER;
-	}
+    @Override
+    public boolean mizarBuyIgnoreFactorReducer() {
+        return BOT_BUY_IGNORE_FACTOR_REDUCER;
+    }
 }

@@ -1,17 +1,5 @@
 package com.jbescos.cloudbot;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.logging.Logger;
-
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-
 import com.google.cloud.functions.BackgroundFunction;
 import com.google.cloud.functions.Context;
 import com.jbescos.cloudbot.BotSubscriber.PubSubMessage;
@@ -27,8 +15,19 @@ import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
 import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.PublicAPI.News;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.Utils;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Logger;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
 
 //Entry: com.jbescos.cloudbot.BotSubscriber
 public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
@@ -39,12 +38,12 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
     @Override
     public void accept(PubSubMessage payload, Context context) throws Exception {
         long millis = System.currentTimeMillis();
+        Date now = new Date(millis);
         String userId = new String(Base64.getDecoder().decode(payload.data));
         StorageInfo storageInfo = StorageInfo.build();
         Client client = ClientBuilder.newClient();
         CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
         PublicAPI publicAPI = new PublicAPI(client);
-        Date now = new Date();
         BucketStorage bucketStorage = new BucketStorage(storageInfo);
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
@@ -114,11 +113,23 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
                 profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
                 telegram.sendMessage(profits.toString());
             }
+            news(cloudProperties, millis, publicAPI, telegram);
+            
         }
         client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
 
+    
+    private void news(CloudProperties cloudProperties, long millis, PublicAPI publicAPI, TelegramBot telegram) {
+        long minutes30Back = millis - (30 * 60 * 1000);
+        Date rounded = Utils.dateRoundedTo10Min(new Date(minutes30Back));
+        List<News> news = cloudProperties.USER_EXCHANGE.news(publicAPI, rounded.getTime());
+        for (News n : news) {
+            telegram.sendMessage(n.toString());
+        }
+    }
+    
     private ResyncTx synchronizeTransactions(SecuredAPI securedApi, BucketStorage bucketStorage,
             String txFile) throws FileNotFoundException, IOException {
         List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);

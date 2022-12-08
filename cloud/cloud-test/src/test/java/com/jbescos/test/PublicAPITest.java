@@ -140,4 +140,13 @@ public class PublicAPITest {
 		System.out.println(publicAPI.priceCoingeckoTop(5, "ethereum"));
 		client.close();
 	}
+	
+	@Test
+	@Ignore
+	public void kucoinNews() {
+	    Client client = ClientBuilder.newClient();
+            PublicAPI publicAPI = new PublicAPI(client);
+            System.out.println(publicAPI.delistedKucoin(1669888302000L));
+            client.close();
+	}
 }
