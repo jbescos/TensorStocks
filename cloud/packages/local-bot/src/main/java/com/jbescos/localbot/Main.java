@@ -40,7 +40,6 @@ public class Main {
         LOGGER.info("Awaiting tasks to complete");
         executor.awaitTermination(20, TimeUnit.MINUTES);
         LOGGER.info("Closing local-bot");
-        client.close();
     }
 
 }
