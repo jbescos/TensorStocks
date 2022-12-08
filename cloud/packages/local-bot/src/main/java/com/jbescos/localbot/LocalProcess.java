@@ -52,10 +52,10 @@ public class LocalProcess {
         String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
         PublicAPI publicAPI = new PublicAPI(client);
         FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
-        Set<Exchange> processed = new HashSet<>();
+        Set<String> updatedExchanges = new HashSet<>();
         for (Exchange exchange : Exchange.values()) {
             try {
-                if (exchange.enabled() && processed.add(exchange)) {
+                if (exchange.enabled() && updatedExchanges.add(exchange.getFolder())) {
                     String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
                     Map<String, CsvRow> previousRows = storage.previousRows(lastPrice);
                     Map<String, Price> prices = exchange.price(publicAPI);
@@ -67,15 +67,19 @@ public class LocalProcess {
                     }
                     storage.updateFile("data" + exchange.getFolder() + fileName,
                             builder.toString().getBytes(Utils.UTF8), Utils.CSV_ROW_HEADER.getBytes(Utils.UTF8));
-                    for (CloudProperties user : usersByExchange.get(exchange.getFolder())) {
-                        executor.submit(() -> {
-                            BotProcess process = new BotProcess(user, client, storage);
-                            try {
-                                process.execute();
-                            } catch (Exception e) {
-                                LOGGER.log(Level.SEVERE, "Error executing bot for " + user.USER_ID, e);
-                            }
-                        });
+                    if (usersByExchange.containsKey(exchange.getFolder())) {
+                        for (CloudProperties user : usersByExchange.get(exchange.getFolder())) {
+                            executor.submit(() -> {
+                                BotProcess process = new BotProcess(user, client, storage);
+                                try {
+                                    process.execute();
+                                } catch (Exception e) {
+                                    LOGGER.log(Level.SEVERE, "Error executing bot for " + user.USER_ID, e);
+                                }
+                            });
+                        }
+                    } else {
+                        LOGGER.info("There are no users for " + exchange.getFolder());
                     }
                 }
             } catch (Exception e) {
