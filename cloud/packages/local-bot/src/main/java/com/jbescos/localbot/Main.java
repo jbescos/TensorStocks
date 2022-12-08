@@ -11,8 +11,6 @@ import java.util.logging.Logger;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import com.jbescos.exchange.PublicAPI;
-
 public class Main {
 
     private static final Logger LOGGER;
@@ -30,12 +28,9 @@ public class Main {
         LOGGER.info("Starting local-bot");
         ExecutorService executor = Executors.newCachedThreadPool();
         Client client = ClientBuilder.newClient();
-        PublicAPI publicAPI = new PublicAPI(client);
         FileStorage storage = new FileStorage("./crypto-for-training/");
-        StorageProcess storageProcess = new StorageProcess(publicAPI, storage);
-        BotExecutor botProcess = new BotExecutor(client, storage, executor);
+        LocalProcess storageProcess = new LocalProcess(executor, client, storage);
         storageProcess.run();
-        botProcess.run();
         executor.shutdown();
         LOGGER.info("Awaiting tasks to complete");
         executor.awaitTermination(20, TimeUnit.MINUTES);
