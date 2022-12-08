@@ -110,7 +110,6 @@ public class BotProcess {
             news(cloudProperties, millis, publicAPI, telegram);
 
         }
-        client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
 
