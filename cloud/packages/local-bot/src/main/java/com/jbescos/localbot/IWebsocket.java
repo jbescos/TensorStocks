@@ -7,5 +7,5 @@ import jakarta.websocket.DeploymentException;
 
 public interface IWebsocket {
 
-	void start() throws DeploymentException, IOException, URISyntaxException;
+    void start() throws DeploymentException, IOException, URISyntaxException;
 }

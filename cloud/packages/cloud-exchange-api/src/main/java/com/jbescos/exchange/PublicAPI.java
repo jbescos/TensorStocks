@@ -503,10 +503,8 @@ public final class PublicAPI {
 
         @Override
         public String toString() {
-            StringBuilder content = new StringBuilder()
-                    .append("\n<b>").append(title).append("</b>")
-                    .append("\n").append(summary)
-                    .append("\n").append(url);    
+            StringBuilder content = new StringBuilder().append("\n<b>").append(title).append("</b>").append("\n")
+                    .append(summary).append("\n").append(url);
             return content.toString();
         }
 

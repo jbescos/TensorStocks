@@ -76,18 +76,21 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
             // Synchronize transactions with the exchange
             if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
                 // FIXME Use synchronized Utils.OPEN_POSSITIONS to update the other CSVs.
-                ResyncTx resync = synchronizeTransactions(securedApi, bucketStorage, userId + "/" + Utils.OPEN_POSSITIONS);
+                ResyncTx resync = synchronizeTransactions(securedApi, bucketStorage,
+                        userId + "/" + Utils.OPEN_POSSITIONS);
                 if (resync.needUpdate) {
                     List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
                     Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
                     for (String txFile : txFiles) {
-                        List<CsvTransactionRow> transactions = synchronizeTransactions(securedApi, bucketStorage, txFile).transactions;
+                        List<CsvTransactionRow> transactions = synchronizeTransactions(securedApi, bucketStorage,
+                                txFile).transactions;
                         transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
                     }
                     List<String> profitFiles = Utils.monthsBack(now, 2, userId + "/" + CsvProfitRow.PREFIX, ".csv");
                     for (String profitFile : profitFiles) {
                         List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(profitFile);
-                        boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows, cloudProperties.BROKER_COMMISSION);
+                        boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows,
+                                cloudProperties.BROKER_COMMISSION);
                         if (needUpdate) {
                             StringBuilder data = new StringBuilder();
                             profitRows.stream().forEach(profit -> {
@@ -114,13 +117,12 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
                 telegram.sendMessage(profits.toString());
             }
             news(cloudProperties, millis, publicAPI, telegram);
-            
+
         }
         client.close();
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
 
-    
     private void news(CloudProperties cloudProperties, long millis, PublicAPI publicAPI, TelegramBot telegram) {
         long minutes30Back = millis - (30 * 60 * 1000);
         Date rounded = Utils.dateRoundedTo10Min(new Date(minutes30Back));
@@ -129,9 +131,9 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
             telegram.exception(n.toString(), null);
         }
     }
-    
-    private ResyncTx synchronizeTransactions(SecuredAPI securedApi, BucketStorage bucketStorage,
-            String txFile) throws FileNotFoundException, IOException {
+
+    private ResyncTx synchronizeTransactions(SecuredAPI securedApi, BucketStorage bucketStorage, String txFile)
+            throws FileNotFoundException, IOException {
         List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);
         boolean needUpdate = Utils.resyncTransactions(securedApi, transactions);
         if (needUpdate) {
@@ -159,10 +161,11 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         String messageId;
         String publishTime;
     }
-    
+
     private static class ResyncTx {
         private final boolean needUpdate;
         private final List<CsvTransactionRow> transactions;
+
         public ResyncTx(boolean needUpdate, List<CsvTransactionRow> transactions) {
             this.needUpdate = needUpdate;
             this.transactions = transactions;

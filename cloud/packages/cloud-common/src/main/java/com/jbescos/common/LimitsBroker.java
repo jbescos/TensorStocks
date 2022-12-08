@@ -9,7 +9,7 @@ import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
 
 public class LimitsBroker implements Broker {
-    
+
     private static final Logger LOGGER = Logger.getLogger(LimitsBroker.class.getName());
     private final CloudProperties cloudProperties;
     private final String symbol;
@@ -22,10 +22,11 @@ public class LimitsBroker implements Broker {
     private final double fixedBuy;
     private Action action;
 
-    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double fixedBuy, TransactionsSummary summary) {
-    	this.values = values;
-    	this.fixedBuy = fixedBuy;
-    	this.cloudProperties = cloudProperties;
+    public LimitsBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values, double fixedBuy,
+            TransactionsSummary summary) {
+        this.values = values;
+        this.fixedBuy = fixedBuy;
+        this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.newest = values.get(values.size() - 1);
         this.min = Utils.getMinMax(values, true);
@@ -33,16 +34,16 @@ public class LimitsBroker implements Broker {
         this.minMaxFactor = Utils.calculateFactor(min, max);
         this.summary = summary;
     }
-    
+
     private boolean isSell(double benefit) {
-        Double fixedSell =  cloudProperties.FIXED_SELL.get(symbol);
+        Double fixedSell = cloudProperties.FIXED_SELL.get(symbol);
         if (fixedSell != null) {
             return newest.getPrice() >= fixedSell;
         } else {
             return benefit >= cloudProperties.BOT_LIMITS_FACTOR_PROFIT_SELL;
         }
     }
-    
+
     @Override
     public Action getAction() {
         return action;
@@ -63,10 +64,10 @@ public class LimitsBroker implements Broker {
         return Utils.factorMultiplier(minMaxFactor, cloudProperties.BOT_LIMITS_FACTOR_MULTIPLIER);
     }
 
-	@Override
-	public TransactionsSummary getPreviousTransactions() {
-		return summary;
-	}
+    @Override
+    public TransactionsSummary getPreviousTransactions() {
+        return summary;
+    }
 
     @Override
     public String toString() {
@@ -75,16 +76,18 @@ public class LimitsBroker implements Broker {
         return builder.toString();
     }
 
-	@Override
-	public void evaluate(double benefitsAvg) {
-		double price = newest.getPrice();
+    @Override
+    public void evaluate(double benefitsAvg) {
+        double price = newest.getPrice();
         double benefit = 1 - (summary.getMinProfitable() / newest.getPrice());
         if (summary.isHasTransactions() && Utils.isMax(values) && isSell(benefit)) {
             action = Action.SELL;
-        } else if (price <= fixedBuy && Utils.isMin(values) && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_LIMITS_PURCHASE_REDUCER)))) {
+        } else if (price <= fixedBuy && Utils.isMin(values)
+                && (!summary.isHasTransactions() || (summary.isHasTransactions() && Utils.isLowerPurchase(price,
+                        summary.getLowestPurchase(), Utils.LOWER_LIMITS_PURCHASE_REDUCER)))) {
             action = Action.BUY;
         } else {
-        	action = Action.NOTHING;
+            action = Action.NOTHING;
         }
-	}
+    }
 }

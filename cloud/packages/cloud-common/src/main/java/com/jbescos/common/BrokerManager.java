@@ -7,6 +7,6 @@ import com.jbescos.exchange.Broker;
 
 public interface BrokerManager {
 
-	List<Broker> loadBrokers() throws IOException;
-	
+    List<Broker> loadBrokers() throws IOException;
+
 }

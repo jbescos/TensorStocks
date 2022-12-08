@@ -22,7 +22,7 @@ public class TestFileInMemoryStorage implements FileManager {
     private final List<CsvRow> previousRows;
     private final List<CsvProfitRow> profit;
     private String baseUsdt;
-    
+
     public TestFileInMemoryStorage(List<CsvTransactionRow> transactions, List<CsvTransactionRow> openTransactions,
             List<CsvRow> previousRows, List<CsvProfitRow> profit) {
         this.transactions = transactions;
@@ -34,10 +34,12 @@ public class TestFileInMemoryStorage implements FileManager {
     @Override
     public String updateFile(String fileName, byte[] content, byte[] header) throws FileNotFoundException, IOException {
         if ("transactions.csv".equals(fileName)) {
-            List<CsvTransactionRow> newTx = CsvUtil.readCsvTransactionRows(false, ",", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content))));
+            List<CsvTransactionRow> newTx = CsvUtil.readCsvTransactionRows(false, ",",
+                    new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content))));
             transactions.addAll(newTx);
         } else if ("profit.csv".equals(fileName)) {
-            List<CsvProfitRow> newProfits = CsvUtil.readCsvProfitRows(false, new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content))));
+            List<CsvProfitRow> newProfits = CsvUtil.readCsvProfitRows(false,
+                    new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content))));
             profit.addAll(newProfits);
         } else {
             throw new IllegalArgumentException(fileName + " is unkown for test in memory");
@@ -50,7 +52,8 @@ public class TestFileInMemoryStorage implements FileManager {
             throws FileNotFoundException, IOException {
         if ("open_possitions.csv".equals(fileName)) {
             openTransactions.clear();
-            List<CsvTransactionRow> newTx = CsvUtil.readCsvTransactionRows(false, ",", new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content))));
+            List<CsvTransactionRow> newTx = CsvUtil.readCsvTransactionRows(false, ",",
+                    new BufferedReader(new InputStreamReader(new ByteArrayInputStream(content))));
             openTransactions.addAll(newTx);
         } else {
             throw new IllegalArgumentException(fileName + " is unkown for test in memory");
@@ -78,13 +81,16 @@ public class TestFileInMemoryStorage implements FileManager {
         TestFileStorage storage = new TestFileStorage(path, transactions, previousRows);
         StringBuilder data = new StringBuilder();
         transactions.stream().forEach(r -> data.append(r.toCsvLine()));
-        storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+        storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8),
+                Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
         data.setLength(0);
         openTransactions.stream().forEach(r -> data.append(r.toCsvLine()));
-        storage.updateFile("open_possitions.csv", data.toString().getBytes(Utils.UTF8), Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
+        storage.updateFile("open_possitions.csv", data.toString().getBytes(Utils.UTF8),
+                Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
         data.setLength(0);
         profit.stream().forEach(r -> data.append(r.toCsvLine()));
-        storage.updateFile("profit.csv", data.toString().getBytes(Utils.UTF8), CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+        storage.updateFile("profit.csv", data.toString().getBytes(Utils.UTF8),
+                CsvProfitRow.HEADER.getBytes(Utils.UTF8));
     }
 
     public void setBaseUsdt(String baseUsdt) {

@@ -41,9 +41,12 @@ public class Utils {
     public static final String USDT = "USDT";
     public static final String TOTAL_USDT = "TOTAL_USDT";
     public static final String NEW_LINE = "\r\n";
-    public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG,TOKEN" + NEW_LINE;
-    public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT,SCORE,SYNC,FEE" + NEW_LINE;
-    public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST" + NEW_LINE;
+    public static final String CSV_ROW_HEADER = "DATE,SYMBOL,PRICE,AVG,AVG_2,FEAR_GREED_IDX,FEAR_GREED_IDX_AVG,TOKEN"
+            + NEW_LINE;
+    public static final String TX_ROW_HEADER = "DATE,ORDER_ID,SIDE,SYMBOL,USDT,QUANTITY,USDT_UNIT,SCORE,SYNC,FEE"
+            + NEW_LINE;
+    public static final String KLINE_ROW_HEADER = "OPEN_TIME,CLOSE_TIME,SYMBOL,HIGH,LOW,OPEN,CLOSE,VOLUME,ASSET_VOLUME,SUPPORT_LIST,RESISTANCE_LIST"
+            + NEW_LINE;
     public static final String LAST_PRICE = "last_price.csv";
     public static final String EMPTY_STR = "";
     public static final String TRANSACTIONS_PREFIX = "transactions/transactions_";
@@ -70,7 +73,8 @@ public class Utils {
         return null;
     }
 
-    private static List<String> dateBack(Date currentTime, int unitBack, String prefix, String subfix, int dateType, String dateFormat) {
+    private static List<String> dateBack(Date currentTime, int unitBack, String prefix, String subfix, int dateType,
+            String dateFormat) {
         List<String> days = new ArrayList<>(unitBack);
         Calendar c = Calendar.getInstance();
         c.setTime(currentTime);
@@ -96,15 +100,15 @@ public class Utils {
         c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
         return c.getTime();
     }
-    
+
     public static Date getDateOfDaysBackZero(Date currentTime, int daysBack) {
         Calendar c = Calendar.getInstance();
         c.setTime(currentTime);
         c.add(Calendar.DAY_OF_YEAR, daysBack * -1);
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
     }
 
@@ -118,7 +122,7 @@ public class Utils {
     public static Date fromString(String format, String date) {
         return fromString(new SimpleDateFormat(format), date);
     }
-    
+
     public static Date fromString(DateFormat format, String date) {
         try {
             return format.parse(date);
@@ -126,11 +130,11 @@ public class Utils {
             throw new IllegalArgumentException("Cannot parse " + date + " with format " + format, e);
         }
     }
-    
+
     public static String fromDate(String format, Date date) {
         return new SimpleDateFormat(format).format(date);
     }
-    
+
     public static String getParam(String param, String defaultValue, Map<String, List<String>> parameters) {
         List<String> values = parameters.get(param);
         if (values == null || values.isEmpty()) {
@@ -139,49 +143,49 @@ public class Utils {
             return values.get(0);
         }
     }
-    
+
     public static String todayWithSeconds() {
         return fromDate(FORMAT_SECOND, new Date());
     }
-    
+
     public static String today() {
         return fromDate(FORMAT, new Date());
     }
-    
+
     public static String thisMonth() {
         return fromDate(FORMAT_MONTH, new Date());
     }
-   
+
     public static String thisMonth(Date date) {
         return fromDate(FORMAT_MONTH, date);
     }
-    
+
     public static String format(double amount) {
         return format(amount, 8);
     }
-    
+
     public static String format(double amount, int digits) {
-    	DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         symbols.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("0", symbols);
         df.setRoundingMode(RoundingMode.DOWN);
         df.setMaximumFractionDigits(digits);
         return df.format(amount);
     }
-    
+
     public static String format(BigDecimal amount, int digits) {
-    	DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.US);
         symbols.setDecimalSeparator('.');
         DecimalFormat df = new DecimalFormat("0", symbols);
         df.setRoundingMode(RoundingMode.DOWN);
         df.setMaximumFractionDigits(digits);
         return df.format(amount);
     }
-    
+
     public static String format(BigDecimal amount) {
         return format(amount, 8);
     }
-    
+
     public static TransactionsSummary minSellProfitable(List<CsvTransactionRow> previousTransactions) {
         Date lastPurchase = null;
         List<CsvTransactionRow> buys = new ArrayList<>();
@@ -195,12 +199,14 @@ public class Utils {
             double accumulated = 0.0;
             double totalQuantity = 0.0;
             String symbol = null;
-            lastPurchase = previousTransactions.stream().filter(tx -> tx.getSide() == Action.BUY).map(tx -> tx.getDate()).sorted((d1, d2) -> d2.compareTo(d1)).findFirst().orElse(null);
+            lastPurchase = previousTransactions.stream().filter(tx -> tx.getSide() == Action.BUY)
+                    .map(tx -> tx.getDate()).sorted((d1, d2) -> d2.compareTo(d1)).findFirst().orElse(null);
             for (CsvTransactionRow transaction : previousTransactions) {
                 if (symbol == null) {
                     symbol = transaction.getSymbol();
                 } else if (!symbol.equals(transaction.getSymbol())) {
-                    throw new IllegalArgumentException("Every CsvAccountRow must contain the same symbol. It was found " + symbol + " and " + transaction.getSymbol());
+                    throw new IllegalArgumentException("Every CsvAccountRow must contain the same symbol. It was found "
+                            + symbol + " and " + transaction.getSymbol());
                 }
                 try {
                     double quantity = Double.parseDouble(transaction.getQuantity());
@@ -219,7 +225,8 @@ public class Utils {
                         sells.add(transaction);
                     }
                 } catch (NumberFormatException e) {
-                    LOGGER.log(Level.SEVERE, "Wrong transaction detected, find it and remove it from the csv " + transaction, e);
+                    LOGGER.log(Level.SEVERE,
+                            "Wrong transaction detected, find it and remove it from the csv " + transaction, e);
                 }
             }
             if (totalQuantity > 0) {
@@ -231,7 +238,7 @@ public class Utils {
         }
         return new TransactionsSummary(hasTransactions, minProfitable, lowestPurchase, lastPurchase, buys, sells);
     }
-    
+
     public static boolean isPanicSellInDays(List<CsvTransactionRow> previousTransactions, Date deadLine) {
         if (previousTransactions == null || previousTransactions.isEmpty()) {
             return false;
@@ -247,7 +254,7 @@ public class Utils {
         }
         return false;
     }
-    
+
     public static List<Map<String, String>> userUsdt(Date now, Map<String, Double> prices, Map<String, String> wallet) {
         Map<String, String> walletInUsdt = walletInSymbolUsdt(prices, wallet);
         String dateStr = Utils.fromDate(FORMAT_SECOND, now);
@@ -276,7 +283,7 @@ public class Utils {
         rows.add(row);
         return rows;
     }
-    
+
     public static Map<String, String> walletInSymbolUsdt(Map<String, Double> prices, Map<String, String> wallet) {
         Map<String, String> walletUsdt = new LinkedHashMap<>();
         double totalUsdt = 0;
@@ -289,7 +296,8 @@ public class Utils {
                 String symbol = entry.getKey() + Utils.USDT;
                 Double price = prices.get(symbol);
                 if (price != null) {
-                    // Some wallets have some coins that does not exist in the prices. For example in Binance: NFTUSDT or LDBNBUSDT
+                    // Some wallets have some coins that does not exist in the prices. For example
+                    // in Binance: NFTUSDT or LDBNBUSDT
                     double usdt = (value * price);
                     totalUsdt = totalUsdt + usdt;
                     walletUsdt.put(symbol, Utils.format(usdt));
@@ -299,12 +307,10 @@ public class Utils {
         walletUsdt.put(TOTAL_USDT, Utils.format(totalUsdt));
         return walletUsdt;
     }
-    
+
     /*
-     *  To smooth functions
-     *  Constant is between 0 and 1 and defines how smooth is it
-     *  Y is the new value
-     *  prevousResult is the previous result
+     * To smooth functions Constant is between 0 and 1 and defines how smooth is it
+     * Y is the new value prevousResult is the previous result
      */
     public static double ewma(double constant, double y, Double previousResult) {
         if (previousResult == null) {
@@ -313,19 +319,19 @@ public class Utils {
             return (constant * y) + (1 - constant) * previousResult;
         }
     }
-    
+
     public static double dynamicEwma(double constantYHigher, double constantYLower, double y, Double previousResult) {
-    	 if (previousResult == null) {
-             return y;
-         } else {
-        	 if (y < previousResult) {
-        		 return ewma(constantYLower, y, previousResult);
-        	 } else {
-        		 return ewma(constantYHigher, y, previousResult);
-        	 }
-         }
+        if (previousResult == null) {
+            return y;
+        } else {
+            if (y < previousResult) {
+                return ewma(constantYLower, y, previousResult);
+            } else {
+                return ewma(constantYHigher, y, previousResult);
+            }
+        }
     }
-    
+
     public static String filterLotSizeQuantity(String quantity, String minQty, String maxQty, String stepSize) {
         BigDecimal quantityD = new BigDecimal(quantity);
         BigDecimal minQtyD = new BigDecimal(minQty);
@@ -344,7 +350,7 @@ public class Utils {
         }
         return format(quantityD);
     }
-    
+
     public static void sortForChart(List<String> symbols) {
         Collections.sort(symbols, (c1, c2) -> {
             if (c1.startsWith("BUY") || c1.startsWith("SELL")) {
@@ -355,7 +361,7 @@ public class Utils {
             return c1.compareTo(c2);
         });
     }
-    
+
     public static Date dateRoundedTo10Min(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
@@ -364,9 +370,9 @@ public class Utils {
         calendar.set(Calendar.MINUTE, minute - (minute % 10));
         return calendar.getTime();
     }
-    
+
     public static double calculateFactor(CsvRow min, CsvRow max) {
-        double factor =  1 - (min.getPrice() / max.getPrice());
+        double factor = 1 - (min.getPrice() / max.getPrice());
 //      LOGGER.info(() -> "MIN is " + min.getPrice() + " MAX is " + max.getPrice() + ". Factor " + factor);
         return factor;
     }
@@ -380,9 +386,10 @@ public class Utils {
         }
         return result;
     }
-    
+
     /**
      * Return true if current value is higher than percentile, otherwise false;
+     * 
      * @param percentile
      * @param currentValue
      * @param min
@@ -394,7 +401,7 @@ public class Utils {
         double normalizedMax = max - min;
         return (normalizedCurrentValue / normalizedMax) > percentile;
     }
-    
+
     public static boolean isMax(List<? extends IRow> rows) {
         if (rows.size() > 2) {
             double newest = rows.get(rows.size() - 1).getPrice();
@@ -404,7 +411,7 @@ public class Utils {
         }
         return false;
     }
-    
+
     public static boolean isMin(List<? extends IRow> rows) {
         if (rows.size() > 2) {
             double newest = rows.get(rows.size() - 1).getPrice();
@@ -414,19 +421,20 @@ public class Utils {
         }
         return false;
     }
-    
-    public static double minProfitSellAfterDays(Date lastPurchase, Date now, double minProfitBenefit, double substractor, double limit, double lowestLimit) {
-        int daysInBetween = (int)( (now.getTime() - lastPurchase.getTime()) / MILLIS_IN_DAY);
+
+    public static double minProfitSellAfterDays(Date lastPurchase, Date now, double minProfitBenefit,
+            double substractor, double limit, double lowestLimit) {
+        int daysInBetween = (int) ((now.getTime() - lastPurchase.getTime()) / MILLIS_IN_DAY);
         double result = minProfitBenefit + (substractor * daysInBetween);
         if (result <= lowestLimit) {
             return lowestLimit;
-        } else if (result >= limit){
+        } else if (result >= limit) {
             return limit;
-        }else {
+        } else {
             return result;
         }
     }
-    
+
     public static double symbolValue(double currentUsdt, double usdOfUnit) {
         return currentUsdt / usdOfUnit;
     }
@@ -434,15 +442,15 @@ public class Utils {
     public static double usdValue(double currentSymbol, double usdOfUnit) {
         return currentSymbol * usdOfUnit;
     }
-    
+
     public static double usdUnitValue(double size, double usd) {
         return usd / size;
     }
-    
+
     public static double applyCommission(double originalPrice, double commission) {
         return originalPrice * (1 - commission);
     }
-    
+
     public static double factorMultiplier(double factor, double multiplier) {
         double result = factor * multiplier;
         if (result > 1) {
@@ -456,239 +464,256 @@ public class Utils {
      * Higher priority to symbols with NO previous purchases. Then the factor.
      */
     public static List<Broker> sortBrokers(Map<String, Broker> minMax) {
-        return minMax.values().stream()
-                .sorted((e2, e1) -> {
-                    if (!e2.getPreviousTransactions().isHasTransactions() && e1.getPreviousTransactions().isHasTransactions()) {
-                        return -1;
-                    } else if (e2.getPreviousTransactions().isHasTransactions() && !e1.getPreviousTransactions().isHasTransactions()) {
-                        return 1;
-                    } else {
-                        return Double.compare(e1.getFactor(), e2.getFactor());
-                    }
-                })
-                .collect(Collectors.toList());
+        return minMax.values().stream().sorted((e2, e1) -> {
+            if (!e2.getPreviousTransactions().isHasTransactions() && e1.getPreviousTransactions().isHasTransactions()) {
+                return -1;
+            } else if (e2.getPreviousTransactions().isHasTransactions()
+                    && !e1.getPreviousTransactions().isHasTransactions()) {
+                return 1;
+            } else {
+                return Double.compare(e1.getFactor(), e2.getFactor());
+            }
+        }).collect(Collectors.toList());
     }
-    
+
     public static boolean isFearMode(int fearGreedIndex) {
         return fearGreedIndex < 30;
     }
 
     public static double factorFearGreedAdjusted(double factorBase, CsvRow row, double benefitsAvg) {
-    	double adjustedFactor = factorBase;
-    	int fearGreedIndex = row.getFearGreedIndex();
-    	if (!bigVariationFearGreedIndex(row.getFearGreedIndexAvg(), fearGreedIndex)) {
-    		// It has been long time in fear, lets make it normal
-    		adjustedFactor = factorBase;
-    	} else {
-	        if (fearGreedIndex < 10) {
-	        	adjustedFactor = factorBase + 0.2;
-	        } else if (fearGreedIndex < 15) {
-	        	adjustedFactor = factorBase + 0.15;
-	        } else if (fearGreedIndex < 20) {
-	        	adjustedFactor = factorBase + 0.1;
-	        } else if (fearGreedIndex < 30) {
-	        	adjustedFactor = factorBase + 0.05;
-	        }
-    	}
+        double adjustedFactor = factorBase;
+        int fearGreedIndex = row.getFearGreedIndex();
+        if (!bigVariationFearGreedIndex(row.getFearGreedIndexAvg(), fearGreedIndex)) {
+            // It has been long time in fear, lets make it normal
+            adjustedFactor = factorBase;
+        } else {
+            if (fearGreedIndex < 10) {
+                adjustedFactor = factorBase + 0.2;
+            } else if (fearGreedIndex < 15) {
+                adjustedFactor = factorBase + 0.15;
+            } else if (fearGreedIndex < 20) {
+                adjustedFactor = factorBase + 0.1;
+            } else if (fearGreedIndex < 30) {
+                adjustedFactor = factorBase + 0.05;
+            }
+        }
 //    	if (benefitsAvg < 0) {
 //			adjustedFactor = adjustedFactor + (benefitsAvg * -1 * 0.1);
 //		}
-    	return adjustedFactor;
+        return adjustedFactor;
     }
 
     public static boolean bigVariationFearGreedIndex(double avgIndex, int currentIndex) {
-    	if (currentIndex >= avgIndex) {
-    		return false;
-    	} else {
-    		double result = (1 - (currentIndex / avgIndex));
-    		return result > 0.2;
-    	}
+        if (currentIndex >= avgIndex) {
+            return false;
+        } else {
+            double result = (1 - (currentIndex / avgIndex));
+            return result > 0.2;
+        }
     }
-    
+
     public static boolean isTime(Date now, int expectedHour) {
-    	Calendar calendar = Calendar.getInstance();
+        Calendar calendar = Calendar.getInstance();
         calendar.setTime(now);
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         if (hour == expectedHour) {
             int minute = calendar.get(Calendar.MINUTE);
-            if (minute >=0 && minute <=10) {
+            if (minute >= 0 && minute <= 10) {
                 return true;
             }
         }
         return false;
     }
-    
+
     public static double benefit(double minProfitableSellPrice, double currentPrice) {
-	    if (currentPrice > minProfitableSellPrice) {
-	        return 1 - (minProfitableSellPrice/currentPrice);
-	    } else {
-	        return -1 * (1 - (currentPrice/minProfitableSellPrice));
-	    }
-	}
-    
-    public static Date getStartOfSpecifiedMonth(Date now, int nextMonths) {
-    	Calendar calendar = Calendar.getInstance();
-    	calendar.setTime(getDateOfDaysBackZero(now, 0));
-    	calendar.set(Calendar.DAY_OF_MONTH, 1);
-    	calendar.add(Calendar.MONTH, nextMonths);
-    	return calendar.getTime();
+        if (currentPrice > minProfitableSellPrice) {
+            return 1 - (minProfitableSellPrice / currentPrice);
+        } else {
+            return -1 * (1 - (currentPrice / minProfitableSellPrice));
+        }
     }
-    
+
+    public static Date getStartOfSpecifiedMonth(Date now, int nextMonths) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(getDateOfDaysBackZero(now, 0));
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.add(Calendar.MONTH, nextMonths);
+        return calendar.getTime();
+    }
+
     public static boolean isLowerPurchase(double currentPrice, double lowestPurchase, double minimizer) {
         // Purchase is lower than X% of last purchase
         return currentPrice < (lowestPurchase * minimizer);
     }
-    
-    public static CsvTransactionRow calculatedUsdtCsvTransactionRow(Date date, String symbol, String orderId, Action action, String usdt, double currentUsdtPrice, double commission) {
-		double expectedQuantity = Utils.symbolValue(Double.parseDouble(usdt), currentUsdtPrice);
-		expectedQuantity = Utils.applyCommission(expectedQuantity, commission);
-		CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, usdt, Utils.format(expectedQuantity), currentUsdtPrice);
-    	return tx;
-    	
+
+    public static CsvTransactionRow calculatedUsdtCsvTransactionRow(Date date, String symbol, String orderId,
+            Action action, String usdt, double currentUsdtPrice, double commission) {
+        double expectedQuantity = Utils.symbolValue(Double.parseDouble(usdt), currentUsdtPrice);
+        expectedQuantity = Utils.applyCommission(expectedQuantity, commission);
+        CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, usdt,
+                Utils.format(expectedQuantity), currentUsdtPrice);
+        return tx;
+
     }
-    
-    public static CsvTransactionRow calculatedSymbolCsvTransactionRow(Date date, String symbol, String orderId, Action action, String quantity, double currentUsdtPrice, double commission) {
-		double expectedUsdt = Utils.usdValue(Double.parseDouble(quantity), currentUsdtPrice);
-		expectedUsdt = Utils.applyCommission(expectedUsdt, commission);
-		CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, Utils.format(expectedUsdt), quantity, currentUsdtPrice);
-    	return tx;
-    	
+
+    public static CsvTransactionRow calculatedSymbolCsvTransactionRow(Date date, String symbol, String orderId,
+            Action action, String quantity, double currentUsdtPrice, double commission) {
+        double expectedUsdt = Utils.usdValue(Double.parseDouble(quantity), currentUsdtPrice);
+        expectedUsdt = Utils.applyCommission(expectedUsdt, commission);
+        CsvTransactionRow tx = new CsvTransactionRow(date, orderId, action, symbol, Utils.format(expectedUsdt),
+                quantity, currentUsdtPrice);
+        return tx;
+
     }
-    
-    public static List<CsvTransactionRow> openPossitions(List<Broker> brokers, List<CsvTransactionRow> newTransactions){
-    	Map<String, List<CsvTransactionRow>> previousTx = brokers.stream().flatMap(broker -> broker.getPreviousTransactions().getPreviousBuys().stream()).collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
-    	return openPossitions2(previousTx, newTransactions);
+
+    public static List<CsvTransactionRow> openPossitions(List<Broker> brokers,
+            List<CsvTransactionRow> newTransactions) {
+        Map<String, List<CsvTransactionRow>> previousTx = brokers.stream()
+                .flatMap(broker -> broker.getPreviousTransactions().getPreviousBuys().stream())
+                .collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
+        return openPossitions2(previousTx, newTransactions);
     }
-    
-    public static List<CsvTransactionRow> openPossitions2(Map<String, List<CsvTransactionRow>> previousTx, List<CsvTransactionRow> newTransactions){
-    	for (CsvTransactionRow newTransaction : newTransactions) {
-    		if (newTransaction.getSide() == Action.BUY) {
-    			List<CsvTransactionRow> bySymbol = previousTx.get(newTransaction.getSymbol());
-    			if (bySymbol == null) {
-    				bySymbol = new ArrayList<>();
-    				previousTx.put(newTransaction.getSymbol(), bySymbol);
-    			}
-    			bySymbol.add(newTransaction);
-    		} else if (newTransaction.getSide() == Action.SELL || newTransaction.getSide() == Action.SELL_PANIC) {
-    			previousTx.remove(newTransaction.getSymbol());
-    		} else {
-    			throw new IllegalArgumentException(newTransaction + " side is not understood!");
-    		}
-    	}
-    	return previousTx.values().stream().flatMap(val -> val.stream()).sorted((a, b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toList());
+
+    public static List<CsvTransactionRow> openPossitions2(Map<String, List<CsvTransactionRow>> previousTx,
+            List<CsvTransactionRow> newTransactions) {
+        for (CsvTransactionRow newTransaction : newTransactions) {
+            if (newTransaction.getSide() == Action.BUY) {
+                List<CsvTransactionRow> bySymbol = previousTx.get(newTransaction.getSymbol());
+                if (bySymbol == null) {
+                    bySymbol = new ArrayList<>();
+                    previousTx.put(newTransaction.getSymbol(), bySymbol);
+                }
+                bySymbol.add(newTransaction);
+            } else if (newTransaction.getSide() == Action.SELL || newTransaction.getSide() == Action.SELL_PANIC) {
+                previousTx.remove(newTransaction.getSymbol());
+            } else {
+                throw new IllegalArgumentException(newTransaction + " side is not understood!");
+            }
+        }
+        return previousTx.values().stream().flatMap(val -> val.stream())
+                .sorted((a, b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toList());
     }
-    
+
     public static String profitSummary(Date now, int days, List<CsvProfitRow> profits) {
-    	Date from = getDateOfDaysBack(now, days);
-    	double totalUsdtBuy = 0;
-    	double totalUsdtSell = 0;
-    	List<CsvProfitRow> filtered = profits.stream().filter(row -> row.getSellDate().getTime() >= from.getTime()).collect(Collectors.toList());
-    	for (CsvProfitRow row : filtered) {
-    		totalUsdtBuy = totalUsdtBuy + Double.parseDouble(row.getQuantityUsdtBuy());
-    		totalUsdtSell = totalUsdtSell + Double.parseDouble(row.getQuantityUsdtSell());
-    	}
-    	double result = totalUsdtSell - totalUsdtBuy;
-    	double resultPercent = 0;
-    	if (result != 0) {
-    		resultPercent = result * 100 / totalUsdtBuy;
-    	}
-    	StringBuilder builder = new StringBuilder();
-    	builder.append("Last ").append(days).append(" days: ").append(Utils.format(totalUsdtBuy, 2)).append("$-").append(Utils.format(totalUsdtSell, 2)).append("$, ").append(Utils.format(result, 2)).append("$(").append(Utils.format(resultPercent, 2)).append("%)");
-    	if (resultPercent < 0) {
-    		builder.append(" ❌");
-    	} else {
-    		builder.append(" ✅");
-    	}
-    	return builder.toString();
+        Date from = getDateOfDaysBack(now, days);
+        double totalUsdtBuy = 0;
+        double totalUsdtSell = 0;
+        List<CsvProfitRow> filtered = profits.stream().filter(row -> row.getSellDate().getTime() >= from.getTime())
+                .collect(Collectors.toList());
+        for (CsvProfitRow row : filtered) {
+            totalUsdtBuy = totalUsdtBuy + Double.parseDouble(row.getQuantityUsdtBuy());
+            totalUsdtSell = totalUsdtSell + Double.parseDouble(row.getQuantityUsdtSell());
+        }
+        double result = totalUsdtSell - totalUsdtBuy;
+        double resultPercent = 0;
+        if (result != 0) {
+            resultPercent = result * 100 / totalUsdtBuy;
+        }
+        StringBuilder builder = new StringBuilder();
+        builder.append("Last ").append(days).append(" days: ").append(Utils.format(totalUsdtBuy, 2)).append("$-")
+                .append(Utils.format(totalUsdtSell, 2)).append("$, ").append(Utils.format(result, 2)).append("$(")
+                .append(Utils.format(resultPercent, 2)).append("%)");
+        if (resultPercent < 0) {
+            builder.append(" ❌");
+        } else {
+            builder.append(" ✅");
+        }
+        return builder.toString();
     }
-    
+
     public static Map<String, Double> calculateBenefits(List<Broker> brokers) {
-		Map<String, Double> benefits = new HashMap<>();
+        Map<String, Double> benefits = new HashMap<>();
         double sumBenefits = 0;
         int count = 0;
         for (Broker broker : brokers) {
-        	TransactionsSummary summary = broker.getPreviousTransactions();
-        	if (summary.isHasTransactions()) {
-        		count++;
-        		double benefit = Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice());
-        		sumBenefits = benefit + sumBenefits;
-    		    benefits.put(broker.getSymbol(), benefit);
-    		}
+            TransactionsSummary summary = broker.getPreviousTransactions();
+            if (summary.isHasTransactions()) {
+                count++;
+                double benefit = Utils.benefit(summary.getMinProfitable(), broker.getNewest().getPrice());
+                sumBenefits = benefit + sumBenefits;
+                benefits.put(broker.getSymbol(), benefit);
+            }
         }
         if (count > 0) {
-        	benefits.put(BENEFITS_AVG, sumBenefits / count);
+            benefits.put(BENEFITS_AVG, sumBenefits / count);
         } else {
-        	benefits.put(BENEFITS_AVG, 0.0);
+            benefits.put(BENEFITS_AVG, 0.0);
         }
         return benefits;
-	}
-    
+    }
+
     public static boolean resyncTransactions(SecuredAPI securedApi, List<CsvTransactionRow> transactions) {
-    	// Limit to avoid many requests
-    	int LIMIT_RESYNC = 5;
-    	int synced = 0;
-    	for (int i = 0; i < transactions.size(); i++) {
-    		if (synced < LIMIT_RESYNC) {
-    			CsvTransactionRow tx = transactions.get(i);
-    			if (!tx.isSync()) {
-    				CsvTransactionRow syncedTx = securedApi.synchronize(tx);
-    				transactions.set(i, syncedTx);
-    				synced++;
-    			}
-    		} else {
-    			break;
-    		}
-    	}
-    	return synced > 0;
+        // Limit to avoid many requests
+        int LIMIT_RESYNC = 5;
+        int synced = 0;
+        for (int i = 0; i < transactions.size(); i++) {
+            if (synced < LIMIT_RESYNC) {
+                CsvTransactionRow tx = transactions.get(i);
+                if (!tx.isSync()) {
+                    CsvTransactionRow syncedTx = securedApi.synchronize(tx);
+                    transactions.set(i, syncedTx);
+                    synced++;
+                }
+            } else {
+                break;
+            }
+        }
+        return synced > 0;
     }
-    
-    public static boolean resyncProfit(Map<String, CsvTransactionRow> byOrderId, List<CsvProfitRow> profitRows, String commission) {
-    	double commissionD = Double.parseDouble(commission);
-    	int synced = 0;
-    	for (int i = 0; i < profitRows.size(); i++) {
-    		CsvProfitRow profitRow = profitRows.get(i);
-			if (!profitRow.isSync()) {
-				String[] buyIds = profitRow.getBuyIds().split(ORDER_ID_SPLIT);
-				String sellId = profitRow.getSellId();
-				CsvTransactionRow sellTx = byOrderId.get(sellId);
-				if (sellTx != null && sellTx.isSync()) {
-					boolean process = true;
-					double totalQuantityBuy = 0;
-					double totalUsdBuy = 0;
-					for (String buyId : buyIds) {
-						CsvTransactionRow tx = byOrderId.get(buyId);
-						if (tx != null && tx.isSync()) {
-							totalUsdBuy = totalUsdBuy + Double.parseDouble(tx.getUsdt());
-							totalQuantityBuy = totalQuantityBuy + Double.parseDouble(tx.getQuantity());
-						} else {
-							LOGGER.warning("No transaction with ID: " + buyId + " was found. Possibly transaction is too old or ID is wrong. Skipping CsvProfitRow.");
-							process = false;
-							break;
-						}
-					}
-					if (process) {
-						double usdtProfit = Double.parseDouble(sellTx.getUsdt()) - totalUsdBuy;
-						double commissionUsdt = usdtProfit * commissionD;
-						double netUsdtProfit = usdtProfit - commissionUsdt;
-						double profitPercentage = usdtProfit * 100 / totalUsdBuy;
-						CsvProfitRow newCsvProfitRow = new CsvProfitRow(profitRow, Utils.format(totalQuantityBuy, 2), Utils.format(totalUsdBuy, 2), Utils.format(Double.parseDouble(sellTx.getQuantity()), 2),
-								Utils.format(Double.parseDouble(sellTx.getUsdt()), 2), Utils.format(commissionUsdt, 2), Utils.format(usdtProfit, 2), Utils.format(netUsdtProfit, 2), Utils.format(profitPercentage, 2) + "%", Utils.format(commissionD * 100, 2) + "%");
-						profitRows.set(i, newCsvProfitRow);
-						synced++;
-					}
-				}
-			}
-		}
-    	return synced > 0;
+
+    public static boolean resyncProfit(Map<String, CsvTransactionRow> byOrderId, List<CsvProfitRow> profitRows,
+            String commission) {
+        double commissionD = Double.parseDouble(commission);
+        int synced = 0;
+        for (int i = 0; i < profitRows.size(); i++) {
+            CsvProfitRow profitRow = profitRows.get(i);
+            if (!profitRow.isSync()) {
+                String[] buyIds = profitRow.getBuyIds().split(ORDER_ID_SPLIT);
+                String sellId = profitRow.getSellId();
+                CsvTransactionRow sellTx = byOrderId.get(sellId);
+                if (sellTx != null && sellTx.isSync()) {
+                    boolean process = true;
+                    double totalQuantityBuy = 0;
+                    double totalUsdBuy = 0;
+                    for (String buyId : buyIds) {
+                        CsvTransactionRow tx = byOrderId.get(buyId);
+                        if (tx != null && tx.isSync()) {
+                            totalUsdBuy = totalUsdBuy + Double.parseDouble(tx.getUsdt());
+                            totalQuantityBuy = totalQuantityBuy + Double.parseDouble(tx.getQuantity());
+                        } else {
+                            LOGGER.warning("No transaction with ID: " + buyId
+                                    + " was found. Possibly transaction is too old or ID is wrong. Skipping CsvProfitRow.");
+                            process = false;
+                            break;
+                        }
+                    }
+                    if (process) {
+                        double usdtProfit = Double.parseDouble(sellTx.getUsdt()) - totalUsdBuy;
+                        double commissionUsdt = usdtProfit * commissionD;
+                        double netUsdtProfit = usdtProfit - commissionUsdt;
+                        double profitPercentage = usdtProfit * 100 / totalUsdBuy;
+                        CsvProfitRow newCsvProfitRow = new CsvProfitRow(profitRow, Utils.format(totalQuantityBuy, 2),
+                                Utils.format(totalUsdBuy, 2), Utils.format(Double.parseDouble(sellTx.getQuantity()), 2),
+                                Utils.format(Double.parseDouble(sellTx.getUsdt()), 2), Utils.format(commissionUsdt, 2),
+                                Utils.format(usdtProfit, 2), Utils.format(netUsdtProfit, 2),
+                                Utils.format(profitPercentage, 2) + "%", Utils.format(commissionD * 100, 2) + "%");
+                        profitRows.set(i, newCsvProfitRow);
+                        synced++;
+                    }
+                }
+            }
+        }
+        return synced > 0;
     }
-    
+
     public static Map<String, Double> simplePrices(Map<String, Price> prices) {
-    	return prices.values().stream().collect(Collectors.toMap(Price::getSymbol, Price::getPrice));
+        return prices.values().stream().collect(Collectors.toMap(Price::getSymbol, Price::getPrice));
     }
-    
+
     // Get the USDT of the wallet when there is nothing else
     public static String baseUsdt(Collection<String> excludeLimits, List<Map<String, String>> wallet) {
-        wallet.removeIf(entry -> excludeLimits.contains(entry.get("SYMBOL") + USDT) || TOTAL_USDT.equals(entry.get("SYMBOL")));
+        wallet.removeIf(
+                entry -> excludeLimits.contains(entry.get("SYMBOL") + USDT) || TOTAL_USDT.equals(entry.get("SYMBOL")));
         if (wallet.size() == 1) {
             Map<String, String> usdt = wallet.get(0);
             if (Utils.USDT.equals(usdt.get("SYMBOL"))) {

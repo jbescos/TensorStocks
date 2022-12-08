@@ -4,53 +4,53 @@ import java.util.Date;
 
 public class CsvAccountRow implements IRow {
 
-	private final Date date;
-	private final String symbol;
-	private final double symbolValue;
-	private final double usdt;
-	
-	public CsvAccountRow(Date date, String symbol, double symbolValue, double usdt) {
-		this.date = date;
-		this.symbol = symbol;
-		this.symbolValue = symbolValue;
-		this.usdt = usdt;
-	}
+    private final Date date;
+    private final String symbol;
+    private final double symbolValue;
+    private final double usdt;
 
-	@Override
-	public Date getDate() {
-		return date;
-	}
+    public CsvAccountRow(Date date, String symbol, double symbolValue, double usdt) {
+        this.date = date;
+        this.symbol = symbol;
+        this.symbolValue = symbolValue;
+        this.usdt = usdt;
+    }
 
-	public String getSymbol() {
-		return symbol;
-	}
+    @Override
+    public Date getDate() {
+        return date;
+    }
 
-	public double getSymbolValue() {
-		return symbolValue;
-	}
+    public String getSymbol() {
+        return symbol;
+    }
 
-	public double getUsdt() {
-		return usdt;
-	}
+    public double getSymbolValue() {
+        return symbolValue;
+    }
 
-	@Override
-	public double getPrice() {
-		return getUsdt();
-	}
+    public double getUsdt() {
+        return usdt;
+    }
 
-	@Override
-	public String getLabel() {
-		return symbol;
-	}
+    @Override
+    public double getPrice() {
+        return getUsdt();
+    }
 
-	@Override
-	public Double getAvg() {
-		return null;
-	}
+    @Override
+    public String getLabel() {
+        return symbol;
+    }
 
-	@Override
-	public Double getAvg2() {
-		return null;
-	}
+    @Override
+    public Double getAvg() {
+        return null;
+    }
+
+    @Override
+    public Double getAvg2() {
+        return null;
+    }
 
 }

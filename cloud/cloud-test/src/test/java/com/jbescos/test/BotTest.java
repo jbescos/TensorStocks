@@ -21,61 +21,61 @@ import com.jbescos.test.Simulation.Result;
 import com.jbescos.test.util.TestFileStorage;
 
 public class BotTest {
-   
+
     private static final Logger LOGGER = Logger.getLogger(BotTest.class.getName());
 
     @Test
     public void allTogether() throws FileNotFoundException, IOException {
-    	final String BASE_TEST_FOLDER = "./target/test-results-together/";
-    	DateFormat format = new SimpleDateFormat(Utils.FORMAT);
-    	List<Result> results = Collections.synchronizedList(new ArrayList<>());
-    	List<CompletableFuture<?>> completables = new ArrayList<>();
-    	final int MONTHS_INTERVAL = 24;
-        String[] users = new String [] {
+        final String BASE_TEST_FOLDER = "./target/test-results-together/";
+        DateFormat format = new SimpleDateFormat(Utils.FORMAT);
+        List<Result> results = Collections.synchronizedList(new ArrayList<>());
+        List<CompletableFuture<?>> completables = new ArrayList<>();
+        final int MONTHS_INTERVAL = 24;
+        String[] users = new String[] { 
                 "kucoin", "2022-01-01",
                 "binance", "2022-01-01",
                 "kucoin-all", "2022-01-01",
                 "binance-all", "2022-01-01",
-                "okex", "2022-01-01"
-                };
-    	for (int i = 0; i < users.length; i = i + 2) {
-    		String userId = users[i];
-    		CloudProperties cloudProperties = new CloudProperties(userId, null);
-    		String from = users[i + 1];
-    		Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
-    		String toStr = Utils.fromDate(Utils.FORMAT, to);
-    		Simulation simulation = null;
-    		while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
-    		    final Simulation sim = simulation;
-    		    CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runTogether()).thenAccept(result -> {
-    		    	if (result != null) {
-    		    		results.add(result);
-    		    	}
-    		    });
-    		    completables.add(completable);
-    			from = toStr;
-    			to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
-    			toStr = Utils.fromDate(Utils.FORMAT, to);
-    		}
-    	}
-    	CompletableFuture.allOf(completables.toArray(new CompletableFuture[0])).join();
-    	if (!results.isEmpty()) {
-	    	Collections.sort(results);
-	    	TestFileStorage fileStorage = new TestFileStorage(BASE_TEST_FOLDER, null, null);
-	    	StringBuilder builder = new StringBuilder();
-	    	Collections.sort(results, (res1, res2) -> res1.getUserId().compareTo(res2.getUserId()));
-	    	results.forEach(result -> builder.append(result.toCsv()));
-	    	double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
-	    	builder.append("AVG,").append(Utils.format(avg)).append("%").append(Utils.NEW_LINE);
-	    	double avgBuyValue = results.stream().mapToDouble(Result::getBuyValue).average().getAsDouble();
-	    	builder.append("BUY_VALUE_AVG,").append(Utils.format(avgBuyValue)).append(Utils.NEW_LINE);
-	    	double min = results.stream().mapToDouble(Result::getBenefitPercentage).min().getAsDouble();
-	    	builder.append("MIN,").append(Utils.format(min)).append(Utils.NEW_LINE);
-	    	double max = results.stream().mapToDouble(Result::getBenefitPercentage).max().getAsDouble();
-	    	builder.append("MAX,").append(Utils.format(max)).append(Utils.NEW_LINE);
-	    	fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.CSV_HEAD.getBytes());
-	    	LOGGER.info("AVG: " + Utils.format(avg) + "%");
-    	}
+                "okex", "2022-01-01" };
+        for (int i = 0; i < users.length; i = i + 2) {
+            String userId = users[i];
+            CloudProperties cloudProperties = new CloudProperties(userId, null);
+            String from = users[i + 1];
+            Date to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
+            String toStr = Utils.fromDate(Utils.FORMAT, to);
+            Simulation simulation = null;
+            while ((simulation = Simulation.build(from, toStr, BASE_TEST_FOLDER, cloudProperties)) != null) {
+                final Simulation sim = simulation;
+                CompletableFuture<Void> completable = CompletableFuture.supplyAsync(() -> sim.runTogether())
+                        .thenAccept(result -> {
+                            if (result != null) {
+                                results.add(result);
+                            }
+                        });
+                completables.add(completable);
+                from = toStr;
+                to = Utils.getStartOfSpecifiedMonth(Utils.fromString(format, from), MONTHS_INTERVAL);
+                toStr = Utils.fromDate(Utils.FORMAT, to);
+            }
+        }
+        CompletableFuture.allOf(completables.toArray(new CompletableFuture[0])).join();
+        if (!results.isEmpty()) {
+            Collections.sort(results);
+            TestFileStorage fileStorage = new TestFileStorage(BASE_TEST_FOLDER, null, null);
+            StringBuilder builder = new StringBuilder();
+            Collections.sort(results, (res1, res2) -> res1.getUserId().compareTo(res2.getUserId()));
+            results.forEach(result -> builder.append(result.toCsv()));
+            double avg = results.stream().mapToDouble(Result::getBenefitPercentage).average().getAsDouble();
+            builder.append("AVG,").append(Utils.format(avg)).append("%").append(Utils.NEW_LINE);
+            double avgBuyValue = results.stream().mapToDouble(Result::getBuyValue).average().getAsDouble();
+            builder.append("BUY_VALUE_AVG,").append(Utils.format(avgBuyValue)).append(Utils.NEW_LINE);
+            double min = results.stream().mapToDouble(Result::getBenefitPercentage).min().getAsDouble();
+            builder.append("MIN,").append(Utils.format(min)).append(Utils.NEW_LINE);
+            double max = results.stream().mapToDouble(Result::getBenefitPercentage).max().getAsDouble();
+            builder.append("MAX,").append(Utils.format(max)).append(Utils.NEW_LINE);
+            fileStorage.updateFile("results.csv", builder.toString().getBytes(), Result.CSV_HEAD.getBytes());
+            LOGGER.info("AVG: " + Utils.format(avg) + "%");
+        }
     }
 
     @Test

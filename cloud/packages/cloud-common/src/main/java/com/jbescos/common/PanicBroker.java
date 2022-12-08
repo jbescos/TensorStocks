@@ -8,52 +8,52 @@ import com.jbescos.exchange.TransactionsSummary;
 
 public class PanicBroker implements Broker {
 
-	private static final Logger LOGGER = Logger.getLogger(PanicBroker.class.getName());
-	private final String symbol;
-	private final CsvRow newest;
-	private final TransactionsSummary summary;
-	private final Action specified;
-	private Action action;
+    private static final Logger LOGGER = Logger.getLogger(PanicBroker.class.getName());
+    private final String symbol;
+    private final CsvRow newest;
+    private final TransactionsSummary summary;
+    private final Action specified;
+    private Action action;
 
-	public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, Action specified) {
-		this.symbol = symbol;
-		this.newest = newest;
-		this.summary = summary;
-		this.specified = specified;
-	}
+    public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, Action specified) {
+        this.symbol = symbol;
+        this.newest = newest;
+        this.summary = summary;
+        this.specified = specified;
+    }
 
-	@Override
-	public Action getAction() {
-		return action;
-	}
+    @Override
+    public Action getAction() {
+        return action;
+    }
 
-	@Override
-	public CsvRow getNewest() {
-		return newest;
-	}
+    @Override
+    public CsvRow getNewest() {
+        return newest;
+    }
 
-	@Override
-	public String getSymbol() {
-		return symbol;
-	}
+    @Override
+    public String getSymbol() {
+        return symbol;
+    }
 
-	@Override
-	public double getFactor() {
-		return 0.999;
-	}
+    @Override
+    public double getFactor() {
+        return 0.999;
+    }
 
-	@Override
-	public TransactionsSummary getPreviousTransactions() {
-		return summary;
-	}
+    @Override
+    public TransactionsSummary getPreviousTransactions() {
+        return summary;
+    }
 
-	@Override
-	public void evaluate(double benefitsAvg) {
-		if (!summary.isHasTransactions() && (action == Action.SELL || action == Action.SELL_PANIC)) {
-			this.action = Action.NOTHING;
-		} else {
-			this.action = specified;
-		}
-	}
+    @Override
+    public void evaluate(double benefitsAvg) {
+        if (!summary.isHasTransactions() && (action == Action.SELL || action == Action.SELL_PANIC)) {
+            this.action = Action.NOTHING;
+        } else {
+            this.action = specified;
+        }
+    }
 
 }

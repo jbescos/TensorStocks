@@ -20,7 +20,7 @@ import com.jbescos.exchange.PublicAPI.Interval;
 
 public class BinanceTest {
 
-	private static final Logger LOGGER = Logger.getLogger(BinanceTest.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(BinanceTest.class.getName());
 
     @Test
     @Ignore
@@ -35,32 +35,33 @@ public class BinanceTest {
         assertEquals("1.00", filter.get("stepSize").toString());
         client.close();
     }
-    
+
     @Test
     @Ignore
     public void klines() {
-    	Date now = new Date();
-    	Date mins15Earlier = new Date(now.getTime() - ((1000 * 60 * 15) + 80000 ));
-    	Interval interval = Interval.getInterval(mins15Earlier.getTime(), now.getTime());
-    	assertEquals(Interval.MINUTES_15, interval);
-    	long from = interval.from(mins15Earlier.getTime());
-    	long to = interval.to(from);
-    	String symbol = "BTCUSDT";
-    	Client client = ClientBuilder.newClient();
-    	List<Kline> klines = new PublicAPI(client).klines(interval, symbol, null, from, to);
-    	LOGGER.info(() -> klines.toString());
-    	Kline kline = klines.get(0);
-    	LOGGER.info(() -> "Asking for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) +
-    			" and received from " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getOpenTime()))
-    			+ " to " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getCloseTime())));
-    	client.close();
+        Date now = new Date();
+        Date mins15Earlier = new Date(now.getTime() - ((1000 * 60 * 15) + 80000));
+        Interval interval = Interval.getInterval(mins15Earlier.getTime(), now.getTime());
+        assertEquals(Interval.MINUTES_15, interval);
+        long from = interval.from(mins15Earlier.getTime());
+        long to = interval.to(from);
+        String symbol = "BTCUSDT";
+        Client client = ClientBuilder.newClient();
+        List<Kline> klines = new PublicAPI(client).klines(interval, symbol, null, from, to);
+        LOGGER.info(() -> klines.toString());
+        Kline kline = klines.get(0);
+        LOGGER.info(() -> "Asking for data between " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(from)) + " to "
+                + Utils.fromDate(Utils.FORMAT_SECOND, new Date(to)) + " and received from "
+                + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getOpenTime())) + " to "
+                + Utils.fromDate(Utils.FORMAT_SECOND, new Date(kline.getCloseTime())));
+        client.close();
     }
 
     @Test
     @Ignore
     public void serverTime() {
-    	Client client = ClientBuilder.newClient();
-    	long time = new PublicAPI(client).time();
-    	LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(time)));
+        Client client = ClientBuilder.newClient();
+        long time = new PublicAPI(client).time();
+        LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, new Date(time)));
     }
 }

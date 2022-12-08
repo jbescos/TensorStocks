@@ -22,27 +22,31 @@ import com.jbescos.common.CsvUtil;
 
 public class CautelousBrokerTest {
 
-	@Test
-	public void gensSell() throws IOException {
-		CloudProperties cloudProperties = new CloudProperties("kucoin", null);
-		try (BufferedReader csvReader = new BufferedReader(new InputStreamReader(CautelousBrokerTest.class.getResourceAsStream("/broker/GENSUSDT/GENSUSDT.csv")));
-				BufferedReader txReader = new BufferedReader(new InputStreamReader(CautelousBrokerTest.class.getResourceAsStream("/broker/GENSUSDT/transactions.csv")));) {
-			List<CsvRow> values = CsvUtil.readCsvRows(true, ",", csvReader, Collections.emptyList());
-			List<CsvTransactionRow> previousTransactions = CsvUtil.readCsvTransactionRows(true, ",", txReader);
-			TransactionsSummary summary = Utils.minSellProfitable(previousTransactions);
-			CautelousBroker broker = new CautelousBroker(cloudProperties, "GENSUSDT", values, summary, false);
-			broker.evaluate(0);
-			assertEquals(summary.toString(), Action.SELL, broker.getAction());
-		}
-	}
+    @Test
+    public void gensSell() throws IOException {
+        CloudProperties cloudProperties = new CloudProperties("kucoin", null);
+        try (BufferedReader csvReader = new BufferedReader(
+                new InputStreamReader(CautelousBrokerTest.class.getResourceAsStream("/broker/GENSUSDT/GENSUSDT.csv")));
+                BufferedReader txReader = new BufferedReader(new InputStreamReader(
+                        CautelousBrokerTest.class.getResourceAsStream("/broker/GENSUSDT/transactions.csv")));) {
+            List<CsvRow> values = CsvUtil.readCsvRows(true, ",", csvReader, Collections.emptyList());
+            List<CsvTransactionRow> previousTransactions = CsvUtil.readCsvTransactionRows(true, ",", txReader);
+            TransactionsSummary summary = Utils.minSellProfitable(previousTransactions);
+            CautelousBroker broker = new CautelousBroker(cloudProperties, "GENSUSDT", values, summary, false);
+            broker.evaluate(0);
+            assertEquals(summary.toString(), Action.SELL, broker.getAction());
+        }
+    }
 
-	@Test
-	public void ampl() throws IOException {
-		try (BufferedReader txReader = new BufferedReader(new InputStreamReader(CautelousBrokerTest.class.getResourceAsStream("/broker/AMPLUSDT/transactions.csv")));) {
-			List<CsvTransactionRow> previousTransactions = CsvUtil.readCsvTransactionRows(true, ",", txReader);
-			List<CsvTransactionRow> reversedTransactions = new ArrayList<>(previousTransactions);
-			Collections.reverse(reversedTransactions);
-			assertEquals(Utils.minSellProfitable(previousTransactions).getLastPurchase(), Utils.minSellProfitable(reversedTransactions).getLastPurchase());
-		}
-	}
+    @Test
+    public void ampl() throws IOException {
+        try (BufferedReader txReader = new BufferedReader(new InputStreamReader(
+                CautelousBrokerTest.class.getResourceAsStream("/broker/AMPLUSDT/transactions.csv")));) {
+            List<CsvTransactionRow> previousTransactions = CsvUtil.readCsvTransactionRows(true, ",", txReader);
+            List<CsvTransactionRow> reversedTransactions = new ArrayList<>(previousTransactions);
+            Collections.reverse(reversedTransactions);
+            assertEquals(Utils.minSellProfitable(previousTransactions).getLastPurchase(),
+                    Utils.minSellProfitable(reversedTransactions).getLastPurchase());
+        }
+    }
 }

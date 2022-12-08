@@ -17,11 +17,10 @@ public class SellPanicBrokerManager extends DefaultBrokerManager {
     public List<Broker> loadBrokers() throws IOException {
         return loadBrokers(super.loadBrokers(), Action.SELL_PANIC);
     }
-    
+
     public List<Broker> loadBrokers(List<Broker> brokers, Action action) throws IOException {
-    	return brokers.stream()
-                .map(broker -> new PanicBroker(broker.getSymbol(), broker.getNewest(), broker.getPreviousTransactions(), action))
-                .collect(Collectors.toList());
+        return brokers.stream().map(broker -> new PanicBroker(broker.getSymbol(), broker.getNewest(),
+                broker.getPreviousTransactions(), action)).collect(Collectors.toList());
     }
 
 }

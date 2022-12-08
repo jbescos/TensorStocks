@@ -14,17 +14,16 @@ import com.google.protobuf.ByteString;
 import com.google.pubsub.v1.PubsubMessage;
 import com.google.pubsub.v1.TopicName;
 
-
 public class PublisherMgr implements AutoCloseable {
-    
+
     private static final Logger LOGGER = Logger.getLogger(PublisherMgr.class.getName());
     private final Publisher publisher;
-    
+
     public PublisherMgr(Publisher publisher) {
         this.publisher = publisher;
     }
 
-    public void publish(String ... messages) throws InterruptedException, ExecutionException, TimeoutException {
+    public void publish(String... messages) throws InterruptedException, ExecutionException, TimeoutException {
         List<ApiFuture<String>> responses = new ArrayList<>();
         for (String message : messages) {
             ByteString data = ByteString.copyFromUtf8(message);
@@ -43,7 +42,7 @@ public class PublisherMgr implements AutoCloseable {
     public void close() {
         publisher.shutdown();
     }
-    
+
     public static PublisherMgr create(CloudProperties cloudProperties) throws IOException {
         TopicName topicName = TopicName.of(cloudProperties.PROJECT_ID, cloudProperties.GOOGLE_TOPIC_ID);
         return new PublisherMgr(Publisher.newBuilder(topicName).build());
