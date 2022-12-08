@@ -1,13 +1,14 @@
 package com.jbescos.localbot;
 
-import com.jbescos.common.BotProcess;
-import com.jbescos.common.CloudProperties;
-import java.io.IOException;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.ws.rs.client.Client;
+
+import com.jbescos.common.BotProcess;
+import com.jbescos.common.CloudProperties;
 
 public class BotExecutor {
 
@@ -35,7 +36,7 @@ public class BotExecutor {
                     }
                 });
             }
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOGGER.log(Level.SEVERE, "Cannot load user properties", e);
         }
         
