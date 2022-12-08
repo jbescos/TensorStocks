@@ -206,7 +206,7 @@ public class FileStorage implements FileManager {
 
     public List<CloudProperties> loadProperties(String path) throws IOException {
         List<CloudProperties> properties = new ArrayList<>();
-        File mainProperties = new File(path + "/" + CloudProperties.PROPERTIES_FILE);
+        File mainProperties = new File(path + CloudProperties.PROPERTIES_FILE);
         if (!mainProperties.exists()) {
             throw new IllegalStateException(mainProperties.getAbsolutePath() + " is required");
         }

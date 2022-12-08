@@ -24,7 +24,7 @@ public class BotExecutor {
     
     public void run() {
         try {
-            List<CloudProperties> properties = storage.loadProperties("./crypto-properties");
+            List<CloudProperties> properties = storage.loadProperties("./crypto-properties/");
             for (CloudProperties property : properties) {
                 executor.submit(() -> {
                     BotProcess process = new BotProcess(property, client, storage);
