@@ -126,7 +126,7 @@ public class BotSubscriber implements BackgroundFunction<PubSubMessage> {
         Date rounded = Utils.dateRoundedTo10Min(new Date(minutes30Back));
         List<News> news = cloudProperties.USER_EXCHANGE.news(publicAPI, rounded.getTime());
         for (News n : news) {
-            telegram.sendMessage(n.toString());
+            telegram.exception(n.toString(), null);
         }
     }
     

@@ -79,7 +79,8 @@ public class TelegramBot implements AutoCloseable {
     }
     
     public void exception(String message, Exception e) {
-    	sendMessage(message + ": " + e.getMessage(), exceptionUrl);
+        String exceptionMessage = e != null ? e.getMessage() : "";
+    	sendMessage(message + ": " + exceptionMessage, exceptionUrl);
     }
 
     public void flush() {
