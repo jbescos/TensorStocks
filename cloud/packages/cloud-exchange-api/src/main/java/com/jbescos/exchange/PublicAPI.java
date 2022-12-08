@@ -27,8 +27,8 @@ public final class PublicAPI {
 
     private static final Logger LOGGER = Logger.getLogger(PublicAPI.class.getName());
     private static final String FEAR_GREEDY_URL = "https://api.alternative.me/fng/";
-//	public static final String BINANCE_URL = "https://api.binance.com";
-    public static final String BINANCE_URL = "https://api.binance.us";
+    private static final String BINANCE_URL = "https://api.binance.com";
+//    private static final String BINANCE_URL = "https://api.binance.us";
     private static final String KUCOIN_URL = "https://api.kucoin.com";
     private static final String KUCOIN_NEWS_API = "https://www.kucoin.com";
     private static final String KUCOIN_NEWS_PAGE = KUCOIN_NEWS_API + "/news";

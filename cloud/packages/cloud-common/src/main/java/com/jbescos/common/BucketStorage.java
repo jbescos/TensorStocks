@@ -41,7 +41,8 @@ public class BucketStorage implements FileManager {
         this.storageInfo = storageInfo;
     }
 
-    public Map<String, CsvRow> previousRows(long serverTime, String lastUpdated) throws IOException {
+    @Override
+    public Map<String, CsvRow> previousRows(String lastUpdated) throws IOException {
         Map<String, CsvRow> previousRows = new LinkedHashMap<>();
         Blob retrieve = storageInfo.getStorage().get(storageInfo.getBucket(), lastUpdated);
         if (retrieve == null) {
@@ -59,8 +60,9 @@ public class BucketStorage implements FileManager {
         return previousRows;
     }
 
+    @Override
     public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Price> prices,
-            Date now, String lastPriceCsv, int fearGreedIndex) {
+            Date now, String lastPriceCsv, int fearGreedIndex) throws IOException {
         StringBuilder builder = new StringBuilder(Utils.CSV_ROW_HEADER);
         List<CsvRow> newRows = new ArrayList<>();
         for (Entry<String, Price> price : prices.entrySet()) {
@@ -165,6 +167,7 @@ public class BucketStorage implements FileManager {
         return rows;
     }
 
+    @Override
     public List<CsvProfitRow> loadCsvProfitRows(String profitFile) {
         List<CsvProfitRow> profitRows = Collections.emptyList();
         try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), profitFile);
@@ -176,6 +179,7 @@ public class BucketStorage implements FileManager {
         return profitRows;
     }
 
+    @Override
     public List<CsvTransactionRow> loadCsvTransactionRows(String txFile) {
         List<CsvTransactionRow> transactions = Collections.emptyList();
         try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), txFile);

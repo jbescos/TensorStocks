@@ -724,4 +724,21 @@ public class Utils {
         }
         return null;
     }
+    
+    public static long delayto30or00(Date now) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(now);
+        if (cal.get(Calendar.MINUTE) < 30) {
+            Calendar cal30 = Calendar.getInstance();
+            cal30.setTime(now);
+            cal30.set(Calendar.MINUTE, 30);
+            return cal30.getTimeInMillis() - now.getTime();
+        } else {
+            Calendar cal00 = Calendar.getInstance();
+            cal00.setTime(now);
+            cal00.set(Calendar.MINUTE, 0);
+            cal00.add(Calendar.HOUR_OF_DAY, 1);
+            return cal00.getTimeInMillis() - now.getTime();
+        }
+    }
 }

@@ -90,7 +90,7 @@ public class StorageFunction implements HttpFunction {
                         if (updatedExchanges.add(exchange.getFolder())) {
                             try {
                                 String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;
-                                Map<String, CsvRow> previousRows = storage.previousRows(now.getTime(), lastPrice);
+                                Map<String, CsvRow> previousRows = storage.previousRows(lastPrice);
                                 // Update current prices
                                 Map<String, Price> prices = exchange.price(publicAPI);
                                 String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
@@ -123,22 +123,6 @@ public class StorageFunction implements HttpFunction {
             }
             client.close();
             response.setStatusCode(200);
-        }
-    }
-
-    private void klines(Date now, FileManager storage, PublicAPI publicAPI, CloudProperties cloudProperties)
-            throws FileNotFoundException, IOException {
-        if (Utils.isTime(now, 0)) {
-            String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
-            Date yesterday = Utils.getDateOfDaysBackZero(now, 1);
-            StringBuilder body = new StringBuilder();
-            for (String symbol : cloudProperties.KLINES_LIST) {
-                Kline kline = publicAPI.klines(Interval.DAY_1, symbol, 1, yesterday.getTime(), null).get(0);
-                body.append(kline.toCsv());
-
-            }
-            storage.updateFile("data/klines/" + fileName, body.toString().getBytes(Utils.UTF8),
-                    Utils.KLINE_ROW_HEADER.getBytes(Utils.UTF8));
         }
     }
 

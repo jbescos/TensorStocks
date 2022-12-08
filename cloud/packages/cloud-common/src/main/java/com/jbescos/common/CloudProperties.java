@@ -35,13 +35,13 @@ import javax.ws.rs.client.Client;
 public class CloudProperties implements PropertiesBinance, PropertiesKucoin, PropertiesMizar {
 
     private static final Logger LOGGER = Logger.getLogger(CloudProperties.class.getName());
+    public static final String PROPERTIES_FILE = "cloud.properties";
     public final String PROPERTIES_BUCKET;
     public final String BUCKET;
     public final String USER_ID;
     public final String EMAIL;
     public final String BROKER_COMMISSION;
     public final boolean USER_ACTIVE;
-    private final String PROPERTIES_FILE = "cloud.properties";
     public final String GOOGLE_TOPIC_ID;
     public final String PROJECT_ID;
     public final Exchange USER_EXCHANGE;
@@ -92,40 +92,56 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     private final Properties idProperties;
 
     public CloudProperties(StorageInfo storageInfo) {
-        this(null, storageInfo);
+        this(null, storageInfo, null, null);
+    }
+    
+    public CloudProperties(String userId, StorageInfo storageInfo) {
+        this(userId, storageInfo, null, null);
+    }
+    
+    public CloudProperties(String userId, Properties mainProp, Properties idProp) {
+        this(userId, null, mainProp, idProp);
     }
 
-    public CloudProperties(String userId, StorageInfo storageInfo) {
+    private CloudProperties(String userId, StorageInfo storageInfo, Properties mainProp, Properties idProp) {
         USER_ID = userId;
-        try {
-            Properties mainProperties = null;
-            if (storageInfo != null) {
-                // Cloud
-                idProperties = new Properties();
-                PROJECT_ID = storageInfo.getProjectId();
-                mainProperties = new Properties();
-                BUCKET = storageInfo.getBucket();
-                PROPERTIES_BUCKET = storageInfo.getPropertiesBucket();
-                loadProperties(PROPERTIES_BUCKET, mainProperties, storageInfo.getStorage(), PROPERTIES_FILE);
-                if (USER_ID != null) {
-                    loadProperties(PROPERTIES_BUCKET, idProperties, storageInfo.getStorage(),
-                            USER_ID + "/" + PROPERTIES_FILE);
-                }
-            } else {
-                // Test
-                mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
-                PROJECT_ID = "test";
-                PROPERTIES_BUCKET = "";
-                BUCKET = "";
-                if (USER_ID != null) {
-                    idProperties = Utils.fromClasspath("/" + USER_ID + "/" + PROPERTIES_FILE);
-                } else {
+        if (mainProp == null && idProp == null) {
+            try {
+                Properties mainProperties = null;
+                if (storageInfo != null) {
+                    // Cloud
                     idProperties = new Properties();
+                    PROJECT_ID = storageInfo.getProjectId();
+                    mainProperties = new Properties();
+                    BUCKET = storageInfo.getBucket();
+                    PROPERTIES_BUCKET = storageInfo.getPropertiesBucket();
+                    loadProperties(PROPERTIES_BUCKET, mainProperties, storageInfo.getStorage(), PROPERTIES_FILE);
+                    if (USER_ID != null) {
+                        loadProperties(PROPERTIES_BUCKET, idProperties, storageInfo.getStorage(),
+                                USER_ID + "/" + PROPERTIES_FILE);
+                    }
+                } else {
+                    // Test
+                    mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
+                    PROJECT_ID = "test";
+                    PROPERTIES_BUCKET = "";
+                    BUCKET = "";
+                    if (USER_ID != null) {
+                        idProperties = Utils.fromClasspath("/" + USER_ID + "/" + PROPERTIES_FILE);
+                    } else {
+                        idProperties = new Properties();
+                    }
                 }
+                this.mainProperties = mainProperties;
+            } catch (IOException e) {
+                throw new IllegalStateException("Cannot load properties file", e);
             }
-            this.mainProperties = mainProperties;
-        } catch (IOException e) {
-            throw new IllegalStateException("Cannot load properties file", e);
+        } else {
+            this.mainProperties = mainProp;
+            this.idProperties = idProp;
+            PROJECT_ID = "local-bot";
+            PROPERTIES_BUCKET = "";
+            BUCKET = "";
         }
         USER_ACTIVE = Boolean.valueOf(getProperty("user.active"));
 

@@ -1,4 +1,4 @@
-package com.jbescos.cloudbot;
+package com.jbescos.common;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,10 +13,6 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.jbescos.common.CloudProperties;
-import com.jbescos.common.FileManager;
-import com.jbescos.common.TelegramBot;
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;

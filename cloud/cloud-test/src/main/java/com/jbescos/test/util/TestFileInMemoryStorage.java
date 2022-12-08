@@ -5,12 +5,14 @@ import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Date;
 import java.util.List;
-
+import java.util.Map;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.FileManager;
@@ -100,5 +102,26 @@ public class TestFileInMemoryStorage implements FileManager {
     @Override
     public String getRaw(String file) {
         return baseUsdt;
+    }
+
+    @Override
+    public Map<String, CsvRow> previousRows(String lastUpdated) throws IOException {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public List<CsvRow> updatedRowsAndSaveLastPrices(Map<String, CsvRow> previousRows, Map<String, Price> prices,
+            Date now, String lastPriceCsv, int fearGreedIndex) throws IOException {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public List<CsvProfitRow> loadCsvProfitRows(String profitFile) {
+        throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public List<CsvTransactionRow> loadCsvTransactionRows(String txFile) {
+        throw new UnsupportedOperationException("Not implemented");
     }
 }

@@ -1,9 +1,9 @@
 package com.jbescos.test;
 
-import com.jbescos.cloudbot.BotExecution;
 import com.jbescos.cloudchart.ChartGenerator;
 import com.jbescos.cloudchart.DateChart;
 import com.jbescos.cloudchart.IChart;
+import com.jbescos.common.BotExecution;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.exchange.Broker;

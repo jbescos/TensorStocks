@@ -520,6 +520,16 @@ public class UtilsTest {
         wallet.add(createWalletRow("TOTAL_USDT", "5606.27348021"));
         assertEquals("1449.36508141", Utils.baseUsdt(Arrays.asList("BTCUSDT", "MKRUSDT"), wallet));
     }
+    
+    @Test
+    public void delayto30or00() {
+        assertEquals(300000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 23:55:00")));
+        assertEquals(1500000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 23:05:00")));
+        assertEquals(1800000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 23:00:00")));
+        assertEquals(60000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 22:59:59")));
+        assertEquals(1800000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 23:30:00")));
+        assertEquals(60000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 23:29:59")));
+    }
 
     private Map<String, String> createWalletRow(String symbol, String usdt) {
         Map<String, String> row = new HashMap<>();
