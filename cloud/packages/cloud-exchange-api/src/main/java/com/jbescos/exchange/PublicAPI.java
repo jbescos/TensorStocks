@@ -32,6 +32,10 @@ public final class PublicAPI {
     private static final String KUCOIN_URL = "https://api.kucoin.com";
     private static final String KUCOIN_NEWS_API = "https://www.kucoin.com";
     private static final String KUCOIN_NEWS_PAGE = KUCOIN_NEWS_API + "/news";
+    // TODO
+    private static final String BINANCE_NEWS_API = "https://www.binance.com/bapi/composite/v1/public/cms/article/list/query?type=1&pageSize=100&pageNo=1";
+    // https://www.binance.com/en/support/announcement/${title}-${code}
+    // https://www.binance.com/en/support/announcement/notice-of-removal-of-trading-pairs-2022-07-07-c99bd249484f4bbaa7f8489ae2bc860a
     private static final String OKEX_URL = "https://www.okx.com/";
     private static final String FTX_URL = "https://ftx.com";
     private static final String COINGEKO_URL = "https://api.coingecko.com";
