@@ -313,7 +313,7 @@ public final class PublicAPI {
                 long timestamp = 1000 * ((Number) item.get("publish_ts")).longValue();
                 if (timestamp >= fromTimestamp) {
                     String title = ((String) item.get("title")).toLowerCase();
-                    if (title.contains("delisted") || title.contains("close")) {
+                    if (title.contains("delist") || title.contains("close")) {
                         String summary = (String) item.get("summary");
                         String url = KUCOIN_NEWS_PAGE + item.get("path");
                         news.add(new News("Kucoin", title, new Date(timestamp), summary, url));

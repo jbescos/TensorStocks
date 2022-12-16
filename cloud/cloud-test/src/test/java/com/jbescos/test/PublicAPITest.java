@@ -146,7 +146,7 @@ public class PublicAPITest {
     public void kucoinNews() {
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
-        System.out.println(publicAPI.delistedKucoin(1669888302000L));
+        System.out.println(publicAPI.delistedKucoin(1661178302000L));
         client.close();
     }
 }
