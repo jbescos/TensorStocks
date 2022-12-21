@@ -297,6 +297,11 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             public Map<String, Price> price(PublicAPI publicApi) {
                 return publicApi.priceBinance();
             }
+
+            @Override
+            public List<News> news(PublicAPI publicApi, long fromTimestamp) {
+                return publicApi.delistedBinance(fromTimestamp);
+            }
         },
         KUCOIN("/kucoin/", true, true) {
             @Override

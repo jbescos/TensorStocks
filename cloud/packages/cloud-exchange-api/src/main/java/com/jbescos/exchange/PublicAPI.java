@@ -1,5 +1,7 @@
 package com.jbescos.exchange;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -33,7 +35,7 @@ public final class PublicAPI {
     private static final String KUCOIN_NEWS_API = "https://www.kucoin.com";
     private static final String KUCOIN_NEWS_PAGE = KUCOIN_NEWS_API + "/news";
     // TODO
-    private static final String BINANCE_NEWS_API = "https://www.binance.com/bapi/composite/v1/public/cms/article/list/query?type=1&pageSize=100&pageNo=1";
+    private static final String BINANCE_NEWS_API = "https://www.binance.com/bapi/composite/v1";
     // https://www.binance.com/en/support/announcement/${title}-${code}
     // https://www.binance.com/en/support/announcement/notice-of-removal-of-trading-pairs-2022-07-07-c99bd249484f4bbaa7f8489ae2bc860a
     private static final String OKEX_URL = "https://www.okx.com/";
@@ -316,7 +318,7 @@ public final class PublicAPI {
                     if (title.contains("delist") || title.contains("close")) {
                         String summary = (String) item.get("summary");
                         String url = KUCOIN_NEWS_PAGE + item.get("path");
-                        news.add(new News("Kucoin", title, new Date(timestamp), summary, url));
+                        news.add(new News("KUCOIN", title, new Date(timestamp), summary, url));
                     }
                 } else {
                     int stick = (int) item.get("stick");
@@ -329,6 +331,42 @@ public final class PublicAPI {
             page++;
         }
         return news;
+    }
+    
+    public List<News> delistedBinance(long fromTimestamp) {
+    	List<News> news = new ArrayList<>();
+    	int pageSize = 50;
+        int page = 1;
+        boolean done = false;
+        while (!done) {
+        	Map<String, Object> response = get(BINANCE_NEWS_API, "/public/cms/article/list/query", new GenericType<Map<String, Object>>() {
+            }, "type", "1", "catalogId", "161", "pageSize", Integer.toString(pageSize), "pageNo",
+            Integer.toString(page));
+        	List<Map<String, Object>> catalogs = (List<Map<String, Object>>) ((Map<String, Object>)response.get("data")).get("catalogs");
+        	for (Map<String, Object> catalog : catalogs) {
+        		List<Map<String, Object>> articles = (List<Map<String, Object>>) catalog.get("articles");
+        		for (Map<String, Object> article : articles) {
+        			long timestamp = (long) article.get("releaseDate");
+        			 if (timestamp >= fromTimestamp) {
+        				String title = (String) article.get("title");
+        				String code = (String) article.get("code");
+        				String encodedTitle = title;
+						try {
+							encodedTitle = URLEncoder.encode(title, "UTF8");
+						} catch (UnsupportedEncodingException e) {}
+						String url = "https://www.binance.com/en/support/announcement/" + encodedTitle + "-" + code;
+        				News n = new News("BINANCE", title, new Date(timestamp), "", url);
+        				news.add(n);
+        			} else {
+        				done = true;
+        				break;
+        			}
+        		}
+        	}
+        	page++;
+        }
+    	
+    	return news;
     }
 
     @SuppressWarnings("unchecked")

@@ -149,4 +149,13 @@ public class PublicAPITest {
         System.out.println(publicAPI.delistedKucoin(1661178302000L));
         client.close();
     }
+    
+    @Test
+    @Ignore
+    public void binanceNews() {
+        Client client = ClientBuilder.newClient();
+        PublicAPI publicAPI = new PublicAPI(client);
+        System.out.println(publicAPI.delistedBinance(1661178302000L));
+        client.close();
+    }
 }
