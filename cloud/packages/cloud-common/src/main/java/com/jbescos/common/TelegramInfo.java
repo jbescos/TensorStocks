@@ -7,16 +7,14 @@ public class TelegramInfo {
     private final String exceptionToken;
     private final String chatId;
     private final String chartBotUrl;
-    private final boolean enabled;
 
-    public TelegramInfo(boolean enabled, String userId, String token, String exceptionToken, String chatId,
+    public TelegramInfo(String userId, String token, String exceptionToken, String chatId,
             String chartBotUrl) {
         this.userId = userId;
         this.token = token;
         this.exceptionToken = exceptionToken;
         this.chatId = chatId;
         this.chartBotUrl = chartBotUrl;
-        this.enabled = enabled;
     }
 
     public String getUserId() {
@@ -37,9 +35,5 @@ public class TelegramInfo {
 
     public String getChartBotUrl() {
         return chartBotUrl;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
     }
 }

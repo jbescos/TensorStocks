@@ -80,7 +80,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public final int MAX_PURCHASES_PER_ITERATION;
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
     public final double BOT_LIMITS_FACTOR_PROFIT_SELL;
-    public final boolean TELEGRAM_BOT_ENABLED;
     public final String TELEGRAM_BOT_TOKEN;
     public final String TELEGRAM_BOT_EXCEPTION_TOKEN;
     public final String TELEGRAM_CHAT_ID;
@@ -121,7 +120,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
                                 USER_ID + "/" + PROPERTIES_FILE);
                     }
                 } else {
-                    // Test
                     mainProperties = Utils.fromClasspath("/" + PROPERTIES_FILE);
                     PROJECT_ID = "test";
                     PROPERTIES_BUCKET = "";
@@ -145,7 +143,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         }
         USER_ACTIVE = Boolean.valueOf(getProperty("user.active"));
 
-        TELEGRAM_BOT_ENABLED = Boolean.valueOf(getProperty("telegram.bot.enabled"));
         TELEGRAM_BOT_TOKEN = getProperty("telegram.bot.token");
         TELEGRAM_BOT_EXCEPTION_TOKEN = getProperty("telegram.bot.exception.token");
         TELEGRAM_CHAT_ID = getProperty("telegram.chat.id");
@@ -218,7 +215,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             value = mainProperties.getProperty(name);
             if (value == null) {
                 throw new PropertiesConfigurationException("Property " + name + " was not found in properties files",
-                        new TelegramInfo(TELEGRAM_BOT_ENABLED, USER_ID, TELEGRAM_BOT_TOKEN,
+                        new TelegramInfo(USER_ID, TELEGRAM_BOT_TOKEN,
                                 TELEGRAM_BOT_EXCEPTION_TOKEN, TELEGRAM_CHAT_ID, CHART_URL));
             }
         }

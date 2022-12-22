@@ -226,6 +226,16 @@ public class FileStorage implements FileManager {
         return properties;
     }
     
+    public CloudProperties loadMainProperties(String path) throws IOException {
+    	File mainProperties = new File(path + CloudProperties.PROPERTIES_FILE);
+        if (!mainProperties.exists()) {
+            throw new IllegalStateException(mainProperties.getAbsolutePath() + " is required");
+        }
+        Properties mainProp = load(mainProperties);
+        CloudProperties properties = new CloudProperties(null, mainProp, null);
+        return properties;
+    }
+    
     private Properties load(File file) throws IOException {
         Properties properties = new Properties();
         try (FileInputStream input = new FileInputStream(file)) {

@@ -1,7 +1,5 @@
 package com.jbescos.cloudstorage;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -23,17 +21,15 @@ import com.google.cloud.storage.Blob;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
-import com.jbescos.common.FileManager;
+import com.jbescos.common.NewsUtils;
 import com.jbescos.common.PropertiesConfigurationException;
 import com.jbescos.common.PublisherMgr;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.FearGreedIndex;
-import com.jbescos.exchange.Kline;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
-import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudstorage.StorageFunction
@@ -78,9 +74,8 @@ public class StorageFunction implements HttpFunction {
         }
         Date now = new Date();
         LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
-
         CloudProperties cloudProperties = new CloudProperties(storageInfo);
-
+        NewsUtils.news(now.getTime(), publicAPI, cloudProperties, client);
         FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
         try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
             if (!skip) {

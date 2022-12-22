@@ -545,7 +545,9 @@ public final class PublicAPI {
 
         @Override
         public String toString() {
-            StringBuilder content = new StringBuilder().append("\n<b>").append(title).append("</b>").append("\n")
+            StringBuilder content = new StringBuilder()
+            		.append("\n<b>").append(exchange).append("</b> ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
+            		.append("\n<b>").append(title).append("</b>").append("\n")
                     .append(summary).append("\n").append(url);
             return content.toString();
         }

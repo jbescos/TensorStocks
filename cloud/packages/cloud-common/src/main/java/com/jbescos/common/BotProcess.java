@@ -95,7 +95,7 @@ public class BotProcess {
             }
 
             // Report
-            boolean report = isReportTime(now, cloudProperties);
+            boolean report = isReportTime(now);
             if (report) {
                 if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                     telegram.sendHtmlLink();
@@ -107,19 +107,9 @@ public class BotProcess {
                 profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
                 telegram.sendMessage(profits.toString());
             }
-            news(cloudProperties, millis, publicAPI, telegram);
 
         }
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
-    }
-
-    private void news(CloudProperties cloudProperties, long millis, PublicAPI publicAPI, TelegramBot telegram) {
-        long minutes30Back = millis - (30 * 60 * 1000);
-        Date rounded = Utils.dateRoundedTo10Min(new Date(minutes30Back));
-        List<News> news = cloudProperties.USER_EXCHANGE.news(publicAPI, rounded.getTime());
-        for (News n : news) {
-            telegram.exception(n.toString(), null);
-        }
     }
 
     private ResyncTx synchronizeTransactions(SecuredAPI securedApi, FileManager bucketStorage, String txFile)
@@ -138,11 +128,8 @@ public class BotProcess {
     }
 
     // Reports if the bot run between 6:00 and 6:10
-    private boolean isReportTime(Date now, CloudProperties cloudProperties) {
-        if (cloudProperties.TELEGRAM_BOT_ENABLED) {
-            return Utils.isTime(now, 6);
-        }
-        return false;
+    private boolean isReportTime(Date now) {
+        return Utils.isTime(now, 6);
     }
 
     private static class ResyncTx {

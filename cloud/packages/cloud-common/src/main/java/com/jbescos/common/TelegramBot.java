@@ -15,6 +15,8 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import com.jbescos.exchange.Utils;
+
 //https://telegram.rest/docs
 public class TelegramBot implements AutoCloseable {
 
@@ -26,21 +28,27 @@ public class TelegramBot implements AutoCloseable {
     private final String exceptionUrl;
     private final String chatId;
     private final String chartBotUrl;
-    private final boolean enabled;
     private final Map<String, List<String>> bufferedMessages = new HashMap<>();
 
     public TelegramBot(TelegramInfo telegramInfo, Client client) {
-        this.enabled = telegramInfo.isEnabled();
         this.userId = telegramInfo.getUserId();
-        this.url = BASE_URL + telegramInfo.getToken() + "/sendmessage";
-        this.exceptionUrl = BASE_URL + telegramInfo.getExceptionToken() + "/sendmessage";
+        if (!Utils.EMPTY_STR.equals(telegramInfo.getToken())) {
+        	this.url = BASE_URL + telegramInfo.getToken() + "/sendmessage";
+        } else {
+        	this.url = null;
+        }
+        if (!Utils.EMPTY_STR.equals(telegramInfo.getExceptionToken())) {
+        	this.exceptionUrl = BASE_URL + telegramInfo.getExceptionToken() + "/sendmessage";
+        } else {
+        	this.exceptionUrl = null;
+        }
         this.client = client;
         this.chatId = telegramInfo.getChatId();
         this.chartBotUrl = telegramInfo.getChartBotUrl();
     }
 
     public TelegramBot(CloudProperties cloudProperties, Client client) {
-        this(new TelegramInfo(cloudProperties.TELEGRAM_BOT_ENABLED, cloudProperties.USER_ID,
+        this(new TelegramInfo(cloudProperties.USER_ID,
                 cloudProperties.TELEGRAM_BOT_TOKEN, cloudProperties.TELEGRAM_BOT_EXCEPTION_TOKEN,
                 cloudProperties.TELEGRAM_CHAT_ID, cloudProperties.CHART_URL), client);
     }
@@ -50,7 +58,7 @@ public class TelegramBot implements AutoCloseable {
     }
 
     public void sendMessage(String text, String url) {
-        if (enabled) {
+        if (url != null) {
             List<String> messages = bufferedMessages.get(url);
             if (messages == null) {
                 messages = new ArrayList<>();
@@ -88,31 +96,33 @@ public class TelegramBot implements AutoCloseable {
     }
 
     public void flush() {
-        if (enabled) {
-            for (Entry<String, List<String>> entry : bufferedMessages.entrySet()) {
-                String url = entry.getKey();
-                StringBuilder text = new StringBuilder();
-                for (String message : entry.getValue()) {
-                    text.append(message).append("\n");
+        for (Entry<String, List<String>> entry : bufferedMessages.entrySet()) {
+            String url = entry.getKey();
+            StringBuilder text = new StringBuilder();
+            for (String message : entry.getValue()) {
+                text.append(message).append("\n");
+            }
+            if (userId != null) {
+            	text.insert(0, "<b>📢 " + userId + "</b>\n");
+            } else {
+            	text.insert(0, "<b>📢 </b>\n");
+            }
+            Map<String, String> message = new HashMap<>();
+            message.put("chat_id", chatId);
+            message.put("text", text.toString());
+            message.put("method", "sendmessage");
+            message.put("parse_mode", "html");
+            WebTarget webTarget = client.target(url);
+            try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
+                    .header("charset", StandardCharsets.UTF_8.name())
+                    .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
+                if (response.getStatus() != 200) {
+                    LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from "
+                            + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
                 }
-                text.insert(0, "<b>📢 " + userId + "</b>\n");
-                Map<String, String> message = new HashMap<>();
-                message.put("chat_id", chatId);
-                message.put("text", text.toString());
-                message.put("method", "sendmessage");
-                message.put("parse_mode", "html");
-                WebTarget webTarget = client.target(url);
-                try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
-                        .header("charset", StandardCharsets.UTF_8.name())
-                        .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
-                    if (response.getStatus() != 200) {
-                        LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from "
-                                + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
-                    }
-                } catch (Exception e) {
-                    LOGGER.log(Level.SEVERE,
-                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
-                }
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE,
+                        "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
             }
         }
     }

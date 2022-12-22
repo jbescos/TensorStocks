@@ -300,20 +300,18 @@ public class BotExecution {
                                 cloudProperties.USER_ID + ": Cannot save " + profitCsv + ": " + profitData, e);
                     }
                 }
-                if (cloudProperties.TELEGRAM_BOT_ENABLED) {
-                    transactions.stream().filter(tx -> tx.getSide() == Action.BUY).forEach(row -> {
-                        msgSender.sendMessage(row.toString());
-                        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-                            msgSender.sendChartSymbolLink(row.getSymbol());
-                        }
-                    });
-                    profits.stream().forEach(row -> {
-                        msgSender.sendMessage(row.toString());
-                        if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-                            msgSender.sendChartSymbolLink(row.getSymbol());
-                        }
-                    });
-                }
+                transactions.stream().filter(tx -> tx.getSide() == Action.BUY).forEach(row -> {
+                    msgSender.sendMessage(row.toString());
+                    if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                        msgSender.sendChartSymbolLink(row.getSymbol());
+                    }
+                });
+                profits.stream().forEach(row -> {
+                    msgSender.sendMessage(row.toString());
+                    if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                        msgSender.sendChartSymbolLink(row.getSymbol());
+                    }
+                });
             }
         }
 
