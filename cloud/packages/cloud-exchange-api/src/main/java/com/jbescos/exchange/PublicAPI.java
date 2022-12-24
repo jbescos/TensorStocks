@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -315,10 +317,12 @@ public final class PublicAPI {
                 long timestamp = 1000 * ((Number) item.get("publish_ts")).longValue();
                 if (timestamp >= fromTimestamp) {
                     String title = ((String) item.get("title")).toLowerCase();
-                    if (title.contains("delist") || title.contains("close")) {
+                    if (title.contains("delist")) {
                         String summary = (String) item.get("summary");
                         String url = KUCOIN_NEWS_PAGE + item.get("path");
-                        news.add(new News("KUCOIN", title, new Date(timestamp), summary, url));
+                        News n = new News("KUCOIN", title, new Date(timestamp), summary, url);
+                        addDelistedKucoin(n);
+                        news.add(n);
                     }
                 } else {
                     int stick = (int) item.get("stick");
@@ -331,6 +335,17 @@ public final class PublicAPI {
             page++;
         }
         return news;
+    }
+    
+    private void addDelistedKucoin(News n) {
+    	int begin = n.title.indexOf("(");
+    	if (begin > -1) {
+    		int last = n.title.indexOf(")");
+    		if (last > -1) {
+    			String symbol = n.title.substring(begin + 1, last).toUpperCase() + Utils.USDT;
+    			n.delistedSymbols.add(symbol);
+    		}
+    	}
     }
     
     public List<News> delistedBinance(long fromTimestamp) {
@@ -534,6 +549,7 @@ public final class PublicAPI {
         private final Date date;
         private final String summary;
         private final String url;
+        private final Set<String> delistedSymbols = new HashSet<>();
 
         private News(String exchange, String title, Date date, String summary, String url) {
             this.exchange = exchange;
@@ -547,8 +563,12 @@ public final class PublicAPI {
         public String toString() {
             StringBuilder content = new StringBuilder()
             		.append("\n<b>").append(exchange).append("</b> ").append(Utils.fromDate(Utils.FORMAT_SECOND, date))
-            		.append("\n<b>").append(title).append("</b>").append("\n")
-                    .append(summary).append("\n").append(url);
+            		.append("\n<b>").append(title).append("</b>")
+            		.append("\n").append(summary)
+            		.append("\n").append(url);
+            if (!delistedSymbols.isEmpty()) {
+            	content.append("\nDelisted symbols:").append(delistedSymbols);
+            }
             return content.toString();
         }
 
