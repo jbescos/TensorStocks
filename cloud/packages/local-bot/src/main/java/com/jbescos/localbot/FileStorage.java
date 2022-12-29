@@ -232,7 +232,7 @@ public class FileStorage implements FileManager {
             throw new IllegalStateException(mainProperties.getAbsolutePath() + " is required");
         }
         Properties mainProp = load(mainProperties);
-        CloudProperties properties = new CloudProperties(null, mainProp, null);
+        CloudProperties properties = new CloudProperties(null, mainProp, new Properties());
         return properties;
     }
     
