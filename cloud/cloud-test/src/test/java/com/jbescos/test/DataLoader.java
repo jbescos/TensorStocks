@@ -8,6 +8,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ public class DataLoader {
     private final Map<String, SymbolDataChunk> fastGet = new HashMap<>();
     private final String from;
     private final String to;
+    private CsvRow minDateRow;
 
     static {
         File[] exchanges = listFiles("/data");
@@ -95,6 +97,9 @@ public class DataLoader {
                                     .filter(r -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty()
                                             || cloudProperties.BOT_WHITE_LIST_SYMBOLS.contains(r.getSymbol()))
                                     .collect(Collectors.toList());
+                            if (minDateRow == null) {
+                                minDateRow = dailyRows.stream().min((t1, t2) -> t1.getDate().compareTo(t2.getDate())).get();
+                            }
                             rows.addAll(dailyRows);
                         }
                     } catch (IllegalArgumentException e) {
@@ -145,13 +150,7 @@ public class DataLoader {
     }
 
     public CsvRow first() {
-        if (grouped.isEmpty()) {
-            LOGGER.warning("There is no data between " + from + " and " + to + " in "
-                    + cloudProperties.USER_EXCHANGE.name().toLowerCase());
-            return null;
-        } else {
-            return grouped.entrySet().iterator().next().getValue().get(0);
-        }
+        return minDateRow;
     }
 
     public CsvRow next(String symbol, CsvRow current) {
