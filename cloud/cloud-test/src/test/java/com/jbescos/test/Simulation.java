@@ -124,6 +124,7 @@ public class Simulation {
                     break;
                 }
             }
+            LOGGER.info(cloudProperties.USER_ID + " wallet: " + wallet);
             TestFileInMemoryStorage fileManager = new TestFileInMemoryStorage(transactions, openTransactions, null,
                     profit);
             fileManager.persist(testFolder);
