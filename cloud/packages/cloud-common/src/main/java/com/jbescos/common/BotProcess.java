@@ -105,6 +105,8 @@ public class BotProcess {
                 profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
                 profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
                 profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+                List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(userId);
+                profits.append("\nOpen possitions: ").append(transactions.size());
                 telegram.sendMessage(profits.toString());
             }
 
