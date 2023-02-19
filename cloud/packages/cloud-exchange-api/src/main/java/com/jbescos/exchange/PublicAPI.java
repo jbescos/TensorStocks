@@ -120,8 +120,7 @@ public final class PublicAPI {
         Map<String, Price> pricesBySymbol = new HashMap<>();
         prices.stream().filter(price -> {
             String symbol = (String) price.get("symbol");
-            return symbol.endsWith(Utils.USDT) && !symbol.endsWith("UP" + Utils.USDT)
-                    && !symbol.endsWith("UP" + Utils.USDT) && !symbol.endsWith("DOWN" + Utils.USDT);
+            return symbol.endsWith(Utils.USDT);
         }).forEach(price -> pricesBySymbol.put((String) price.get("symbol"),
                 new Price((String) price.get("symbol"), Double.parseDouble((String) price.get("price")), "")));
         return pricesBySymbol;
