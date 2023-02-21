@@ -6,7 +6,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -24,8 +26,9 @@ import com.jbescos.exchange.Utils;
 
 public class SecuredMizarAPITest {
 
+    private static final CloudProperties CLOUD_PROPERTIES = new CloudProperties(null);
     private final Client client = ClientBuilder.newClient();
-    private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(new CloudProperties(null), client);
+    private final SecuredMizarAPI mizarApi = SecuredMizarAPI.create(CLOUD_PROPERTIES, client);
     private static final String EXCHANGE = "kucoin";
 //	private static final String EXCHANGE = "binance";
 
@@ -50,6 +53,27 @@ public class SecuredMizarAPITest {
         }
         System.out.println(builder.toString());
     }
+
+    @Test
+    @Ignore
+    public void compatibleSymbols() {
+        Map<String, Object> strategy = mizarApi.selfHostedStrategyInfo();
+        Set<String> compatibleSymbols = ((List<Map<String, String>>) strategy.get("symbols")).stream().map(m -> m.get("symbol")).collect(Collectors.toSet());
+        List<String> symbols = CLOUD_PROPERTIES.mizarWhiteListSymbols();
+        StringBuilder builder = new StringBuilder();
+        for (String symbol : symbols) {
+            if (compatibleSymbols.contains(symbol)) {
+                if (builder.length() == 0) {
+                    builder.append("bot.white.list=");
+                } else {
+                    builder.append(",");
+                }
+                builder.append(symbol);
+            }
+        }
+        System.out.println(builder.toString());
+    }
+
 
     @Test
     @Ignore

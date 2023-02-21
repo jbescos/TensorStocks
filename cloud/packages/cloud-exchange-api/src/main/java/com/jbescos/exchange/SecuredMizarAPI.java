@@ -82,10 +82,16 @@ public class SecuredMizarAPI implements SecuredAPI {
         return response;
     }
 
-    public String selfHostedStrategyInfo() {
-        String response = get("/self-hosted-strategy-info", new GenericType<String>() {
-        });
-        return response;
+    public Map<String, Object> selfHostedStrategyInfo() {
+        Map<String, Object> response = get("/self-hosted-strategy-info", new GenericType<Map<String, Object>>() {});
+        List<Map<String, Object>> strategies = (List<Map<String, Object>>) response.get("strategies");
+        for (Map<String, Object> strategy : strategies) {
+            int strategyId = ((Number) strategy.get("strategy_id")).intValue();
+            if (strategyId == cloudProperties.mizarStrategyId()) {
+                return strategy;
+            }
+        }
+        throw new IllegalArgumentException("No strategy id "+ cloudProperties.mizarStrategyId() + " found");
     }
 
     public int publishSelfHostedStrategy(String name, String description, List<String> exchanges, List<String> symbols,
