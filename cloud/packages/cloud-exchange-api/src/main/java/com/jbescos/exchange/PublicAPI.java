@@ -135,8 +135,6 @@ public final class PublicAPI {
         });
         Map<String, Price> pricesBySymbol = new HashMap<>();
         allTickers.getData().getTicker().stream().filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
-                .filter(ticker -> !ticker.getSymbol().endsWith("3L-" + Utils.USDT))
-                .filter(ticker -> !ticker.getSymbol().endsWith("3S-" + Utils.USDT))
                 .filter(ticker -> ticker.getBuy() != null).forEach(ticker -> {
                     Double priceVal = price.apply(ticker);
                     if (priceVal != null) {
