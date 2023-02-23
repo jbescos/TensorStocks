@@ -10,6 +10,7 @@ import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.Utils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -39,6 +40,7 @@ public class BotProcess {
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
         List<Broker> brokers = brokerManager.loadBrokers();
+        List<Map<String, String>> rowsWallet = Collections.emptyList();
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
             BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage, telegram);
             bot.execute(brokers);
@@ -47,11 +49,11 @@ public class BotProcess {
             if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                 Map<String, String> wallet = securedApi.wallet();
                 Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
-                List<Map<String, String>> rows = Utils.userUsdt(now, prices, wallet);
+                rowsWallet = Utils.userUsdt(now, prices, wallet);
                 bucketStorage.updateFile(
                         cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv",
-                        CsvUtil.toString(rows).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
-                String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rows);
+                        CsvUtil.toString(rowsWallet).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+                String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rowsWallet);
                 if (baseUsdt != null) {
                     bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE,
                             baseUsdt.getBytes(), null);
@@ -97,17 +99,24 @@ public class BotProcess {
             // Report
             boolean report = isReportTime(now);
             if (report) {
+                StringBuilder message = new StringBuilder();
                 if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                     telegram.sendHtmlLink();
+                    message.append("\nWallet:");
+                    for (Map<String, String> entry : rowsWallet) {
+                        String symbol = entry.get("SYMBOL");
+                        String usdt = entry.get(Utils.USDT);
+                        message.append("\n ").append(symbol).append(": ").append(usdt).append("$");
+                    }
                 }
                 List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
-                StringBuilder profits = new StringBuilder().append("opened-closed, profit(%)");
-                profits.append("\n").append(Utils.profitSummary(now, 1, profitRows));
-                profits.append("\n").append(Utils.profitSummary(now, 7, profitRows));
-                profits.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+                message.append("opened-closed, profit(%)");
+                message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
+                message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
+                message.append("\n").append(Utils.profitSummary(now, 30, profitRows));
                 List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(userId);
-                profits.append("\nOpen possitions: ").append(transactions.size());
-                telegram.sendMessage(profits.toString());
+                message.append("\nOpen possitions: ").append(transactions.size());
+                telegram.sendMessage(message.toString());
             }
 
         }
