@@ -106,11 +106,11 @@ public class BotProcess {
                     for (Map<String, String> entry : rowsWallet) {
                         String symbol = entry.get("SYMBOL");
                         String usdt = entry.get(Utils.USDT);
-                        message.append("\n ").append(symbol).append(": ").append(usdt).append("$");
+                        message.append("\n ").append(symbol).append(": ").append(Utils.format(Double.parseDouble(usdt), 2)).append("$");
                     }
                 }
                 List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
-                message.append("opened-closed, profit(%)");
+                message.append("\nopened-closed, profit(%)");
                 message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
                 message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
                 message.append("\n").append(Utils.profitSummary(now, 30, profitRows));

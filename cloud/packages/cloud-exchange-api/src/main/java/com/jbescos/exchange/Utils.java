@@ -713,7 +713,8 @@ public class Utils {
     }
 
     // Get the USDT of the wallet when there is nothing else
-    public static String baseUsdt(Collection<String> excludeLimits, List<Map<String, String>> wallet) {
+    public static String baseUsdt(Collection<String> excludeLimits, List<Map<String, String>> original) {
+        List<Map<String, String>> wallet = new ArrayList<>(original);
         wallet.removeIf(
                 entry -> excludeLimits.contains(entry.get("SYMBOL") + USDT) || TOTAL_USDT.equals(entry.get("SYMBOL")));
         if (wallet.size() == 1) {
