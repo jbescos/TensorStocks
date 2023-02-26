@@ -1,7 +1,10 @@
 package com.jbescos.common;
 
 import java.nio.charset.StandardCharsets;
+import java.text.CharacterIterator;
+import java.text.StringCharacterIterator;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +25,7 @@ public class TelegramBot implements AutoCloseable {
 
     private static final Logger LOGGER = Logger.getLogger(TelegramBot.class.getName());
     private static final String BASE_URL = "https://api.telegram.org/bot";
+    private static final int LIMIT_MESSAGE = 4096;
     private final Client client;
     private final String userId;
     private final String url;
@@ -33,14 +37,14 @@ public class TelegramBot implements AutoCloseable {
     public TelegramBot(TelegramInfo telegramInfo, Client client) {
         this.userId = telegramInfo.getUserId();
         if (!Utils.EMPTY_STR.equals(telegramInfo.getToken())) {
-        	this.url = BASE_URL + telegramInfo.getToken() + "/sendmessage";
+            this.url = BASE_URL + telegramInfo.getToken() + "/sendmessage";
         } else {
-        	this.url = null;
+            this.url = null;
         }
         if (!Utils.EMPTY_STR.equals(telegramInfo.getExceptionToken())) {
-        	this.exceptionUrl = BASE_URL + telegramInfo.getExceptionToken() + "/sendmessage";
+            this.exceptionUrl = BASE_URL + telegramInfo.getExceptionToken() + "/sendmessage";
         } else {
-        	this.exceptionUrl = null;
+            this.exceptionUrl = null;
         }
         this.client = client;
         this.chatId = telegramInfo.getChatId();
@@ -48,9 +52,9 @@ public class TelegramBot implements AutoCloseable {
     }
 
     public TelegramBot(CloudProperties cloudProperties, Client client) {
-        this(new TelegramInfo(cloudProperties.USER_ID,
-                cloudProperties.TELEGRAM_BOT_TOKEN, cloudProperties.TELEGRAM_BOT_EXCEPTION_TOKEN,
-                cloudProperties.TELEGRAM_CHAT_ID, cloudProperties.CHART_URL), client);
+        this(new TelegramInfo(cloudProperties.USER_ID, cloudProperties.TELEGRAM_BOT_TOKEN,
+                cloudProperties.TELEGRAM_BOT_EXCEPTION_TOKEN, cloudProperties.TELEGRAM_CHAT_ID,
+                cloudProperties.CHART_URL), client);
     }
 
     public void sendMessage(String text) {
@@ -99,19 +103,31 @@ public class TelegramBot implements AutoCloseable {
         for (Entry<String, List<String>> entry : bufferedMessages.entrySet()) {
             String url = entry.getKey();
             StringBuilder text = new StringBuilder();
-            for (String message : entry.getValue()) {
-                text.append(message).append("\n");
-            }
-            if (userId != null) {
-            	text.insert(0, "<b>📢 " + userId + "</b>\n");
-            } else {
-            	text.insert(0, "<b>📢 </b>\n");
-            }
             Map<String, String> message = new HashMap<>();
             message.put("chat_id", chatId);
-            message.put("text", text.toString());
             message.put("method", "sendmessage");
-            message.put("parse_mode", "html");
+            if (exceptionUrl.equals(url)) {
+                if (userId != null) {
+                    text.insert(0, userId + "\n");
+                } else {
+                    text.insert(0, "Report\n");
+                }
+            } else {
+                message.put("parse_mode", "html");
+                if (userId != null) {
+                    text.insert(0, "<b>📢 " + userId + "</b>\n");
+                } else {
+                    text.insert(0, "<b>📢 </b>\n");
+                }
+            }
+            for (String msg : entry.getValue()) {
+                text.append(msg).append("\n");
+            }
+            String msg = text.toString();
+            if (msg.length() > LIMIT_MESSAGE) {
+                msg = msg.substring(0, LIMIT_MESSAGE - 3 ) + "...";
+            }
+            message.put("text", msg);
             WebTarget webTarget = client.target(url);
             try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
                     .header("charset", StandardCharsets.UTF_8.name())
