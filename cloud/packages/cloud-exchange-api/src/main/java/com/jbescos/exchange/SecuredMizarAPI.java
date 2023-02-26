@@ -27,7 +27,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     private static final Logger LOGGER = Logger.getLogger(SecuredMizarAPI.class.getName());
     private static final String DEFAULT_WALLET_CONTENT = "1000000000";
     private final Map<String, String> wallet = new HashMap<>();
-    private static final String URL = "https://api.mizar.ai/api/v1";
+    private static final String URL = "https://api.mizar.com/api/v1";
     private static final String HEADER_API = "mizar-api-key";
     private final Client client;
     private final PropertiesMizar cloudProperties;
