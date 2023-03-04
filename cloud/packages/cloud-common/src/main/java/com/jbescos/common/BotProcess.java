@@ -119,13 +119,18 @@ public class BotProcess {
                         message.append("\n ").append(symbol).append(": ").append(Utils.format(Double.parseDouble(usdt), 2)).append("$");
                     }
                 }
+                message.append("\nClosed positions:");
+                List<CsvProfitRow> dailyProfits = Utils.profitsDaysBack(now, 1, profitRows);
+                for (CsvProfitRow profit : dailyProfits) {
+                    message.append("\n ").append(Utils.fromDate(Utils.FORMAT_HOUR, profit.getSellDate())).append(",").append(profit.getSymbol()).append(",").append(profit.getProfitPercentage());
+                }
                 telegram.sendMessage(message.toString());
             }
 
         }
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
-
+    
     private ResyncTx synchronizeTransactions(SecuredAPI securedApi, FileManager bucketStorage, String txFile)
             throws FileNotFoundException, IOException {
         List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);

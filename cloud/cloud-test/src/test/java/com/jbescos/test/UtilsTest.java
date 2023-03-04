@@ -7,7 +7,6 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
@@ -149,6 +148,11 @@ public class UtilsTest {
         assertEquals("0.99999999", Utils.format(value));
         value = 0.999999999;
         assertEquals("0.99999999", Utils.format(value));
+    }
+
+    @Test
+    public void hourFormat() {
+        assertEquals("13:30", Utils.fromDate(Utils.FORMAT_HOUR, Utils.fromString(Utils.FORMAT_SECOND, "2021-07-10 13:30:55")));
     }
 
     @Test

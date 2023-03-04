@@ -39,6 +39,7 @@ public class Utils {
     public static final String FORMAT_MONTH = "yyyy-MM";
     public static final String FORMAT = "yyyy-MM-dd";
     public static final String FORMAT_SECOND = "yyyy-MM-dd HH:mm:ss";
+    public static final String FORMAT_HOUR = "HH:mm";
     public static final Charset UTF8 = Charset.forName("UTF-8");
     public static final String USDT = "USDT";
     public static final String TOTAL_USDT = "TOTAL_USDT";
@@ -596,12 +597,17 @@ public class Utils {
                 .sorted((a, b) -> a.getDate().compareTo(b.getDate())).collect(Collectors.toList());
     }
 
-    public static String profitSummary(Date now, int days, List<CsvProfitRow> profits) {
+    public static List<CsvProfitRow> profitsDaysBack(Date now, int days, List<CsvProfitRow> profits) {
         Date from = getDateOfDaysBack(now, days);
-        double totalUsdtBuy = 0;
-        double totalUsdtSell = 0;
         List<CsvProfitRow> filtered = profits.stream().filter(row -> row.getSellDate().getTime() >= from.getTime())
                 .collect(Collectors.toList());
+        return filtered;
+    }
+    
+    public static String profitSummary(Date now, int days, List<CsvProfitRow> profits) {
+        double totalUsdtBuy = 0;
+        double totalUsdtSell = 0;
+        List<CsvProfitRow> filtered = profitsDaysBack(now, days, profits);
         for (CsvProfitRow row : filtered) {
             totalUsdtBuy = totalUsdtBuy + Double.parseDouble(row.getQuantityUsdtBuy());
             totalUsdtSell = totalUsdtSell + Double.parseDouble(row.getQuantityUsdtSell());
