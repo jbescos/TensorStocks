@@ -99,9 +99,19 @@ public class BotProcess {
             // Report
             boolean report = isReportTime(now);
             if (report) {
-                StringBuilder message = new StringBuilder();
                 if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                     telegram.sendHtmlLink();
+                }
+                StringBuilder message = new StringBuilder();
+                List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 4);
+                message.append("opened-closed, profit(%)");
+                message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
+                message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
+                message.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+                message.append("\n").append(Utils.profitSummary(now, 90, profitRows));
+                List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(userId);
+                message.append("\nOpen possitions: ").append(transactions.size());
+                if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                     message.append("\nWallet:");
                     for (Map<String, String> entry : rowsWallet) {
                         String symbol = entry.get("SYMBOL");
@@ -109,13 +119,6 @@ public class BotProcess {
                         message.append("\n ").append(symbol).append(": ").append(Utils.format(Double.parseDouble(usdt), 2)).append("$");
                     }
                 }
-                List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 2);
-                message.append("\nopened-closed, profit(%)");
-                message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
-                message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
-                message.append("\n").append(Utils.profitSummary(now, 30, profitRows));
-                List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(userId);
-                message.append("\nOpen possitions: ").append(transactions.size());
                 telegram.sendMessage(message.toString());
             }
 
