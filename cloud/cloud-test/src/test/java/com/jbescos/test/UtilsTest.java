@@ -531,6 +531,13 @@ public class UtilsTest {
         assertEquals(60000, Utils.delayto30or00(Utils.fromString(Utils.FORMAT_SECOND, "2022-12-08 23:29:59")));
     }
 
+    @Test
+    public void splitSize() {
+        assertEquals(Arrays.asList("this ", "is a ", "test.", ".."), Utils.splitSize("this is a test...", 5));
+        assertEquals(Arrays.asList(), Utils.splitSize("", 5));
+        assertEquals(Arrays.asList("a"), Utils.splitSize("a", 5));
+    }
+
     private Map<String, String> createWalletRow(String symbol, String usdt) {
         Map<String, String> row = new HashMap<>();
         row.put("SYMBOL", symbol);

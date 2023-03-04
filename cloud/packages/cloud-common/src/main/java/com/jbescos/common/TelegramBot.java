@@ -1,10 +1,7 @@
 package com.jbescos.common;
 
 import java.nio.charset.StandardCharsets;
-import java.text.CharacterIterator;
-import java.text.StringCharacterIterator;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -123,22 +120,21 @@ public class TelegramBot implements AutoCloseable {
             for (String msg : entry.getValue()) {
                 text.append(msg).append("\n");
             }
-            String msg = text.toString();
-            if (msg.length() > LIMIT_MESSAGE) {
-                msg = msg.substring(0, LIMIT_MESSAGE - 3 ) + "...";
-            }
-            message.put("text", msg);
-            WebTarget webTarget = client.target(url);
-            try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
-                    .header("charset", StandardCharsets.UTF_8.name())
-                    .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
-                if (response.getStatus() != 200) {
-                    LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from "
-                            + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
+            List<String> contents = Utils.splitSize(text.toString(), LIMIT_MESSAGE);
+            for (String content : contents) {
+                message.put("text", content);
+                WebTarget webTarget = client.target(url);
+                try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
+                        .header("charset", StandardCharsets.UTF_8.name())
+                        .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
+                    if (response.getStatus() != 200) {
+                        LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from "
+                                + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE,
+                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
                 }
-            } catch (Exception e) {
-                LOGGER.log(Level.SEVERE,
-                        "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
             }
         }
     }

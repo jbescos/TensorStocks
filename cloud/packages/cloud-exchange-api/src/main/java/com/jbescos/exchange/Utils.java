@@ -727,7 +727,7 @@ public class Utils {
         }
         return null;
     }
-    
+
     public static long delayto30or00(Date now) {
         Calendar cal = Calendar.getInstance();
         cal.setTime(now);
@@ -755,4 +755,11 @@ public class Utils {
         return quantity;
     }
 
+    public static List<String> splitSize(String bigString, int size) {
+        List<String> ret = new ArrayList<>((bigString.length() + size - 1) / size);
+        for (int start = 0; start < bigString.length(); start += size) {
+            ret.add(bigString.substring(start, Math.min(bigString.length(), start + size)));
+        }
+        return ret;
+    }
 }
