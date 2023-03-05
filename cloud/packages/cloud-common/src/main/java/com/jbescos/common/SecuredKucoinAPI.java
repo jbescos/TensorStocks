@@ -1,4 +1,4 @@
-package com.jbescos.exchange;
+package com.jbescos.common;
 
 import java.math.BigDecimal;
 import java.security.InvalidKeyException;
@@ -23,6 +23,12 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.jbescos.exchange.Broker.Action;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.Deposit;
+import com.jbescos.exchange.KucoinResponse;
+import com.jbescos.exchange.PropertiesKucoin;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.Utils;
 
 public class SecuredKucoinAPI implements SecuredAPI {
 
@@ -338,32 +344,6 @@ public class SecuredKucoinAPI implements SecuredAPI {
 
     }
 
-    public static class KucoinResponse<T> {
-        private String code;
-        private T data;
-
-        public String getCode() {
-            return code;
-        }
-
-        public void setCode(String code) {
-            this.code = code;
-        }
-
-        public T getData() {
-            return data;
-        }
-
-        public void setData(T data) {
-            this.data = data;
-        }
-
-        @Override
-        public String toString() {
-            return "KucoinResponse [code=" + code + ", data=" + data + "]";
-        }
-    }
-
     public static class KucoinAccount {
         private String id;
         private String currency;
@@ -421,8 +401,4 @@ public class SecuredKucoinAPI implements SecuredAPI {
         }
     }
 
-    @Override
-    public Client getClient() {
-        return client;
-    }
 }

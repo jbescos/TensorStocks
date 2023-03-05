@@ -25,7 +25,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import com.jbescos.exchange.AllTickers.Ticker;
-import com.jbescos.exchange.SecuredKucoinAPI.KucoinResponse;
 
 public final class PublicAPI {
 

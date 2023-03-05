@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.jbescos.exchange.Broker.Action;
-import com.jbescos.exchange.SecuredMizarAPI.ClosePositionResponse;
 
 public class Utils {
 

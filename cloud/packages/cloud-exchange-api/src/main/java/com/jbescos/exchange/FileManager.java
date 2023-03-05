@@ -1,15 +1,10 @@
-package com.jbescos.common;
+package com.jbescos.exchange;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import com.jbescos.common.CloudProperties.Exchange;
-import com.jbescos.exchange.CsvProfitRow;
-import com.jbescos.exchange.CsvRow;
-import com.jbescos.exchange.CsvTransactionRow;
-import com.jbescos.exchange.Price;
 
 public interface FileManager {
 
@@ -19,7 +14,7 @@ public interface FileManager {
 
     List<CsvTransactionRow> loadOpenTransactions(String userId) throws IOException;
 
-    List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols) throws IOException;
+    List<CsvRow> loadPreviousRows(String folderExchange, int hoursBack, List<String> whiteListSymbols) throws IOException;
     
     Map<String, CsvRow> previousRows(String lastUpdated) throws IOException;
 
@@ -33,4 +28,6 @@ public interface FileManager {
     List<CsvProfitRow> loadCsvProfitRows(String profitFile);
 
     List<CsvTransactionRow> loadCsvTransactionRows(String txFile);
+
+    Map<String, String> loadWallet(String walletFile);
 }

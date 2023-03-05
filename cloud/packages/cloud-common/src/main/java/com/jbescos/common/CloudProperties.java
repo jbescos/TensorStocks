@@ -1,19 +1,5 @@
 package com.jbescos.common;
 
-import com.google.cloud.ReadChannel;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Storage;
-import com.jbescos.exchange.Price;
-import com.jbescos.exchange.PropertiesBinance;
-import com.jbescos.exchange.PropertiesKucoin;
-import com.jbescos.exchange.PropertiesMizar;
-import com.jbescos.exchange.PublicAPI;
-import com.jbescos.exchange.PublicAPI.News;
-import com.jbescos.exchange.SecuredAPI;
-import com.jbescos.exchange.SecuredBinanceAPI;
-import com.jbescos.exchange.SecuredKucoinAPI;
-import com.jbescos.exchange.SecuredMizarAPI;
-import com.jbescos.exchange.Utils;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -30,7 +16,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Logger;
+
 import javax.ws.rs.client.Client;
+
+import com.google.cloud.ReadChannel;
+import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.Storage;
+import com.jbescos.exchange.FileManager;
+import com.jbescos.exchange.Price;
+import com.jbescos.exchange.PropertiesBinance;
+import com.jbescos.exchange.PropertiesKucoin;
+import com.jbescos.exchange.PropertiesMizar;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.PublicAPI.News;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.Utils;
 
 public class CloudProperties implements PropertiesBinance, PropertiesKucoin, PropertiesMizar {
 
@@ -285,7 +285,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public static enum Exchange {
         BINANCE("/binance/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredBinanceAPI.create(cloudProperties, client);
             }
@@ -302,7 +302,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         KUCOIN("/kucoin/", true, true) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredKucoinAPI.create(cloudProperties, client);
             }
@@ -319,7 +319,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         MIZAR_KUCOIN("/kucoin/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
@@ -331,7 +331,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         MIZAR_OKEX("/okex/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
@@ -343,7 +343,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         MIZAR_FTX("/ftx/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
@@ -360,7 +360,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         MIZAR_BINANCE("/binance/", false, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 return SecuredMizarAPI.create(cloudProperties, client);
             }
@@ -372,7 +372,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         FTX("/ftx/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 throw new UnsupportedOperationException("FTX integration is not supported");
             }
@@ -389,7 +389,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         OKEX("/okex/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 throw new UnsupportedOperationException("OKEX integration is not supported");
             }
@@ -401,7 +401,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         },
         CHAIN_ETHEREUM("/chain_ethereum/", true, false) {
             @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client)
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
                 throw new UnsupportedOperationException("CHAIN_ETHEREUM integration is not supported");
             }
@@ -409,6 +409,30 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             @Override
             public Map<String, Price> price(PublicAPI publicApi) {
                 return publicApi.priceCoingeckoTopSimple(5, "ethereum");
+            }
+        },
+        TEST_KUCOIN("/kucoin/", true, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                return new SecuredTestAPI(cloudProperties, storage);
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceKucoin();
+            }
+        },
+        TEST_BINANCE("/binance/", true, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                return new SecuredTestAPI(cloudProperties, storage);
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceBinance();
             }
         };
 
@@ -442,7 +466,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             return Collections.emptyList();
         }
 
-        public abstract SecuredAPI create(CloudProperties cloudProperties, Client client)
+        public abstract SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                 throws KeyException, IOException, NoSuchAlgorithmException;
 
         public abstract Map<String, Price> price(PublicAPI publicApi);

@@ -18,6 +18,7 @@ import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;

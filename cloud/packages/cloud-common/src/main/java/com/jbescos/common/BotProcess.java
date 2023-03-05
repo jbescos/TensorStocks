@@ -15,6 +15,7 @@ import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
+import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.Utils;
@@ -39,7 +40,7 @@ public class BotProcess {
         String userId = cloudProperties.USER_ID;
         PublicAPI publicAPI = new PublicAPI(client);
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
-        SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client);
+        SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client, bucketStorage);
         List<Broker> brokers = brokerManager.loadBrokers();
         List<Map<String, String>> rowsWallet = Collections.emptyList();
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {

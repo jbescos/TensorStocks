@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
 import com.jbescos.exchange.Broker.Action;
@@ -30,7 +31,7 @@ public class DefaultBrokerManager implements BrokerManager {
     @Override
     public List<Broker> loadBrokers() throws IOException {
         List<CsvTransactionRow> transactions = fileManager.loadOpenTransactions(cloudProperties.USER_ID);
-        List<CsvRow> lastData = fileManager.loadPreviousRows(cloudProperties.USER_EXCHANGE,
+        List<CsvRow> lastData = fileManager.loadPreviousRows(cloudProperties.USER_EXCHANGE.getFolder(),
                 cloudProperties.BOT_HOURS_BACK_STATISTICS, cloudProperties.BOT_WHITE_LIST_SYMBOLS);
         Map<String, List<CsvRow>> grouped = lastData.stream().collect(Collectors.groupingBy(CsvRow::getSymbol));
         Map<String, List<CsvTransactionRow>> groupedTransactions = transactions.stream()

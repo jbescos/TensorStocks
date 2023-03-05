@@ -1,14 +1,5 @@
 package com.jbescos.localbot;
 
-import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CloudProperties.Exchange;
-import com.jbescos.common.CsvUtil;
-import com.jbescos.common.FileManager;
-import com.jbescos.exchange.CsvProfitRow;
-import com.jbescos.exchange.CsvRow;
-import com.jbescos.exchange.CsvTransactionRow;
-import com.jbescos.exchange.Price;
-import com.jbescos.exchange.Utils;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -29,6 +20,15 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
+
+import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CsvUtil;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.FileManager;
+import com.jbescos.exchange.Price;
+import com.jbescos.exchange.Utils;
 
 public class FileStorage implements FileManager {
 
@@ -84,10 +84,10 @@ public class FileStorage implements FileManager {
     }
 
     @Override
-    public List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols)
+    public List<CsvRow> loadPreviousRows(String exchangeFolder, int hoursBack, List<String> whiteListSymbols)
             throws IOException {
         // Get 1 day more and compare dates later
-        List<String> days = Utils.daysBack(new Date(), (hoursBack / 24) + 1, "data" + exchange.getFolder(), ".csv");
+        List<String> days = Utils.daysBack(new Date(), (hoursBack / 24) + 1, "data" + exchangeFolder, ".csv");
         List<CsvRow> rows = new ArrayList<>();
         Date now = new Date();
         Date from = Utils.getDateOfHoursBack(now, hoursBack);
@@ -242,5 +242,10 @@ public class FileStorage implements FileManager {
             properties.load(input);
         }
         return properties;
+    }
+
+    @Override
+    public Map<String, String> loadWallet(String walletFile) {
+        throw new UnsupportedOperationException("Not Implemented");
     }
 }

@@ -8,14 +8,14 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import com.jbescos.common.CloudProperties.Exchange;
+
+import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
-import com.jbescos.common.CsvUtil;
-import com.jbescos.common.FileManager;
 
 public class TestFileInMemoryStorage implements FileManager {
 
@@ -69,7 +69,7 @@ public class TestFileInMemoryStorage implements FileManager {
     }
 
     @Override
-    public List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols)
+    public List<CsvRow> loadPreviousRows(String exchangeFolder, int hoursBack, List<String> whiteListSymbols)
             throws IOException {
         return previousRows;
     }
@@ -123,5 +123,10 @@ public class TestFileInMemoryStorage implements FileManager {
     @Override
     public List<CsvTransactionRow> loadCsvTransactionRows(String txFile) {
         throw new UnsupportedOperationException("Not implemented");
+    }
+
+    @Override
+    public Map<String, String> loadWallet(String walletFile) {
+        throw new UnsupportedOperationException("Not Implemented");
     }
 }

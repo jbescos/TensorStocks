@@ -17,11 +17,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.SecuredMizarAPI;
+import com.jbescos.common.SecuredMizarAPI.OpenPositionResponse;
+import com.jbescos.common.SecuredMizarAPI.OpenPositions;
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvTransactionRow;
-import com.jbescos.exchange.SecuredMizarAPI;
-import com.jbescos.exchange.SecuredMizarAPI.OpenPositionResponse;
-import com.jbescos.exchange.SecuredMizarAPI.OpenPositions;
 import com.jbescos.exchange.Utils;
 
 public class SecuredMizarAPITest {

@@ -13,6 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Scanner;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -25,10 +26,11 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageClass;
-import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.CsvWalletRow;
+import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
 
@@ -137,10 +139,10 @@ public class BucketStorage implements FileManager {
     }
 
     @Override
-    public List<CsvRow> loadPreviousRows(Exchange exchange, int hoursBack, List<String> whiteListSymbols)
+    public List<CsvRow> loadPreviousRows(String exchangeFolder, int hoursBack, List<String> whiteListSymbols)
             throws IOException {
         // Get 1 day more and compare dates later
-        List<String> days = Utils.daysBack(new Date(), (hoursBack / 24) + 1, "data" + exchange.getFolder(), ".csv");
+        List<String> days = Utils.daysBack(new Date(), (hoursBack / 24) + 1, "data" + exchangeFolder, ".csv");
         List<CsvRow> rows = new ArrayList<>();
         Date now = new Date();
         Date from = Utils.getDateOfHoursBack(now, hoursBack);
@@ -213,6 +215,28 @@ public class BucketStorage implements FileManager {
             // Eat it, no CSV was found is not an error
         }
         return null;
+    }
+
+    @Override
+    public Map<String, String> loadWallet(String walletFile) {
+        String data = getRaw(walletFile);
+        if (data != null) {
+            data = new StringBuilder(data).reverse().toString();
+            try (Scanner scanner = new Scanner(data)) {
+                Map<String, String> rows = new LinkedHashMap<>();
+                while (scanner.hasNextLine()) {
+                  String line = scanner.nextLine();
+                  CsvWalletRow row = CsvWalletRow.fromCsvLine(line);
+                  if (rows.putIfAbsent(row.getSymbol(), row.getSymbolValue()) != null) {
+                      // We have all the last updated records
+                      break;
+                  }
+                }
+                return rows;
+            }
+        } else {
+            return null;
+        }
     }
 
 }
