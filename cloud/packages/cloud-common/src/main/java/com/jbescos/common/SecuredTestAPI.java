@@ -1,8 +1,6 @@
 package com.jbescos.common;
 
-import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
@@ -16,28 +14,19 @@ public class SecuredTestAPI implements SecuredAPI {
     
     private static final Logger LOGGER = Logger.getLogger(SecuredTestAPI.class.getName());
     private static final String INITIAL_USDT = "10000";
-    private final CloudProperties cloudProperties;
     private final FileManager storage;
+    private final String walletFile;
     
     public SecuredTestAPI(CloudProperties cloudProperties, FileManager storage) {
-        this.cloudProperties = cloudProperties;
         this.storage = storage;
+        this.walletFile = cloudProperties.USER_ID + "/" + Utils.CONTEXT_WALLET_FILE;
     }
     
     @Override
     public Map<String, String> wallet() {
-        List<String> walletFiles = Utils.monthsBack(new Date(), 2, cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX, ".csv");
-        Map<String, String> wallet = null;
-        for (int i = walletFiles.size() - 1; i >= 0; i--) {
-            String walletFile = walletFiles.get(i);
-            // FIXME Does not work in cloud
-            wallet = storage.loadWallet(walletFile);
-            if (wallet != null) {
-                break;
-            }
-        }
+        Map<String, String> wallet = storage.loadWallet(walletFile);
         if (wallet == null || wallet.isEmpty()) {
-            LOGGER.warning("No wallet found in " + walletFiles);
+            LOGGER.warning("No wallet found in " + walletFile);
             wallet = new LinkedHashMap<>();
             wallet.put(Utils.USDT, INITIAL_USDT);
         } else {

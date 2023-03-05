@@ -15,6 +15,7 @@ import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
+import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredAPI;
@@ -52,9 +53,11 @@ public class BotProcess {
                 Map<String, String> wallet = securedApi.wallet();
                 Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
                 rowsWallet = Utils.userUsdt(now, prices, wallet);
+                byte[] walletContent = CsvUtil.toString(rowsWallet).toString().getBytes(Utils.UTF8);
                 bucketStorage.updateFile(
                         cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv",
-                        CsvUtil.toString(rowsWallet).toString().getBytes(Utils.UTF8), CSV_HEADER_ACCOUNT_TOTAL);
+                        walletContent, CSV_HEADER_ACCOUNT_TOTAL);
+                bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_WALLET_FILE, walletContent, CSV_HEADER_ACCOUNT_TOTAL);
                 String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rowsWallet);
                 if (baseUsdt != null) {
                     bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE,

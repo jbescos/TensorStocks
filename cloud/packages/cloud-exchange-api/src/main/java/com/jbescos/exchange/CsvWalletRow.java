@@ -4,7 +4,6 @@ import java.util.Date;
 
 public class CsvWalletRow {
 
-    public static final String HEADER = "DATE,SYMBOL,SYMBOL_VALUE,USDT" + Utils.NEW_LINE;
     private final Date date;
     private final String symbol;
     private final String symbolValue;

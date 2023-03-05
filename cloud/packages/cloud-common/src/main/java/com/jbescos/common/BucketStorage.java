@@ -33,6 +33,7 @@ import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.Broker.Action;
 
 public class BucketStorage implements FileManager {
 
@@ -219,8 +220,19 @@ public class BucketStorage implements FileManager {
 
     @Override
     public Map<String, String> loadWallet(String walletFile) {
-        String data = getRaw(walletFile);
-        return CsvUtil.wallet(data);
+        Map<String, String> wallet = new LinkedHashMap<>();
+        try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), walletFile);
+                BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+            List<CsvWalletRow> rows = CsvUtil.readCsv(true, line -> {
+                String[] columns = line.split(",");
+                CsvWalletRow row = new CsvWalletRow(Utils.fromString(Utils.FORMAT_SECOND, columns[0]), columns[1], columns[2], columns[3]);
+                return row;
+            }, reader);
+            rows.stream().forEach(r -> wallet.put(r.getSymbol(), r.getSymbolValue()));
+        } catch (Exception e) {
+            // Eat it, no CSV was found is not an error
+        }
+        return wallet;
     }
 
 }
