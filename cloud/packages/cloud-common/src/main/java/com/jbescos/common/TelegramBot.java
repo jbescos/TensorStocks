@@ -70,25 +70,33 @@ public class TelegramBot implements AutoCloseable {
     }
 
     public void sendChartSymbolLink(String symbol) {
-        String msg = chartBotUrl + "?userId=" + userId + "&days=7&symbol=" + symbol + "&uncache="
-                + System.currentTimeMillis();
-        sendMessage(msg, url);
+        if (chartBotUrl != null && !chartBotUrl.isEmpty()) {
+            String msg = chartBotUrl + "?userId=" + userId + "&days=7&symbol=" + symbol + "&uncache="
+                    + System.currentTimeMillis();
+            sendMessage(msg, url);
+        }
     }
 
     public void sendChartWalletDaysLink(int days) {
-        String msg = chartBotUrl + "?userId=" + userId + "&days=" + days + "&uncache=" + System.currentTimeMillis();
-        sendMessage(msg, url);
+        if (chartBotUrl != null && !chartBotUrl.isEmpty()) {
+            String msg = chartBotUrl + "?userId=" + userId + "&days=" + days + "&uncache=" + System.currentTimeMillis();
+            sendMessage(msg, url);
+        }
     }
 
     public void sendChartSummaryLink(int days) {
-        String msg = chartBotUrl + "?userId=" + userId + "&type=summary" + "&days=" + days + "&uncache="
-                + System.currentTimeMillis();
-        sendMessage(msg, url);
+        if (chartBotUrl != null && !chartBotUrl.isEmpty()) {
+            String msg = chartBotUrl + "?userId=" + userId + "&type=summary" + "&days=" + days + "&uncache="
+                    + System.currentTimeMillis();
+            sendMessage(msg, url);
+        }
     }
 
     public void sendHtmlLink() {
-        String msg = chartBotUrl + "?userId=" + userId + "&type=html&uncache=" + System.currentTimeMillis();
-        sendMessage(msg, url);
+        if (chartBotUrl != null && !chartBotUrl.isEmpty()) {
+            String msg = chartBotUrl + "?userId=" + userId + "&type=html&uncache=" + System.currentTimeMillis();
+            sendMessage(msg, url);
+        }
     }
 
     public void exception(String message, Exception e) {
