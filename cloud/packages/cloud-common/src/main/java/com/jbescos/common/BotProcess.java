@@ -1,13 +1,5 @@
 package com.jbescos.common;
 
-import com.jbescos.exchange.Broker;
-import com.jbescos.exchange.CsvProfitRow;
-import com.jbescos.exchange.CsvTransactionRow;
-import com.jbescos.exchange.CsvTxSummaryRow;
-import com.jbescos.exchange.PublicAPI;
-import com.jbescos.exchange.PublicAPI.News;
-import com.jbescos.exchange.SecuredAPI;
-import com.jbescos.exchange.Utils;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
@@ -16,7 +8,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+
 import javax.ws.rs.client.Client;
+
+import com.jbescos.exchange.Broker;
+import com.jbescos.exchange.CsvProfitRow;
+import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.CsvTxSummaryRow;
+import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.SecuredAPI;
+import com.jbescos.exchange.Utils;
 
 public class BotProcess {
 
@@ -59,79 +60,89 @@ public class BotProcess {
                             baseUsdt.getBytes(), null);
                 }
             }
-            Map<String, Double> benefits = Utils.calculateBenefits(brokers);
-            LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
-            String body = CsvTxSummaryRow.toCsvBody(now, benefits);
-            bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX
-                    + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8),
-                    CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
-
+            calculateBenefits(now, brokers);
             // Synchronize transactions with the exchange
-            if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
-                // FIXME Use synchronized Utils.OPEN_POSSITIONS to update the other CSVs.
-                ResyncTx resync = synchronizeTransactions(securedApi, bucketStorage,
-                        userId + "/" + Utils.OPEN_POSSITIONS);
-                if (resync.needUpdate) {
-                    List<String> txFiles = Utils.monthsBack(now, 2, userId + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
-                    Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
-                    for (String txFile : txFiles) {
-                        List<CsvTransactionRow> transactions = synchronizeTransactions(securedApi, bucketStorage,
-                                txFile).transactions;
-                        transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
-                    }
-                    List<String> profitFiles = Utils.monthsBack(now, 2, userId + "/" + CsvProfitRow.PREFIX, ".csv");
-                    for (String profitFile : profitFiles) {
-                        List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(profitFile);
-                        boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows,
-                                cloudProperties.BROKER_COMMISSION);
-                        if (needUpdate) {
-                            StringBuilder data = new StringBuilder();
-                            profitRows.stream().forEach(profit -> {
-                                data.append(profit.toCsvLine());
-                            });
-                            bucketStorage.overwriteFile(profitFile, data.toString().getBytes(Utils.UTF8),
-                                    CsvProfitRow.HEADER.getBytes(Utils.UTF8));
-                        }
-                    }
-                }
-            }
-
+            synchronizeWithExchange(now, securedApi);
             // Report
-            boolean report = isReportTime(now);
-            if (report) {
-                if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-                    telegram.sendHtmlLink();
-                }
-                StringBuilder message = new StringBuilder();
-                List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(userId, 4);
-                message.append("opened-closed, profit(%)");
-                message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
-                message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
-                message.append("\n").append(Utils.profitSummary(now, 30, profitRows));
-                message.append("\n").append(Utils.profitSummary(now, 90, profitRows));
-                List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(userId);
-                message.append("\nOpen possitions: ").append(transactions.size());
-                if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-                    message.append("\nWallet:");
-                    for (Map<String, String> entry : rowsWallet) {
-                        String symbol = entry.get("SYMBOL");
-                        String usdt = entry.get(Utils.USDT);
-                        message.append("\n ").append(symbol).append(": ").append(Utils.format(Double.parseDouble(usdt), 2)).append("$");
-                    }
-                }
-                message.append("\nClosed positions:");
-                List<CsvProfitRow> dailyProfits = Utils.profitsDaysBack(now, 1, profitRows);
-                for (CsvProfitRow profit : dailyProfits) {
-                    message.append("\n ").append(Utils.fromDate(Utils.FORMAT_HOUR, profit.getSellDate())).append(",").append(profit.getSymbol()).append(",").append(profit.getProfitPercentage());
-                }
-                telegram.sendMessage(message.toString());
-            }
-
+            report(now, telegram, rowsWallet);
         }
         LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
+
+    private void calculateBenefits(Date now, List<Broker> brokers) throws FileNotFoundException, IOException {
+        Map<String, Double> benefits = Utils.calculateBenefits(brokers);
+        LOGGER.info(() -> cloudProperties.USER_ID + ": Summary of benefits " + benefits);
+        String body = CsvTxSummaryRow.toCsvBody(now, benefits);
+        bucketStorage.updateFile(cloudProperties.USER_ID + "/" + Utils.TX_SUMMARY_PREFIX
+                + Utils.fromDate(Utils.FORMAT, now) + ".csv", body.getBytes(Utils.UTF8),
+                CsvTxSummaryRow.CSV_HEADER_TX_SUMMARY_TOTAL);
+    }
     
-    private ResyncTx synchronizeTransactions(SecuredAPI securedApi, FileManager bucketStorage, String txFile)
+    private void synchronizeWithExchange(Date now, SecuredAPI securedApi) throws FileNotFoundException, IOException {
+        if (cloudProperties.USER_EXCHANGE.isSupportSyncTransaction()) {
+            // FIXME Use synchronized Utils.OPEN_POSSITIONS to update the other CSVs.
+            ResyncTx resync = synchronizeTransactions(securedApi, cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS);
+            if (resync.needUpdate) {
+                List<String> txFiles = Utils.monthsBack(now, 2, cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
+                Map<String, CsvTransactionRow> byOrderId = new HashMap<>();
+                for (String txFile : txFiles) {
+                    List<CsvTransactionRow> transactions = synchronizeTransactions(securedApi, txFile).transactions;
+                    transactions.stream().forEach(tx -> byOrderId.put(tx.getOrderId(), tx));
+                }
+                List<String> profitFiles = Utils.monthsBack(now, 2, cloudProperties.USER_ID + "/" + CsvProfitRow.PREFIX, ".csv");
+                for (String profitFile : profitFiles) {
+                    List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(profitFile);
+                    boolean needUpdate = Utils.resyncProfit(byOrderId, profitRows,
+                            cloudProperties.BROKER_COMMISSION);
+                    if (needUpdate) {
+                        StringBuilder data = new StringBuilder();
+                        profitRows.stream().forEach(profit -> {
+                            data.append(profit.toCsvLine());
+                        });
+                        bucketStorage.overwriteFile(profitFile, data.toString().getBytes(Utils.UTF8),
+                                CsvProfitRow.HEADER.getBytes(Utils.UTF8));
+                    }
+                }
+            }
+        }
+    }
+    
+    private void report(Date now, TelegramBot telegram, List<Map<String, String>> rowsWallet) throws IOException {
+        boolean report = isReportTime(now);
+        if (report) {
+            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                telegram.sendHtmlLink();
+            }
+            StringBuilder message = new StringBuilder();
+            List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(cloudProperties.USER_ID, 4);
+            message.append("ℹ️ Daily report ℹ️");
+            message.append("📈 Opened-Closed($), Profit(%)");
+            message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
+            message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
+            message.append("\n").append(Utils.profitSummary(now, 30, profitRows));
+            message.append("\n").append(Utils.profitSummary(now, 90, profitRows));
+            List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(cloudProperties.USER_ID);
+            message.append("\n⏲️ Pending open positions: ").append(transactions.size());
+            List<CsvProfitRow> dailyProfits = Utils.profitsDaysBack(now, 1, profitRows);
+            message.append("\n📜 Closed positions:");
+            message.append("\nHour, Symbol, Count, Profit(%)");
+            for (CsvProfitRow profit : dailyProfits) {
+                int count = profit.getBuyIds().split(Utils.ORDER_ID_SPLIT).length;
+                message.append("\n ").append(Utils.fromDate(Utils.FORMAT_HOUR, profit.getSellDate())).append(", ").append(profit.getSymbol()).append(", ").append(count).append(", ").append(profit.getProfitPercentage());
+            }
+            if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
+                message.append("\n💰 Wallet:");
+                for (Map<String, String> entry : rowsWallet) {
+                    String symbol = entry.get("SYMBOL");
+                    String usdt = entry.get(Utils.USDT);
+                    message.append("\n ").append(symbol).append(": ").append(Utils.format(Double.parseDouble(usdt), 2)).append("$");
+                }
+            }
+            telegram.sendMessage(message.toString());
+        }
+    }
+    
+    private ResyncTx synchronizeTransactions(SecuredAPI securedApi, String txFile)
             throws FileNotFoundException, IOException {
         List<CsvTransactionRow> transactions = bucketStorage.loadCsvTransactionRows(txFile);
         boolean needUpdate = Utils.resyncTransactions(securedApi, transactions);
