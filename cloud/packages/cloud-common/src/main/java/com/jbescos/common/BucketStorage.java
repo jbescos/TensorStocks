@@ -226,7 +226,6 @@ public class BucketStorage implements FileManager {
             for (int i = lines.length - 1; i >=0; i--) {
                 if (i != 0) {
                     String line = lines[i];
-                    System.out.println("Line: " + line);
                     CsvWalletRow row = CsvWalletRow.fromCsvLine(line);
                     if (rows.putIfAbsent(row.getSymbol(), row.getSymbolValue()) != null) {
                         // We have all the last updated records

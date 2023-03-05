@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvTransactionRow;
@@ -13,6 +14,7 @@ import com.jbescos.exchange.Utils;
 
 public class SecuredTestAPI implements SecuredAPI {
     
+    private static final Logger LOGGER = Logger.getLogger(SecuredTestAPI.class.getName());
     private static final String INITIAL_USDT = "10000";
     private final CloudProperties cloudProperties;
     private final FileManager storage;
@@ -36,8 +38,10 @@ public class SecuredTestAPI implements SecuredAPI {
         if (wallet == null) {
             wallet = new LinkedHashMap<>();
             wallet.put(Utils.USDT, INITIAL_USDT);
-            wallet.put(Utils.TOTAL_USDT, INITIAL_USDT);
+        } else {
+            wallet.remove(Utils.TOTAL_USDT);
         }
+        LOGGER.info("Test wallet with: " + wallet);
         return wallet;
     }
 
