@@ -221,19 +221,20 @@ public class BucketStorage implements FileManager {
     public Map<String, String> loadWallet(String walletFile) {
         String data = getRaw(walletFile);
         if (data != null) {
-            data = new StringBuilder(data).reverse().toString();
-            try (Scanner scanner = new Scanner(data)) {
-                Map<String, String> rows = new LinkedHashMap<>();
-                while (scanner.hasNextLine()) {
-                  String line = scanner.nextLine();
-                  CsvWalletRow row = CsvWalletRow.fromCsvLine(line);
-                  if (rows.putIfAbsent(row.getSymbol(), row.getSymbolValue()) != null) {
-                      // We have all the last updated records
-                      break;
-                  }
+            Map<String, String> rows = new LinkedHashMap<>();
+            String lines[] = data.split("\\r?\\n");
+            for (int i = lines.length - 1; i >=0; i--) {
+                if (i != 0) {
+                    String line = lines[i];
+                    System.out.println("Line: " + line);
+                    CsvWalletRow row = CsvWalletRow.fromCsvLine(line);
+                    if (rows.putIfAbsent(row.getSymbol(), row.getSymbolValue()) != null) {
+                        // We have all the last updated records
+                        break;
+                    }
                 }
-                return rows;
             }
+            return rows;
         } else {
             return null;
         }

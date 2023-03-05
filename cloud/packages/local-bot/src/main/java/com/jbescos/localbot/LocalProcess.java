@@ -16,6 +16,7 @@ import javax.ws.rs.client.Client;
 
 import com.jbescos.common.BotProcess;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.FileStorage;
 import com.jbescos.common.NewsUtils;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.CsvRow;

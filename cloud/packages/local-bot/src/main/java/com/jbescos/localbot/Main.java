@@ -11,6 +11,8 @@ import java.util.logging.Logger;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
+import com.jbescos.common.FileStorage;
+
 public class Main {
 
     private static final Logger LOGGER;
