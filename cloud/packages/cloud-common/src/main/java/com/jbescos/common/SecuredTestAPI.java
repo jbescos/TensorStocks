@@ -30,6 +30,7 @@ public class SecuredTestAPI implements SecuredAPI {
         Map<String, String> wallet = null;
         for (int i = walletFiles.size() - 1; i >= 0; i--) {
             String walletFile = walletFiles.get(i);
+            // FIXME Does not work in cloud
             wallet = storage.loadWallet(walletFile);
             if (wallet != null) {
                 break;

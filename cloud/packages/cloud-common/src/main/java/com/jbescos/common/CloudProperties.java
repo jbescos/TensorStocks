@@ -411,7 +411,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
                 return publicApi.priceCoingeckoTopSimple(5, "ethereum");
             }
         },
-        TEST_KUCOIN("/kucoin/", true, false) {
+        TEST_KUCOIN("/kucoin/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
@@ -423,7 +423,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
                 return publicApi.priceKucoin();
             }
         },
-        TEST_BINANCE("/binance/", true, false) {
+        TEST_BINANCE("/binance/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
                     throws KeyException, IOException, NoSuchAlgorithmException {
