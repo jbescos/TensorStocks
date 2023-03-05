@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 
 import com.jbescos.common.CloudProperties;
@@ -26,6 +27,7 @@ import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
@@ -246,6 +248,23 @@ public class FileStorage implements FileManager {
 
     @Override
     public Map<String, String> loadWallet(String walletFile) {
-        throw new UnsupportedOperationException("Not Implemented");
+        String data = getRaw(walletFile);
+        if (data != null) {
+            data = new StringBuilder(data).reverse().toString();
+            try (Scanner scanner = new Scanner(data)) {
+                Map<String, String> rows = new LinkedHashMap<>();
+                while (scanner.hasNextLine()) {
+                  String line = scanner.nextLine();
+                  CsvWalletRow row = CsvWalletRow.fromCsvLine(line);
+                  if (rows.putIfAbsent(row.getSymbol(), row.getSymbolValue()) != null) {
+                      // We have all the last updated records
+                      break;
+                  }
+                }
+                return rows;
+            }
+        } else {
+            return null;
+        }
     }
 }
