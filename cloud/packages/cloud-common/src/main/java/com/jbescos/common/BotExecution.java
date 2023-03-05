@@ -41,6 +41,10 @@ public class BotExecution {
         this.wallet = connectAPI.wallet();
     }
 
+    public Map<String, Double> wallet() {
+        return wallet;
+    }
+    
     public void execute(List<Broker> brokers) throws IOException {
         int purchases = 0;
         Set<String> openSymbolPositions = openPositionSymbols(brokers);

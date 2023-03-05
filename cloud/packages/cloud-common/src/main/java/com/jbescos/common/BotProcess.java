@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 
@@ -15,7 +16,6 @@ import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
-import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredAPI;
@@ -47,10 +47,14 @@ public class BotProcess {
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
             BotExecution bot = BotExecution.production(cloudProperties, securedApi, bucketStorage, telegram);
             bot.execute(brokers);
-
             // Update wallet in case the exchange supports it
             if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
-                Map<String, String> wallet = securedApi.wallet();
+                Map<String, String> wallet = null;
+                if (cloudProperties.USER_EXCHANGE.name().startsWith("TEST_")) {
+                    wallet = bot.wallet().entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> Utils.format(e.getValue())));
+                } else {
+                    wallet = securedApi.wallet();
+                }
                 Map<String, Double> prices = Utils.simplePrices(cloudProperties.USER_EXCHANGE.price(publicAPI));
                 rowsWallet = Utils.userUsdt(now, prices, wallet);
                 byte[] walletContent = CsvUtil.toString(rowsWallet).toString().getBytes(Utils.UTF8);
