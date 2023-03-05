@@ -72,4 +72,15 @@ public class CsvUtilTest {
         String result = Utils.profitSummary(Utils.fromString(Utils.FORMAT_SECOND, "2021-05-05 00:00:00"), 30, profits);
         assertEquals("Last 30 days: 4.1$-8.1$, 4$(97.56%) ✅", result);
     }
+    
+    @Test
+    public void wallet() throws IOException {
+        Map<String, String> wallet = CsvUtil.wallet("DATE,SYMBOL,SYMBOL_VALUE,USDT\r\n"
+                + "2023-03-05 13:00:19,USDT,10000,10000\r\n"
+                + "2023-03-05 13:00:19,TOTAL_USDT,10000,10000\r\n"
+                + "2023-03-05 13:00:19,USDT,888,888\r\n"
+                + "2023-03-05 13:00:19,TOTAL_USDT,888,888\r\n");
+        assertEquals("888", wallet.get(Utils.USDT));
+        assertEquals("888", wallet.get(Utils.TOTAL_USDT));
+    }
 }

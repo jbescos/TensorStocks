@@ -35,13 +35,14 @@ public class SecuredTestAPI implements SecuredAPI {
                 break;
             }
         }
-        if (wallet == null) {
+        if (wallet == null || wallet.isEmpty()) {
+            LOGGER.warning("No wallet found in " + walletFiles);
             wallet = new LinkedHashMap<>();
             wallet.put(Utils.USDT, INITIAL_USDT);
         } else {
             wallet.remove(Utils.TOTAL_USDT);
         }
-        LOGGER.info("Test wallet with: " + wallet);
+        LOGGER.info("Test wallet: " + wallet);
         return wallet;
     }
 

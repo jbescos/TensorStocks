@@ -48,6 +48,8 @@ public class UtilsTest {
         Date from = Utils.fromString(Utils.FORMAT, "2020-01-02");
         List<String> days = Utils.monthsBack(from, 4, "", ".csv");
         assertEquals(Arrays.asList("2019-10.csv", "2019-11.csv", "2019-12.csv", "2020-01.csv"), days);
+        days = Utils.monthsBack(from, 2, "user/" + Utils.WALLET_PREFIX, ".csv");
+        assertEquals(Arrays.asList("user/" + Utils.WALLET_PREFIX + "2019-12.csv", "user/" + Utils.WALLET_PREFIX + "2020-01.csv"), days);
     }
 
     @Test

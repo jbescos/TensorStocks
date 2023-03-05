@@ -220,23 +220,7 @@ public class BucketStorage implements FileManager {
     @Override
     public Map<String, String> loadWallet(String walletFile) {
         String data = getRaw(walletFile);
-        if (data != null) {
-            Map<String, String> rows = new LinkedHashMap<>();
-            String lines[] = data.split("\\r?\\n");
-            for (int i = lines.length - 1; i >=0; i--) {
-                if (i != 0) {
-                    String line = lines[i];
-                    CsvWalletRow row = CsvWalletRow.fromCsvLine(line);
-                    if (rows.putIfAbsent(row.getSymbol(), row.getSymbolValue()) != null) {
-                        // We have all the last updated records
-                        break;
-                    }
-                }
-            }
-            return rows;
-        } else {
-            return null;
-        }
+        return CsvUtil.wallet(data);
     }
 
 }
