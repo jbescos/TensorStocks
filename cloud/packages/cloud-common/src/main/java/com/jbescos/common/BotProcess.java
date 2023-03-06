@@ -124,7 +124,7 @@ public class BotProcess {
             StringBuilder message = new StringBuilder();
             List<CsvProfitRow> profitRows = bucketStorage.loadCsvProfitRows(cloudProperties.USER_ID, 4);
             message.append("ℹ️ Daily report ℹ️");
-            message.append("📈 Opened-Closed($), Profit(%)");
+            message.append("\n📈 Opened-Closed($), Profit(%)");
             message.append("\n").append(Utils.profitSummary(now, 1, profitRows));
             message.append("\n").append(Utils.profitSummary(now, 7, profitRows));
             message.append("\n").append(Utils.profitSummary(now, 30, profitRows));
