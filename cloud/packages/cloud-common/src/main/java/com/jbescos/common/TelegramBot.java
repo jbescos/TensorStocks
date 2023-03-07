@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +16,12 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
+import org.glassfish.jersey.logging.LoggingFeature;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.MultiPart;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+
 import com.jbescos.exchange.Utils;
 
 //https://telegram.rest/docs
@@ -27,16 +34,20 @@ public class TelegramBot implements AutoCloseable {
     private final String userId;
     private final String url;
     private final String exceptionUrl;
+    private final String imageUrl;
     private final String chatId;
     private final String chartBotUrl;
     private final Map<String, List<String>> bufferedMessages = new HashMap<>();
+    private final Map<String, List<byte[]>> bufferedImages = new HashMap<>();
 
     public TelegramBot(TelegramInfo telegramInfo, Client client) {
         this.userId = telegramInfo.getUserId();
         if (!Utils.EMPTY_STR.equals(telegramInfo.getToken())) {
             this.url = BASE_URL + telegramInfo.getToken() + "/sendmessage";
+            this.imageUrl = BASE_URL + telegramInfo.getToken() + "/sendPhoto";
         } else {
             this.url = null;
+            this.imageUrl = null;
         }
         if (!Utils.EMPTY_STR.equals(telegramInfo.getExceptionToken())) {
             this.exceptionUrl = BASE_URL + telegramInfo.getExceptionToken() + "/sendmessage";
@@ -56,6 +67,17 @@ public class TelegramBot implements AutoCloseable {
 
     public void sendMessage(String text) {
         sendMessage(text, url);
+    }
+    
+    public void sendImage(byte[] image) {
+        if (imageUrl != null) {
+            List<byte[]> messages = bufferedImages.get(url);
+            if (messages == null) {
+                messages = new ArrayList<>();
+                bufferedImages.put(url, messages);
+            }
+            messages.add(image);
+        }
     }
 
     public void sendMessage(String text, String url) {
@@ -108,9 +130,10 @@ public class TelegramBot implements AutoCloseable {
         for (Entry<String, List<String>> entry : bufferedMessages.entrySet()) {
             String url = entry.getKey();
             StringBuilder text = new StringBuilder();
-            Map<String, String> message = new HashMap<>();
+            Map<String, Object> message = new HashMap<>();
             message.put("chat_id", chatId);
             message.put("method", "sendmessage");
+            message.put("disable_web_page_preview", true);
             if (exceptionUrl.equals(url)) {
                 if (userId != null) {
                     text.insert(0, userId + "\n");
@@ -135,6 +158,26 @@ public class TelegramBot implements AutoCloseable {
                 try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
                         .header("charset", StandardCharsets.UTF_8.name())
                         .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
+                    if (response.getStatus() != 200) {
+                        LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from "
+                                + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE,
+                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
+                }
+            }
+        }
+        for (Entry<String, List<byte[]>> entry : bufferedImages.entrySet()) {
+            Map<String, Object> message = new HashMap<>();
+            WebTarget webTarget = client.target(imageUrl).register(MultiPartFeature.class).register(new LoggingFeature(LOGGER));
+            for (byte[] img : entry.getValue()) {
+                MultiPart multiPart = new MultiPart();
+                multiPart.bodyPart(new FormDataBodyPart("chat_id", chatId));
+                multiPart.bodyPart(new StreamDataBodyPart("photo", new ByteArrayInputStream(img)));
+                // FIXME Does not work
+                try (Response response = webTarget.request(MediaType.MULTIPART_FORM_DATA)
+                        .post(Entity.entity(multiPart, multiPart.getMediaType()))) {
                     if (response.getStatus() != 200) {
                         LOGGER.warning("SecuredMizarAPI> HTTP response code " + response.getStatus() + " from "
                                 + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));

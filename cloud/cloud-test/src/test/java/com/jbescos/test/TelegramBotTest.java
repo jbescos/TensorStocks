@@ -1,5 +1,8 @@
 package com.jbescos.test;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import javax.ws.rs.client.ClientBuilder;
 
 import org.junit.Ignore;
@@ -30,6 +33,17 @@ public class TelegramBotTest {
         try (TelegramBot bot = new TelegramBot(properties, ClientBuilder.newClient())) {
             bot.exception("test", new Exception("exception"));
             bot.exception("test", new Exception(HTML_PAGE));
+        }
+    }
+
+    @Test
+    @Ignore
+    public void image() throws IOException {
+        try (TelegramBot bot = new TelegramBot(properties, ClientBuilder.newClient())) {
+            try (InputStream input = TelegramBotTest.class.getResourceAsStream("/image/image.jpg")) {
+                bot.sendImage(input.readAllBytes());
+            }
+            
         }
     }
 }
