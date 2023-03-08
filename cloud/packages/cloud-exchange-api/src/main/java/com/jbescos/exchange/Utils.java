@@ -569,7 +569,7 @@ public class Utils {
 
     }
 
-    public static List<CsvTransactionRow> openPossitions(List<Broker> brokers,
+    public static List<CsvTransactionRow> openPossitions(Collection<Broker> brokers,
             List<CsvTransactionRow> newTransactions) {
         Map<String, List<CsvTransactionRow>> previousTx = brokers.stream()
                 .flatMap(broker -> broker.getPreviousTransactions().getPreviousBuys().stream())

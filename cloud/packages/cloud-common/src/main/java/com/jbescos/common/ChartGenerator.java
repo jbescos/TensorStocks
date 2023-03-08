@@ -1,4 +1,4 @@
-package com.jbescos.cloudchart;
+package com.jbescos.common;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -21,8 +21,6 @@ import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.Storage.BlobListOption;
 import com.google.cloud.storage.StorageOptions;
-import com.jbescos.common.CloudProperties;
-import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.CsvAccountRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
@@ -58,14 +56,14 @@ public class ChartGenerator {
         chart.save(output, "Crypto currencies", "", "USDT");
     }
 
-    static interface IChartCsv {
+    public static interface IChartCsv {
 
         List<IRow> read(int daysBack) throws IOException;
 
         IChart<IRow> chart(int daysBack);
     }
 
-    static class ProfitableBarChartCsv implements IChartCsv {
+    public static class ProfitableBarChartCsv implements IChartCsv {
 
         private final Page<Blob> transactionBlobs;
         private final List<String> symbols;
@@ -132,7 +130,7 @@ public class ChartGenerator {
 
     }
 
-    static class AccountChartCsv implements IChartCsv {
+    public static class AccountChartCsv implements IChartCsv {
 
         private final Page<Blob> walletBlobs;
         private final CloudProperties cloudProperties;
@@ -178,7 +176,7 @@ public class ChartGenerator {
 
     }
 
-    static class TxSummaryChartCsv implements IChartCsv {
+    public static class TxSummaryChartCsv implements IChartCsv {
 
         private final Page<Blob> txSummaryBlobs;
         private final CloudProperties cloudProperties;
@@ -251,7 +249,7 @@ public class ChartGenerator {
 
     }
 
-    static class SymbolChartCsv implements IChartCsv {
+    public static class SymbolChartCsv implements IChartCsv {
 
         private final List<String> symbols;
         private final Page<Blob> dataBlobs;

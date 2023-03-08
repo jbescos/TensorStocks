@@ -13,10 +13,10 @@ import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
-import com.jbescos.cloudchart.ChartGenerator;
-import com.jbescos.cloudchart.IChart;
-import com.jbescos.cloudchart.XYChart;
+import com.jbescos.common.ChartGenerator;
 import com.jbescos.common.CsvUtil;
+import com.jbescos.common.IChart;
+import com.jbescos.common.XYChart;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.IRow;
 import com.jbescos.exchange.Utils;

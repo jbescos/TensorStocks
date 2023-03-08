@@ -61,7 +61,7 @@ public class DefaultBrokerManager implements BrokerManager {
         }
         if (cloudProperties.PANIC_BROKER_ENABLE && !panicPeriod && summary.isHasTransactions()
                 && Utils.benefit(summary.getMinProfitable(), newest.getPrice()) < cloudProperties.BOT_PANIC_RATIO) {
-            return new PanicBroker(symbol, newest, summary, Action.SELL_PANIC);
+            return new PanicBroker(symbol, newest, summary, rows, Action.SELL_PANIC);
         } else {
             Double fixedBuy = cloudProperties.FIXED_BUY.get(symbol);
             if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuy != null) {

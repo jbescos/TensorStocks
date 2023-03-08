@@ -18,12 +18,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
-import com.jbescos.cloudchart.ChartGenerator;
-import com.jbescos.cloudchart.DateChart;
-import com.jbescos.cloudchart.IChart;
 import com.jbescos.common.BotExecution;
+import com.jbescos.common.ChartGenerator;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.DateChart;
 import com.jbescos.common.DefaultBrokerManager;
+import com.jbescos.common.IChart;
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;

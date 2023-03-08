@@ -602,5 +602,10 @@ public class UtilsTest {
         public void evaluate(double benefitsAvg) {
         }
 
+        @Override
+        public List<CsvRow> getValues() {
+            return null;
+        }
+
     }
 }

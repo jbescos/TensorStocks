@@ -1,5 +1,7 @@
 package com.jbescos.exchange;
 
+import java.util.List;
+
 public interface Broker {
 
     Action getAction();
@@ -13,6 +15,8 @@ public interface Broker {
     TransactionsSummary getPreviousTransactions();
 
     void evaluate(double avgBenefits);
+
+    List<CsvRow> getValues();
 
     public static enum Action {
         BUY {

@@ -177,4 +177,9 @@ public class CautelousBroker implements Broker {
         this.action = evaluate(newest.getPrice(), benefitsAvg);
     }
 
+    @Override
+    public List<CsvRow> getValues() {
+        return values;
+    }
+
 }

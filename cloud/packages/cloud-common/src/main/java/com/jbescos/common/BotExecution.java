@@ -1,7 +1,9 @@
 package com.jbescos.common;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,12 +15,14 @@ import java.util.UUID;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.FileManager;
+import com.jbescos.exchange.IRow;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
@@ -50,6 +54,7 @@ public class BotExecution {
         Set<String> openSymbolPositions = openPositionSymbols(brokers);
         this.benefits = Utils.calculateBenefits(brokers);
         double avg = benefits.get(Utils.BENEFITS_AVG);
+        Map<String, Broker> symbolBrokers = new HashMap<>();
         for (Broker stat : brokers) {
             stat.evaluate(avg);
             if (stat.getAction() == Action.BUY) {
@@ -73,8 +78,9 @@ public class BotExecution {
                     openSymbolPositions.remove(stat.getSymbol());
                 }
             }
+            symbolBrokers.put(stat.getSymbol(), stat);
         }
-        connectAPI.postActions(brokers, avg);
+        connectAPI.postActions(symbolBrokers, avg);
     }
 
     private Set<String> openPositionSymbols(List<Broker> stats) {
@@ -188,7 +194,7 @@ public class BotExecution {
 
         double minTransaction();
 
-        void postActions(List<Broker> brokers, double avg);
+        void postActions(Map<String, Broker> symbolBrokers, double avg);
     }
 
     private static class ConnectAPIImpl implements ConnectAPI {
@@ -258,7 +264,7 @@ public class BotExecution {
         }
 
         @Override
-        public void postActions(List<Broker> stats, double avg) {
+        public void postActions(Map<String, Broker> stats, double avg) {
             if (!transactions.isEmpty()) {
                 LOGGER.info(() -> cloudProperties.USER_ID + ": Persisting " + transactions.size() + " transactions");
                 Date now = transactions.get(0).getDate();
@@ -273,7 +279,7 @@ public class BotExecution {
                     byte[] head = Utils.TX_ROW_HEADER.getBytes(Utils.UTF8);
                     storage.updateFile(transactionsCsv, data.toString().getBytes(Utils.UTF8), head);
                     data.setLength(0);
-                    Utils.openPossitions(stats, transactions).stream().forEach(r -> data.append(r.toCsvLine()));
+                    Utils.openPossitions(stats.values(), transactions).stream().forEach(r -> data.append(r.toCsvLine()));
                     storage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.OPEN_POSSITIONS,
                             data.toString().getBytes(Utils.UTF8), head);
                 } catch (IOException e) {
@@ -283,16 +289,12 @@ public class BotExecution {
                 StringBuilder profitData = new StringBuilder();
                 transactions.stream().filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC)
                         .forEach(tx -> {
-                            for (Broker broker : stats) {
-                                if (tx.getSymbol().equals(broker.getSymbol())) {
-                                    CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION,
-                                            broker.getPreviousTransactions(), tx);
-                                    if (row != null) {
-                                        profitData.append(row.toCsvLine());
-                                        profits.add(row);
-                                    }
-                                    break;
-                                }
+                            Broker broker = stats.get(tx.getSymbol());
+                            CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION,
+                                    broker.getPreviousTransactions(), tx);
+                            if (row != null) {
+                                profitData.append(row.toCsvLine());
+                                profits.add(row);
                             }
                         });
                 if (profitData.length() > 0) {
@@ -315,6 +317,18 @@ public class BotExecution {
                     msgSender.sendMessage(row.toString());
                     if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                         msgSender.sendChartSymbolLink(row.getSymbol());
+                    }
+                    try {
+                        Broker broker = stats.get(row.getSymbol());
+                        List<CsvRow> values = broker.getValues();
+                        IChart<IRow> chart = new XYChart();
+                        ByteArrayOutputStream output = new ByteArrayOutputStream();
+                        ChartGenerator.writeChart(transactions, output, chart);
+                        ChartGenerator.writeChart(values, output, chart);
+                        ChartGenerator.save(output, chart);
+                        msgSender.sendImage(output.toByteArray());
+                    } catch (Exception e) {
+                        LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot generate chart of SELL", e);
                     }
                 });
             }
@@ -367,7 +381,7 @@ public class BotExecution {
             return minTransaction;
         }
 
-        private Map<String, Double> usdtSnappshot(List<Broker> stats) {
+        private Map<String, Double> usdtSnappshot(Collection<Broker> stats) {
             Map<String, Double> symbolSnapshot = new HashMap<>();
             double snapshot = wallet.get(Utils.USDT);
             if (snapshot >= minTransaction) {
@@ -389,9 +403,9 @@ public class BotExecution {
         }
 
         @Override
-        public void postActions(List<Broker> stats, double avg) {
-            Map<String, Double> symbolSnapshot = usdtSnappshot(stats);
-            CsvRow newest = stats.get(0).getNewest();
+        public void postActions(Map<String, Broker> stats, double avg) {
+            Map<String, Double> symbolSnapshot = usdtSnappshot(stats.values());
+            CsvRow newest = stats.values().iterator().next().getNewest();
             for (Entry<String, Double> entry : symbolSnapshot.entrySet()) {
                 CsvRow walletUsdt = new CsvRow(newest.getDate(), entry.getKey(), entry.getValue(), null, null, 50, 50.0,
                         "");
@@ -407,21 +421,17 @@ public class BotExecution {
                     storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8),
                             Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
                     data.setLength(0);
-                    Utils.openPossitions(stats, newTransactions).stream().forEach(r -> data.append(r.toCsvLine()));
+                    Utils.openPossitions(stats.values(), newTransactions).stream().forEach(r -> data.append(r.toCsvLine()));
                     storage.overwriteFile("open_possitions.csv", data.toString().getBytes(Utils.UTF8),
                             Utils.TX_ROW_HEADER.getBytes(Utils.UTF8));
                     StringBuilder profitData = new StringBuilder();
                     newTransactions.stream()
                             .filter(tx -> tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC)
                             .forEach(tx -> {
-                                for (Broker broker : stats) {
-                                    if (tx.getSymbol().equals(broker.getSymbol())) {
-                                        CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION,
-                                                broker.getPreviousTransactions(), tx);
-                                        profitData.append(row.toCsvLine());
-                                        break;
-                                    }
-                                }
+                                Broker broker = stats.get(tx.getSymbol());
+                                CsvProfitRow row = CsvProfitRow.build(cloudProperties.BROKER_COMMISSION,
+                                        broker.getPreviousTransactions(), tx);
+                                profitData.append(row.toCsvLine());
                             });
                     if (profitData.length() > 0) {
                         storage.updateFile("profit.csv", profitData.toString().getBytes(Utils.UTF8),

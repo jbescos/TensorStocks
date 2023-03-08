@@ -28,10 +28,6 @@
 			<artifactId>cloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
-		<dependency>
-			<groupId>org.jfree</groupId>
-			<artifactId>jfreechart</artifactId>
-		</dependency>
 	</dependencies>
 
 </project>

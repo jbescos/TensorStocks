@@ -16,7 +16,7 @@ import javax.ws.rs.client.ClientBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.jbescos.cloudchart.CandleChart;
+import com.jbescos.common.CandleChart;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.exchange.FearGreedIndex;

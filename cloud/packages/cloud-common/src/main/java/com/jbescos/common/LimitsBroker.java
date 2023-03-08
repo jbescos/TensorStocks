@@ -90,4 +90,9 @@ public class LimitsBroker implements Broker {
             action = Action.NOTHING;
         }
     }
+
+    @Override
+    public List<CsvRow> getValues() {
+        return values;
+    }
 }

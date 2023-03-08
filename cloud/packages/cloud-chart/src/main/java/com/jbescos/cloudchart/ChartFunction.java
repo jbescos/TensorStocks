@@ -7,12 +7,13 @@ import java.util.stream.Collectors;
 import com.google.cloud.functions.HttpFunction;
 import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
-import com.jbescos.cloudchart.ChartGenerator.AccountChartCsv;
-import com.jbescos.cloudchart.ChartGenerator.IChartCsv;
-import com.jbescos.cloudchart.ChartGenerator.ProfitableBarChartCsv;
-import com.jbescos.cloudchart.ChartGenerator.SymbolChartCsv;
-import com.jbescos.cloudchart.ChartGenerator.TxSummaryChartCsv;
 import com.jbescos.common.BucketStorage;
+import com.jbescos.common.ChartGenerator;
+import com.jbescos.common.ChartGenerator.AccountChartCsv;
+import com.jbescos.common.ChartGenerator.IChartCsv;
+import com.jbescos.common.ChartGenerator.ProfitableBarChartCsv;
+import com.jbescos.common.ChartGenerator.SymbolChartCsv;
+import com.jbescos.common.ChartGenerator.TxSummaryChartCsv;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.exchange.Utils;
@@ -38,7 +39,7 @@ public class ChartFunction implements HttpFunction {
     @Override
     public void service(HttpRequest request, HttpResponse response) throws Exception {
         String userId = Utils.getParam(USER_ID_PARAM, null, request.getQueryParameters());
-        if (userId == null || userId.isEmpty()) {
+        if (userId == null || userId.isEmpty()) {       
             response.getWriter().write("Parameter userId is mandatory");
             response.setStatusCode(200);
             response.setContentType("text/plain");

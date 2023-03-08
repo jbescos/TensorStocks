@@ -1,4 +1,4 @@
-package com.jbescos.cloudchart;
+package com.jbescos.common;
 
 import java.awt.Color;
 import java.io.IOException;

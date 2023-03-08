@@ -1,5 +1,6 @@
 package com.jbescos.common;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import com.jbescos.exchange.Broker;
@@ -13,13 +14,15 @@ public class PanicBroker implements Broker {
     private final CsvRow newest;
     private final TransactionsSummary summary;
     private final Action specified;
+    private final List<CsvRow> values;
     private Action action;
 
-    public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, Action specified) {
+    public PanicBroker(String symbol, CsvRow newest, TransactionsSummary summary, List<CsvRow> values, Action specified) {
         this.symbol = symbol;
         this.newest = newest;
         this.summary = summary;
         this.specified = specified;
+        this.values = values;
     }
 
     @Override
@@ -54,6 +57,11 @@ public class PanicBroker implements Broker {
         } else {
             this.action = specified;
         }
+    }
+
+    @Override
+    public List<CsvRow> getValues() {
+        return values;
     }
 
 }
