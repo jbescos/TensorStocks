@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 
 import org.glassfish.jersey.logging.LoggingFeature;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
@@ -165,22 +166,20 @@ public class TelegramBot implements AutoCloseable {
             }
         }
         for (Entry<String, List<byte[]>> entry : bufferedImages.entrySet()) {
-            Map<String, Object> message = new HashMap<>();
             WebTarget webTarget = client.target(imageUrl).register(MultiPartFeature.class).register(new LoggingFeature(LOGGER));
             for (byte[] img : entry.getValue()) {
-                MultiPart multiPart = new MultiPart();
-                multiPart.bodyPart(new FormDataBodyPart("chat_id", entry.getKey()));
-                multiPart.bodyPart(new StreamDataBodyPart("photo", new ByteArrayInputStream(img)));
-                // FIXME Does not work
+                MultiPart multiPart = new FormDataMultiPart()
+                        .field("chat_id", entry.getKey())
+                        .bodyPart(new StreamDataBodyPart("photo", new ByteArrayInputStream(img)));
                 try (Response response = webTarget.request(MediaType.MULTIPART_FORM_DATA)
                         .post(Entity.entity(multiPart, multiPart.getMediaType()))) {
                     if (response.getStatus() != 200) {
                         LOGGER.warning("HTTP response code " + response.getStatus() + " from "
-                                + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
+                                + webTarget.toString() + " with " + multiPart + ": " + response.readEntity(String.class));
                     }
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE,
-                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
+                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + multiPart, e);
                 }
             }
         }
