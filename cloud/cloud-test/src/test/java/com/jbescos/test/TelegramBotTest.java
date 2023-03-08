@@ -18,6 +18,14 @@ public class TelegramBotTest {
 
     @Test
     @Ignore
+    public void sendMessageSimple() {
+        try (TelegramBot bot = new TelegramBot(properties, ClientBuilder.newClient())) {
+            bot.sendMessage("This is a test");
+        }
+    }
+    
+    @Test
+    @Ignore
     public void sendMessage() {
         try (TelegramBot bot = new TelegramBot(properties, ClientBuilder.newClient())) {
             bot.sendMessage("XSRUSDT SELL 2022-05-15 07:30:26\n" + "First purchase: 2022-05-11 23:30:30\n"
