@@ -318,18 +318,18 @@ public class BotExecution {
                     if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                         msgSender.sendChartSymbolLink(row.getSymbol());
                     }
-                    try {
-                        Broker broker = stats.get(row.getSymbol());
-                        List<CsvRow> values = broker.getValues();
-                        IChart<IRow> chart = new XYChart();
-                        ByteArrayOutputStream output = new ByteArrayOutputStream();
-                        ChartGenerator.writeChart(transactions, output, chart);
-                        ChartGenerator.writeChart(values, output, chart);
-                        ChartGenerator.save(output, chart);
-                        msgSender.sendImage(output.toByteArray());
-                    } catch (Exception e) {
-                        LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot generate chart of SELL", e);
-                    }
+//                    try {
+//                        Broker broker = stats.get(row.getSymbol());
+//                        List<CsvRow> values = broker.getValues();
+//                        IChart<IRow> chart = new XYChart();
+//                        ByteArrayOutputStream output = new ByteArrayOutputStream();
+//                        ChartGenerator.writeChart(transactions, output, chart);
+//                        ChartGenerator.writeChart(values, output, chart);
+//                        ChartGenerator.save(output, chart);
+//                        msgSender.sendImage(output.toByteArray());
+//                    } catch (Exception e) {
+//                        LOGGER.log(Level.SEVERE, cloudProperties.USER_ID + ": Cannot generate chart of SELL", e);
+//                    }
                 });
             }
         }

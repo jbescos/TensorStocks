@@ -38,7 +38,6 @@ public class BotProcess {
     public void execute() throws Exception {
         long millis = System.currentTimeMillis();
         Date now = new Date(millis);
-        String userId = cloudProperties.USER_ID;
         PublicAPI publicAPI = new PublicAPI(client);
         BrokerManager brokerManager = new DefaultBrokerManager(cloudProperties, bucketStorage);
         SecuredAPI securedApi = cloudProperties.USER_EXCHANGE.create(cloudProperties, client, bucketStorage);
@@ -74,7 +73,7 @@ public class BotProcess {
             // Report
             report(now, telegram, rowsWallet);
         }
-        LOGGER.info(userId + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
+        LOGGER.info(cloudProperties.USER_ID + ": function took " + ((System.currentTimeMillis() - millis) / 1000) + " seconds");
     }
 
     private void calculateBenefits(Date now, List<Broker> brokers) throws FileNotFoundException, IOException {
