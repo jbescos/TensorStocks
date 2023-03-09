@@ -40,6 +40,7 @@ public class TelegramBot implements AutoCloseable {
     // Per chat it
     private final Map<String, List<String>> bufferedMessages = new HashMap<>();
     private final Map<String, List<byte[]>> bufferedImages = new HashMap<>();
+    private final Map<String, List<String>> bufferedImageUrls = new HashMap<>();
 
     public TelegramBot(TelegramInfo telegramInfo, Client client) {
         this.userId = telegramInfo.getUserId();
@@ -74,6 +75,17 @@ public class TelegramBot implements AutoCloseable {
                 bufferedImages.put(chatId, messages);
             }
             messages.add(image);
+        }
+    }
+
+    public void sendImage(String imageUrl) {
+        if (imageUrl != null) {
+            List<String> messages = bufferedImageUrls.get(chatId);
+            if (messages == null) {
+                messages = new ArrayList<>();
+                bufferedImageUrls.put(chatId, messages);
+            }
+            messages.add(imageUrl);
         }
     }
 
@@ -124,6 +136,57 @@ public class TelegramBot implements AutoCloseable {
     }
 
     public void flush() {
+        flushMessages();
+        flushImageUrls();
+        flushImageBytes();
+    }
+
+    private void flushImageUrls() {
+        for (Entry<String, List<String>> entry : bufferedImageUrls.entrySet()) {
+            WebTarget webTarget = client.target(imageUrl);
+            for (String img : entry.getValue()) {
+                Map<String, Object> message = new HashMap<>();
+                message.put("chat_id", entry.getKey());
+                message.put("caption", "Chart generated for " + userId);
+                message.put("photo", img);
+                try (Response response = webTarget.request(MediaType.APPLICATION_JSON)
+                        .header("charset", StandardCharsets.UTF_8.name())
+                        .post(Entity.entity(message, MediaType.APPLICATION_JSON))) {
+                    if (response.getStatus() != 200) {
+                        LOGGER.warning("HTTP response code " + response.getStatus() + " from "
+                                + webTarget.toString() + " with " + message + ": " + response.readEntity(String.class));
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE,
+                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + message, e);
+                }
+            }
+        }
+    }
+    
+    private void flushImageBytes() {
+        for (Entry<String, List<byte[]>> entry : bufferedImages.entrySet()) {
+            WebTarget webTarget = client.target(imageUrl).register(MultiPartFeature.class);
+            for (byte[] img : entry.getValue()) {
+                MultiPart multiPart = new FormDataMultiPart()
+                        .field("chat_id", entry.getKey())
+                        .field("caption", "Chart generated for " + userId)
+                        .bodyPart(new StreamDataBodyPart("photo", new ByteArrayInputStream(img)));
+                try (Response response = webTarget.request(MediaType.MULTIPART_FORM_DATA)
+                        .post(Entity.entity(multiPart, multiPart.getMediaType()))) {
+                    if (response.getStatus() != 200) {
+                        LOGGER.warning("HTTP response code " + response.getStatus() + " from "
+                                + webTarget.toString() + " with " + multiPart + ": " + response.readEntity(String.class));
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.SEVERE,
+                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + multiPart, e);
+                }
+            }
+        }
+    }
+    
+    private void flushMessages() {
         for (Entry<String, List<String>> entry : bufferedMessages.entrySet()) {
             StringBuilder text = new StringBuilder();
             Map<String, Object> message = new HashMap<>();
@@ -164,26 +227,8 @@ public class TelegramBot implements AutoCloseable {
                 }
             }
         }
-        for (Entry<String, List<byte[]>> entry : bufferedImages.entrySet()) {
-            WebTarget webTarget = client.target(imageUrl).register(MultiPartFeature.class).register(new LoggingFeature(LOGGER));
-            for (byte[] img : entry.getValue()) {
-                MultiPart multiPart = new FormDataMultiPart()
-                        .field("chat_id", entry.getKey())
-                        .bodyPart(new StreamDataBodyPart("photo", new ByteArrayInputStream(img)));
-                try (Response response = webTarget.request(MediaType.MULTIPART_FORM_DATA)
-                        .post(Entity.entity(multiPart, multiPart.getMediaType()))) {
-                    if (response.getStatus() != 200) {
-                        LOGGER.warning("HTTP response code " + response.getStatus() + " from "
-                                + webTarget.toString() + " with " + multiPart + ": " + response.readEntity(String.class));
-                    }
-                } catch (Exception e) {
-                    LOGGER.log(Level.SEVERE,
-                            "Cannot send to telegram bot from " + webTarget.toString() + " with " + multiPart, e);
-                }
-            }
-        }
     }
-
+    
     @Override
     public void close() {
         flush();

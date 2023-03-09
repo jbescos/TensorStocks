@@ -54,4 +54,12 @@ public class TelegramBotTest {
             
         }
     }
+
+    @Test
+    @Ignore
+    public void imageUrl() throws IOException {
+        try (TelegramBot bot = new TelegramBot(properties, ClientBuilder.newClient())) {
+            bot.sendImage("https://alternative.me/crypto/fear-and-greed-index.png"); 
+        }
+    }
 }
