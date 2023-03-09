@@ -22,6 +22,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -767,5 +768,23 @@ public class Utils {
             ret.add(bigString.substring(start, Math.min(bigString.length(), start + size)));
         }
         return ret;
+    }
+    
+    public static <T, R> List<T> lastModified(List<T> elements, Function<T, R> function) {
+        List<T> result = new ArrayList<>();
+        R field = null;
+        for (int i = elements.size() - 1; i >= 0; i--) {
+            T element = elements.get(i);
+            R field2 = function.apply(element);
+            if (field == null) {
+                field = field2;
+                result.add(element);
+            } else if (field.equals(field2)) {
+                result.add(element);
+            } else {
+                break;
+            }
+        }
+        return result;
     }
 }

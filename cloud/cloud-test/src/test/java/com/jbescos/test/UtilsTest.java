@@ -543,6 +543,14 @@ public class UtilsTest {
         assertEquals(Arrays.asList(), Utils.splitSize("", 5));
         assertEquals(Arrays.asList("a"), Utils.splitSize("a", 5));
     }
+    
+    @Test
+    public void lastModified() {
+        assertEquals(Arrays.asList("c","c","c"), Utils.lastModified(Arrays.asList("a","a","a","b","c","c","c"), s -> s));
+        assertEquals(Arrays.asList(), Utils.lastModified(Arrays.asList(), s -> s));
+        assertEquals(Arrays.asList("c"), Utils.lastModified(Arrays.asList("a","a","a","b","c"), s -> s));
+        assertEquals(Arrays.asList("c"), Utils.lastModified(Arrays.asList("c"), s -> s));
+    }
 
     private Map<String, String> createWalletRow(String symbol, String usdt) {
         Map<String, String> row = new HashMap<>();

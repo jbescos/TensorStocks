@@ -9,11 +9,7 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.ChartGenerator;
-import com.jbescos.common.ChartGenerator.AccountChartCsv;
 import com.jbescos.common.ChartGenerator.IChartCsv;
-import com.jbescos.common.ChartGenerator.ProfitableBarChartCsv;
-import com.jbescos.common.ChartGenerator.SymbolChartCsv;
-import com.jbescos.common.ChartGenerator.TxSummaryChartCsv;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.exchange.Utils;
@@ -31,10 +27,10 @@ public class ChartFunction implements HttpFunction {
             + " <img src=\"<CHART_URL>?userId=<USER_ID>&days=365&uncache=<TIMESTAMP>\" alt=\"image\"/>"
             + "<h2>Open positions</h2><OPEN_POSITIONS>" + "</body>" + "</html>";
     private static final String USER_ID_PARAM = "userId";
-    private static final String TYPE_LINE = "line";
-    private static final String TYPE_BAR = "bar";
-    private static final String TYPE_SUMMARY = "summary";
-    private static final String TYPE_HTML = "html";
+    static final String TYPE_LINE = "line";
+    static final String TYPE_BAR = "bar";
+    static final String TYPE_SUMMARY = "summary";
+    static final String TYPE_HTML = "html";
 
     @Override
     public void service(HttpRequest request, HttpResponse response) throws Exception {
@@ -46,6 +42,7 @@ public class ChartFunction implements HttpFunction {
         } else {
             StorageInfo storageInfo = StorageInfo.build();
             CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
+            ChartWrapper wrapper = new ChartWrapper(cloudProperties);
             String type = Utils.getParam("type", TYPE_LINE, request.getQueryParameters());
             if (TYPE_HTML.equals(type)) {
                 response.setContentType("text/html");
@@ -65,20 +62,7 @@ public class ChartFunction implements HttpFunction {
             } else {
                 String daysBack = Utils.getParam("days", "365", request.getQueryParameters());
                 List<String> symbols = request.getQueryParameters().get("symbol");
-                IChartCsv chart = null;
-                if (TYPE_LINE.equals(type)) {
-                    if (symbols == null || symbols.isEmpty()) {
-                        chart = new AccountChartCsv(cloudProperties);
-                    } else {
-                        chart = new SymbolChartCsv(cloudProperties, symbols);
-                    }
-                } else if (TYPE_BAR.equals(type)) {
-                    chart = new ProfitableBarChartCsv(cloudProperties, symbols);
-                } else if (TYPE_SUMMARY.equals(type)) {
-                    chart = new TxSummaryChartCsv(cloudProperties, symbols);
-                } else {
-                    throw new IllegalArgumentException("Unknown type=" + type);
-                }
+                IChartCsv chart = wrapper.chartPng(type, symbols);
                 String fileName = chart.getClass().getSimpleName() + "_" + Utils.today() + ".png";
                 response.setContentType("image/png");
                 response.appendHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
