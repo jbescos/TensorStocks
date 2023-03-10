@@ -3,6 +3,7 @@ package com.jbescos.cloudchart;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,6 +27,7 @@ import com.jbescos.exchange.Utils;
 public class ChartFileListener implements BackgroundFunction<GCSEvent> {
 
     private static final Logger LOGGER = Logger.getLogger(ChartFileListener.class.getName());
+    private static final long MINUTES_5 = 1000 * 60 * 5;
 
     // Finalize or create
     @Override
@@ -46,10 +48,12 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
                     List<CsvProfitRow> profit = bucketStorage.loadCsvProfitRows(event.name);
                     List<CsvProfitRow> recentProfits = Utils.lastModified(profit, r -> r.getSellDate());
                     ChartWrapper chartWrapper = new ChartWrapper(cloudProperties);
+                    Date now = new Date();
                     try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
                         for (CsvProfitRow recentProfit : recentProfits) {
+                            long difference = now.getTime() - recentProfit.getSellDate().getTime();
                             // Avoid to send image again when sometimes it is synced
-                            if (!recentProfit.isSync()) {
+                            if (difference < MINUTES_5 && !recentProfit.isSync()) {
                                 IChartCsv chart = chartWrapper.chartPng(ChartFunction.TYPE_LINE, Arrays.asList(recentProfit.getSymbol()));
                                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                                 ChartGenerator.writeLoadAndWriteChart(out, 7, chart);
