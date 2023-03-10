@@ -50,8 +50,10 @@ public class ChartFunction implements HttpFunction {
                 Set<String> symbols = bucketStorage.loadOpenTransactions(userId).stream().map(tx -> tx.getSymbol())
                         .collect(Collectors.toSet());
                 StringBuilder openTxLinks = new StringBuilder();
+                final String h3 = "<h3><SYMBOL></h3>";
                 final String img = "<p><img src=\"<CHART_URL>?userId=<USER_ID>&symbol=<SYMBOL>&days=7&uncache=<TIMESTAMP>\" alt=\"image\"/></p>";
                 symbols.stream().forEach(symbol -> {
+                    openTxLinks.append(h3.replaceFirst("<SYMBOL>", symbol));
                     openTxLinks.append(img.replaceFirst("<SYMBOL>", symbol));
                 });
                 String htmlPage = HTML_PAGE.replaceAll("<OPEN_POSITIONS>", openTxLinks.toString())
