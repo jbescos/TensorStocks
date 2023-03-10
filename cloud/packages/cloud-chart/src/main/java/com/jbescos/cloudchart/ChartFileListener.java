@@ -48,10 +48,13 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
                     ChartWrapper chartWrapper = new ChartWrapper(cloudProperties);
                     try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
                         for (CsvProfitRow recentProfit : recentProfits) {
-                            IChartCsv chart = chartWrapper.chartPng(ChartFunction.TYPE_LINE, Arrays.asList(recentProfit.getSymbol()));
-                            ByteArrayOutputStream out = new ByteArrayOutputStream();
-                            ChartGenerator.writeLoadAndWriteChart(out, 7, chart);
-                            telegram.sendImage(out.toByteArray());
+                            // Avoid to send image again when sometimes it is synced
+                            if (!recentProfit.isSync()) {
+                                IChartCsv chart = chartWrapper.chartPng(ChartFunction.TYPE_LINE, Arrays.asList(recentProfit.getSymbol()));
+                                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                                ChartGenerator.writeLoadAndWriteChart(out, 7, chart);
+                                telegram.sendImage(out.toByteArray());
+                            }
                         }
                     }
                     client.close();
