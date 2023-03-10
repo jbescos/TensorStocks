@@ -21,7 +21,6 @@ import com.jbescos.common.CloudProperties;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
 import com.jbescos.exchange.CsvProfitRow;
-import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudchart.ChartFileListener
 public class ChartFileListener implements BackgroundFunction<GCSEvent> {
@@ -46,11 +45,11 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
                     CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
                     BucketStorage bucketStorage = new BucketStorage(storageInfo);
                     List<CsvProfitRow> profit = bucketStorage.loadCsvProfitRows(event.name);
-                    List<CsvProfitRow> recentProfits = Utils.lastModified(profit, r -> r.getSellDate());
                     ChartWrapper chartWrapper = new ChartWrapper(cloudProperties);
                     Date now = new Date();
                     try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
-                        for (CsvProfitRow recentProfit : recentProfits) {
+                        for (int i = profit.size() - 1; i >=0; i--) {
+                            CsvProfitRow recentProfit = profit.get(i);
                             long difference = now.getTime() - recentProfit.getSellDate().getTime();
                             // Avoid to send image again when sometimes it is synced
                             if (difference < MINUTES_5 && !recentProfit.isSync()) {
@@ -58,6 +57,8 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
                                 ByteArrayOutputStream out = new ByteArrayOutputStream();
                                 ChartGenerator.writeLoadAndWriteChart(out, 7, chart);
                                 telegram.sendImage(out.toByteArray());
+                            } else {
+                                break;
                             }
                         }
                     }
