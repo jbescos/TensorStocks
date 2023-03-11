@@ -166,7 +166,7 @@ public class BotProcess {
 
     // Reports if the bot run between 6:00 and 6:10
     private boolean isReportTime(Date now) {
-        return Utils.isTime(now, 6);
+        return Utils.isTime(now, Utils.REPORT_HOUR);
     }
 
     private static class ResyncTx {

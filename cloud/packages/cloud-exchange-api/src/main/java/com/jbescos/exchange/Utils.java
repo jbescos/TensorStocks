@@ -65,6 +65,7 @@ public class Utils {
     public static final double TRANSFER_MIN_PROFIT_UNIT = 0.03;
     public static final String BENEFITS_AVG = "AVG";
     public static final String ORDER_ID_SPLIT = "-";
+    public static final int REPORT_HOUR = 6;
 
     public static Properties fromClasspath(String properties) throws IOException {
         try (InputStream in = Utils.class.getResourceAsStream(properties)) {

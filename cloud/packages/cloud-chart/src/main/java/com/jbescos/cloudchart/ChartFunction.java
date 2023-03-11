@@ -1,7 +1,8 @@
 package com.jbescos.cloudchart;
 
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -12,6 +13,7 @@ import com.jbescos.common.BucketStorage;
 import com.jbescos.common.ChartGenerator;
 import com.jbescos.common.ChartGenerator.IChartCsv;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.IChart;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.exchange.Utils;
 
@@ -63,13 +65,24 @@ public class ChartFunction implements HttpFunction {
                 response.getWriter().append(htmlPage);
                 response.getWriter().flush();
             } else {
-                String daysBack = Utils.getParam("days", "365", request.getQueryParameters());
+                int daysBack = Integer.parseInt(Utils.getParam("days", "365", request.getQueryParameters()));
                 List<String> symbols = request.getQueryParameters().get("symbol");
                 IChartCsv chart = wrapper.chartPng(type, symbols);
                 String fileName = chart.getClass().getSimpleName() + "_" + Utils.today() + ".png";
                 response.setContentType("image/png");
                 response.appendHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-                ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), Integer.parseInt(daysBack), chart, Collections.emptyMap());
+                Map<String, Object> chartProperties = new HashMap<>();
+                if (TYPE_SUMMARY.equals(type)) {
+                    chartProperties.put(IChart.TITLE, "Summary of profitability");
+                    chartProperties.put(IChart.VERTICAL_LABEL, "Profitability per 1");
+                } else if (TYPE_LINE.equals(type)) {
+                    if (symbols != null && symbols.size() == 1) {
+                        chartProperties.put(IChart.TITLE, "Last " + daysBack + " days of " + symbols.get(0));
+                    } else if (symbols == null || symbols.isEmpty()) {
+                        chartProperties.put(IChart.TITLE, "Wallet last " + daysBack + " days");
+                    }
+                }
+                ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), daysBack, chart, chartProperties);
                 response.getOutputStream().flush();
             }
         }
