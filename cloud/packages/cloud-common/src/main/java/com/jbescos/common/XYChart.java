@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
@@ -23,6 +24,12 @@ import com.jbescos.exchange.IRow;
 public class XYChart implements IChart<IRow> {
 
     private final XYSeriesCollection dataset = new XYSeriesCollection();
+    
+    private final Map<String, Object> properties;
+    
+    public XYChart() {
+        this.properties = defaultProperties();
+    }
 
     @Override
     public void add(String lineLabel, List<? extends IRow> data) {
@@ -60,9 +67,9 @@ public class XYChart implements IChart<IRow> {
     }
 
     @Override
-    public void save(OutputStream output, String title, String horizontalLabel, String verticalLabel)
+    public void save(OutputStream output)
             throws IOException {
-        JFreeChart xylineChart = ChartFactory.createXYLineChart(title, horizontalLabel, verticalLabel, dataset,
+        JFreeChart xylineChart = ChartFactory.createXYLineChart((String) properties.get(TITLE), (String) properties.get(HORIZONTAL_LABEL), (String) properties.get(VERTICAL_LABEL), dataset,
                 PlotOrientation.VERTICAL, true, true, true);
 //	    XYPlot xyplot = xylineChart.getXYPlot();
 //	    LogAxis logAxis = new LogAxis("Logarithm USDT");
@@ -77,8 +84,13 @@ public class XYChart implements IChart<IRow> {
         ((XYPlot) xylineChart.getPlot()).setRenderer(renderer);
         ((XYPlot) xylineChart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
         xylineChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-        BufferedImage image = xylineChart.createBufferedImage(1024, 768);
+        BufferedImage image = xylineChart.createBufferedImage((int) properties.get(WIDTH), (int) properties.get(HEIGTH));
         ChartUtils.writeBufferedImageAsPNG(output, image);
+    }
+
+    @Override
+    public void property(String key, Object value) {
+        properties.put(key, value);
     }
 
 }

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtils;
@@ -19,6 +20,12 @@ public class CandleChart implements IChart<Kline> {
 
     private final OHLCSeriesCollection candlestickDataset = new OHLCSeriesCollection();
 
+    private final Map<String, Object> properties;
+    
+    public CandleChart() {
+        this.properties = defaultProperties();
+    }
+
     @Override
     public void add(String lineLabel, List<? extends Kline> data) {
         OHLCSeries item = new OHLCSeries(lineLabel);
@@ -31,13 +38,17 @@ public class CandleChart implements IChart<Kline> {
     }
 
     @Override
-    public void save(OutputStream output, String title, String horizontalLabel, String verticalLabel)
+    public void save(OutputStream output)
             throws IOException {
-        JFreeChart chart = ChartFactory.createCandlestickChart(title, horizontalLabel, verticalLabel,
+        JFreeChart chart = ChartFactory.createCandlestickChart((String) properties.get(TITLE), (String) properties.get(HORIZONTAL_LABEL), (String) properties.get(VERTICAL_LABEL),
                 candlestickDataset, true);
         chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-        BufferedImage image = chart.createBufferedImage(1920, 1080);
+        BufferedImage image = chart.createBufferedImage((int) properties.get(WIDTH), (int) properties.get(HEIGTH));
         ChartUtils.writeBufferedImageAsPNG(output, image);
     }
 
+    @Override
+    public void property(String key, Object value) {
+        properties.put(key, value);
+    }
 }

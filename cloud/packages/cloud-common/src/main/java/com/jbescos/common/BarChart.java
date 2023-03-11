@@ -3,6 +3,7 @@ package com.jbescos.common;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -22,9 +23,11 @@ public class BarChart implements IChart<IRow> {
     private static final Logger LOGGER = Logger.getLogger(BarChart.class.getName());
     private final Map<String, Double> wallet;
     private final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+    private final Map<String, Object> properties;
 
     public BarChart(Map<String, Double> wallet) {
         this.wallet = wallet;
+        this.properties = defaultProperties();
     }
 
     @Override
@@ -63,13 +66,17 @@ public class BarChart implements IChart<IRow> {
     }
 
     @Override
-    public void save(OutputStream output, String title, String horizontalLabel, String verticalLabel)
-            throws IOException {
+    public void save(OutputStream output) throws IOException {
         JFreeChart barChart = ChartFactory.createBarChart("Total buy/sell", "Symbols", "USDT", dataset,
                 PlotOrientation.VERTICAL, true, true, false);
         barChart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
-        BufferedImage image = barChart.createBufferedImage(1920, 1080);
+        BufferedImage image = barChart.createBufferedImage((int) properties.get(WIDTH), (int) properties.get(HEIGTH));
         ChartUtils.writeBufferedImageAsPNG(output, image);
+    }
+
+    @Override
+    public void property(String key, Object value) {
+        properties.put(key, value);
     }
 
 }

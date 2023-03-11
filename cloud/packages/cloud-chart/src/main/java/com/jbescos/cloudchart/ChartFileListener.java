@@ -3,8 +3,11 @@ package com.jbescos.cloudchart;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,6 +21,7 @@ import com.jbescos.common.BucketStorage;
 import com.jbescos.common.ChartGenerator;
 import com.jbescos.common.ChartGenerator.IChartCsv;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.IChart;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.common.TelegramBot;
 import com.jbescos.exchange.CsvProfitRow;
@@ -47,15 +51,20 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
                     List<CsvProfitRow> profit = bucketStorage.loadCsvProfitRows(event.name);
                     ChartWrapper chartWrapper = new ChartWrapper(cloudProperties);
                     Date now = new Date();
+                    int days = 7;
                     try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
                         for (int i = profit.size() - 1; i >=0; i--) {
                             CsvProfitRow recentProfit = profit.get(i);
                             long difference = now.getTime() - recentProfit.getSellDate().getTime();
                             // Avoid to send image again when sometimes it is synced
                             if (difference < MINUTES_5 && !recentProfit.isSync()) {
+                                Map<String, Object> chartProperties = new HashMap<>();
+                                chartProperties.put(IChart.TITLE, "Last " + days + " days of " + recentProfit.getSymbol());
+                                chartProperties.put(IChart.WIDTH, 1024);
+                                chartProperties.put(IChart.HEIGTH, 768);
                                 IChartCsv chart = chartWrapper.chartPng(ChartFunction.TYPE_LINE, Arrays.asList(recentProfit.getSymbol()));
                                 ByteArrayOutputStream out = new ByteArrayOutputStream();
-                                ChartGenerator.writeLoadAndWriteChart(out, 7, chart);
+                                ChartGenerator.writeLoadAndWriteChart(out, days, chart, chartProperties);
                                 telegram.sendImage(out.toByteArray());
                             } else {
                                 break;

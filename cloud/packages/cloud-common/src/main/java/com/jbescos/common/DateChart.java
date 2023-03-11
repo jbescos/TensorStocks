@@ -27,6 +27,11 @@ import com.jbescos.exchange.Utils;
 public class DateChart implements IChart<IRow> {
 
     private final TimeSeriesCollection dataset = new TimeSeriesCollection();
+    private final Map<String, Object> properties;
+    
+    public DateChart() {
+        this.properties = defaultProperties();
+    }
 
     @Override
     public void add(String lineLabel, List<? extends IRow> data) {
@@ -70,17 +75,21 @@ public class DateChart implements IChart<IRow> {
     }
 
     @Override
-    public void save(OutputStream output, String title, String horizontalLabel, String verticalLabel)
-            throws IOException {
-        JFreeChart chart = ChartFactory.createTimeSeriesChart(title, horizontalLabel, verticalLabel, dataset, true,
+    public void save(OutputStream output) throws IOException {
+        JFreeChart chart = ChartFactory.createTimeSeriesChart((String) properties.get(TITLE), (String) properties.get(HORIZONTAL_LABEL), (String) properties.get(VERTICAL_LABEL), dataset, true,
                 true, true);
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
         renderer.setSeriesStroke(0, new BasicStroke(0.2f));
         chart.getPlot().setBackgroundPaint(IChart.BACKGROUND_COLOR);
         ((XYPlot) chart.getPlot()).setRenderer(renderer);
         ((XYPlot) chart.getPlot()).setRangeAxisLocation(AxisLocation.TOP_OR_RIGHT);
-        BufferedImage image = chart.createBufferedImage(1920, 1080);
+        BufferedImage image = chart.createBufferedImage((int) properties.get(WIDTH), (int) properties.get(HEIGTH));
         ChartUtils.writeBufferedImageAsPNG(output, image);
+    }
+
+    @Override
+    public void property(String key, Object value) {
+        properties.put(key, value);
     }
 
 }

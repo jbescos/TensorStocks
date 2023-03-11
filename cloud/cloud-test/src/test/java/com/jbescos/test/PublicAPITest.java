@@ -19,6 +19,7 @@ import org.junit.Test;
 import com.jbescos.common.CandleChart;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.common.IChart;
 import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Kline;
 import com.jbescos.exchange.Price;
@@ -76,8 +77,9 @@ public class PublicAPITest {
         File chartFile = new File("./target/klines.png");
         try (FileOutputStream output = new FileOutputStream(chartFile)) {
             CandleChart chart = new CandleChart();
+            chart.property(IChart.TITLE, "BTC KLines");
             chart.add("BTCUSDT", klines);
-            chart.save(output, "BTC KLines", "", "USDT");
+            chart.save(output);
         }
     }
 

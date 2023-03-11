@@ -1,5 +1,6 @@
 package com.jbescos.cloudchart;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -68,7 +69,7 @@ public class ChartFunction implements HttpFunction {
                 String fileName = chart.getClass().getSimpleName() + "_" + Utils.today() + ".png";
                 response.setContentType("image/png");
                 response.appendHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
-                ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), Integer.parseInt(daysBack), chart);
+                ChartGenerator.writeLoadAndWriteChart(response.getOutputStream(), Integer.parseInt(daysBack), chart, Collections.emptyMap());
                 response.getOutputStream().flush();
             }
         }

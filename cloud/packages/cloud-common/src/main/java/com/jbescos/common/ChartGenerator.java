@@ -33,9 +33,12 @@ public class ChartGenerator {
     private static final String DATA_PREFIX = "data";
     private static final int PRECISSION_CHART_DAYS = 7;
 
-    public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv)
+    public static void writeLoadAndWriteChart(OutputStream output, int daysBack, IChartCsv chartCsv, Map<String, Object> chartProperties)
             throws IOException {
         IChart<IRow> chart = chartCsv.chart(daysBack);
+        for (Entry<String, Object> entry : chartProperties.entrySet()) {
+            chart.property(entry.getKey(), entry.getValue());
+        }
         List<IRow> rows = chartCsv.read(daysBack);
         writeChart(rows, output, chart);
         save(output, chart);
@@ -53,7 +56,7 @@ public class ChartGenerator {
     }
 
     public static void save(OutputStream output, IChart<?> chart) throws IOException {
-        chart.save(output, "Crypto currencies", "", "USDT");
+        chart.save(output);
     }
 
     public static interface IChartCsv {
