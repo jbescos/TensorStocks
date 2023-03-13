@@ -22,6 +22,7 @@ import org.junit.Test;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CsvUtil;
 import com.jbescos.common.SecuredKucoinAPI;
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.Utils;
@@ -101,5 +102,13 @@ public class SecuredKucoinAPITest {
             System.out.print(tx.toCsvLine());
         }
         // Should be 7.16452306 of benefit
+    }
+
+    @Test
+    @Ignore
+    public void realOrder() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
+        SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
+        CsvTransactionRow row = api.orderSymbol("MKRUSDT", Action.SELL, "1.07673363", 978.15866617);
+        System.out.println(row);
     }
 }
