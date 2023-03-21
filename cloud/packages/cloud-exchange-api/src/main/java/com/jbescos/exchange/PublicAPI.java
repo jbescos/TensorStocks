@@ -275,6 +275,31 @@ public final class PublicAPI {
         }
         return coinsById;
     }
+    
+    public Map<String, Map<String, String>> coinAddresses() {
+        Map<String, Map<String, String>> coinAddresses = new HashMap<>();
+        List<Map<String, Object>> coins = get(COINGEKO_URL, "/api/v3/coins/list", new GenericType<List<Map<String, Object>>>() {}, "include_platform", "true");
+        for (Map<String, Object> coin : coins) {
+            Map<String, String> platforms = (Map<String, String>) coin.get("platforms");
+            if (!platforms.isEmpty()) {
+                String symbol = ((String) coin.get("id"));
+                for (Entry<String, String> entry : platforms.entrySet()) {
+                    Map<String, String> symbolsByPlatform = coinAddresses.get(entry.getKey());
+                    if (symbolsByPlatform == null) {
+                        symbolsByPlatform = new HashMap<>();
+                        coinAddresses.put(entry.getKey(), symbolsByPlatform);
+                    }
+                    if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                        String previousValue = symbolsByPlatform.put(symbol, entry.getValue());
+                        if (previousValue != null) {
+                            LOGGER.warning(() -> symbol + " was already set with " + previousValue + ". New value is " + entry.getValue());
+                        }
+                    }
+                }
+            }
+        }
+        return coinAddresses;
+    }
 
     public boolean isSymbolBinanceEnabled(String symbol) {
         Map<String, Object> exchangeInfo = get(BINANCE_URL, "/api/v3/exchangeInfo",
