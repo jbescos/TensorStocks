@@ -23,7 +23,7 @@ public class TokensProperties {
             properties.createNewFile();
             try (FileOutputStream out = new FileOutputStream(properties)) {
                 for (Entry<String, String> pair : entry.getValue().entrySet()) {
-                    String line = pair.getKey() + "=" + pair.getValue() + "\n";
+                    String line = pair.getKey().replaceAll(" ", "_") + "=" + pair.getValue() + "\n";
                     out.write(line.getBytes("UTF-8"));
                 }
                 out.flush();
