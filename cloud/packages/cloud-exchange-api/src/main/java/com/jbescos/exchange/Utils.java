@@ -3,6 +3,7 @@ package com.jbescos.exchange;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.nio.charset.Charset;
 import java.text.DateFormat;
@@ -26,6 +27,12 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import org.web3j.crypto.ECKeyPair;
+import org.web3j.crypto.Sign;
+import org.web3j.crypto.StructuredDataEncoder;
+import org.web3j.crypto.Sign.SignatureData;
+import org.web3j.utils.Numeric;
 
 import com.jbescos.exchange.Broker.Action;
 
@@ -787,5 +794,17 @@ public class Utils {
             }
         }
         return result;
+    }
+    
+    public static String signEIP712(String json, String privateKeyHex) throws IOException, RuntimeException {
+        StructuredDataEncoder encoder = new StructuredDataEncoder(json);
+        byte[] encodedData = encoder.getStructuredData();
+        SignatureData signature = Sign.signMessage(encodedData, ECKeyPair.create(new BigInteger(privateKeyHex, 16)));
+        byte[] retval = new byte[65];
+        System.arraycopy(signature.getR(), 0, retval, 0, 32);
+        System.arraycopy(signature.getS(), 0, retval, 32, 32);
+        System.arraycopy(signature.getV(), 0, retval, 64, 1);
+        String signedMessage = Numeric.toHexString(retval);
+        return signedMessage;
     }
 }

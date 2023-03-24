@@ -14,7 +14,8 @@ public class SecuredArkenAPITest {
     private final String API_TOKEN = "XXXXXXXXXXXXX";
     private final String CHAIN = "bsc";
     private final String POOL_ADDRESS = "XXXXXXXXXXXXX";
-    private final SecuredArkenAPI api = new SecuredArkenAPI(ClientBuilder.newClient(), USER_NAME, API_TOKEN, CHAIN, POOL_ADDRESS);
+    private final String PRIVATE_KEY = "XXXXXXXXXXXXX";
+    private final SecuredArkenAPI api = new SecuredArkenAPI(ClientBuilder.newClient(), USER_NAME, API_TOKEN, CHAIN, POOL_ADDRESS, PRIVATE_KEY);
     
     @Test
     @Ignore

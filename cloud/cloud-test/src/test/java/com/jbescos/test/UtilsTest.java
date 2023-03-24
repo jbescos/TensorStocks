@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
@@ -31,6 +33,10 @@ import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
+
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
 
 public class UtilsTest {
 
@@ -552,6 +558,34 @@ public class UtilsTest {
         assertEquals(Arrays.asList("c"), Utils.lastModified(Arrays.asList("c"), s -> s));
     }
 
+    @Test
+    public void signEIP712() throws IOException {
+        String privateKey = "a392604efc2fad9c0b3da43b5f698a2e3f270f170d859912be0d54742275c5f6";
+        String expectedSignature = "0x36ac2b5f0a1c91e275684538fce2b398b214ece08fac7ccb831c0eef03303d6118657d09b615097f944fdb41bcb950046b720c2b238928af423f4e69aaaad36c1b";
+        try (InputStream in = Utils.class.getResourceAsStream("/eip712.json")) {
+            JsonReader reader = Json.createReader(in);
+            JsonObject main = reader.readObject();
+            JsonObject data = main.getJsonObject("data");
+            JsonObject eip712Data = data.getJsonObject("eip712Data");
+            String signature = Utils.signEIP712(eip712Data.toString(), privateKey);
+            assertEquals(expectedSignature, signature);
+        }
+    }
+    
+    @Test
+    public void signEIP712_2() throws IOException {
+        String privateKey = "a392604efc2fad9c0b3da43b5f698a2e3f270f170d859912be0d54742275c5f6";
+        String expectedSignature = "0xb22299b76b1e544f8a5613fc58ad9d02ddf31ed3e9b0ccf0ec6a27930a9b90c5437f1316a440ca1f3c7cab0d466b24c51a1a4751210e4d55e644c7b91c357e1d1b";
+        try (InputStream in = Utils.class.getResourceAsStream("/eip712_2.json")) {
+            JsonReader reader = Json.createReader(in);
+            JsonObject main = reader.readObject();
+            JsonObject data = main.getJsonObject("data");
+            JsonObject eip712Data = data.getJsonObject("eip712Data");
+            String signature = Utils.signEIP712(eip712Data.toString(), privateKey);
+            assertEquals(expectedSignature, signature);
+        }
+    }
+    
     private Map<String, String> createWalletRow(String symbol, String usdt) {
         Map<String, String> row = new HashMap<>();
         row.put("SYMBOL", symbol);

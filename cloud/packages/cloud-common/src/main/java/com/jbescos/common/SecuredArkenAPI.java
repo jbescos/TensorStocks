@@ -1,13 +1,14 @@
 package com.jbescos.common;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
@@ -24,6 +25,10 @@ import com.jbescos.exchange.Price;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.Utils;
 
+import jakarta.json.Json;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+
 public class SecuredArkenAPI implements SecuredAPI {
 
     private static final String URL_DEV = "https://devpublic-api.arken.finance";
@@ -39,6 +44,7 @@ public class SecuredArkenAPI implements SecuredAPI {
     private final String poolAddress;
     private final int chainId;
     private final String usdtToken;
+    private final String privateKeyHex;
     private final Map<String, String> symbolsTokens = new HashMap<>();
     private final Map<String, String> tokensSymbols = new HashMap<>();
     
@@ -51,13 +57,14 @@ public class SecuredArkenAPI implements SecuredAPI {
         CHAIN_IDS.put("arbitrum", 42161);
     }
 
-    public SecuredArkenAPI(Client client, String userName, String apiToken, String chain, String poolAddress) {
+    public SecuredArkenAPI(Client client, String userName, String apiToken, String chain, String poolAddress, String privateKeyHex) {
         this.client = client;
         this.userName = userName;
         this.apiToken = apiToken;
         this.chain = chain;
         this.poolAddress = poolAddress;
         this.chainId = CHAIN_IDS.get(chain);
+        this.privateKeyHex = privateKeyHex;
         Properties tokens = new Properties();
         String properties = "/" + chain + ".properties";
         try (InputStream in = SecuredArkenAPI.class.getResourceAsStream(properties)) {
@@ -108,11 +115,23 @@ public class SecuredArkenAPI implements SecuredAPI {
         request.put("quoteAmount", quoteAmount);
         request.put("side", action.side());
         request.put("slippage", SLIPPAGE);
-        Map<String, Object> response = post(URL_DEV, "/fund-manager/order/market/pre-create", new GenericType<Map<String, Object>>() {}, request);
-        System.out.println(response);
-        Map<String, Object> data = (Map<String, Object>) response.get("data");
-        String orderId = (String) data.get("orderID");
-        return response;
+        String in = post(URL_DEV, "/fund-manager/order/market/pre-create", new GenericType<String>() {}, request);
+        System.out.println(in);
+        JsonReader reader = Json.createReader(new ByteArrayInputStream(in.getBytes()));
+        JsonObject main = reader.readObject();
+        JsonObject data = main.getJsonObject("data");
+        JsonObject eip712Data = data.getJsonObject("eip712Data");
+        String orderId = data.getJsonString("orderID").getString();
+        request.put("orderID", orderId);
+        try {
+            String signature = Utils.signEIP712(eip712Data.toString(), privateKeyHex);
+            request.put("signature", signature);
+        } catch (IOException | RuntimeException e) {
+            throw new RuntimeException("Cannot create a signature from " + eip712Data.toString(), e);
+        }
+        Map<String, Object> created = post(URL_DEV, "/fund-manager/order/market/create", new GenericType<Map<String, Object>>() {}, request);
+        System.out.println(created);
+        return null;
     }
 
     public Map<String, Object> pool() {
@@ -186,7 +205,7 @@ public class SecuredArkenAPI implements SecuredAPI {
                 return response.readEntity(type);
             } else {
                 response.bufferEntity();
-                throw new RuntimeException("SecuredKucoinAPI> HTTP response code " + response.getStatus() + " from "
+                throw new RuntimeException("SecuredArkenAPI> HTTP response code " + response.getStatus() + " from "
                         + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
             }
         }

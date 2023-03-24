@@ -1,0 +1,75 @@
+{
+    "success": true,
+    "message": "ok",
+    "data": {
+        "orderID": "2eecb355-4ce7-460a-a45f-29965dfe01b6",
+        "eip712Data": {
+            "types": {
+                "EIP712Domain": [
+                    {
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "name": "version",
+                        "type": "string"
+                    },
+                    {
+                        "name": "chainId",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "verifyingContract",
+                        "type": "address"
+                    }
+                ],
+                "Order": [
+                    {
+                        "name": "orderID",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "srcToken",
+                        "type": "address"
+                    },
+                    {
+                        "name": "dstToken",
+                        "type": "address"
+                    },
+                    {
+                        "name": "amountIn",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "amountOutMin",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "expiredAt",
+                        "type": "uint256"
+                    },
+                    {
+                        "name": "revision",
+                        "type": "uint8"
+                    }
+                ]
+            },
+            "primaryType": "Order",
+            "domain": {
+                "name": "Trader Pro",
+                "version": "1",
+                "chainId": 97,
+                "verifyingContract": "0x580843DbB6C06d020C37890176009b23a8AA54a4"
+            },
+            "message": {
+                "amountIn": 1000000000000000,
+                "amountOutMin": 833333,
+                "dstToken": "0x3e9a5e2b6758c7dc1dca2d46abf1ef215a2ec6ef",
+                "expiredAt": 4294967295,
+                "orderID": 62373507174233670208101581361315185078,
+                "revision": 1,
+                "srcToken": "0xf0c49279bef38df8479b4f8c08fafa8f99b4794c"
+            }
+        }
+    }
+}
