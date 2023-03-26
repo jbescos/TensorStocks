@@ -8,4 +8,5 @@ git pull --force
 cp $GIT_SRC/cloud/cloud-test/src/main/resources/cloud.properties $PROPERTIES_SRC
 cd $CURRENT_DIR
 
-java -jar $HOME/workspace/TensorStocks/cloud/packages/local-bot/target/local-bot-1.0.jar
+# Run only Binance
+java -jar $HOME/workspace/TensorStocks/cloud/packages/local-bot/target/local-bot-1.0.jar BINANCE

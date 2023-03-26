@@ -155,6 +155,14 @@ public class Utils {
             return values.get(0);
         }
     }
+    
+    public static List<String> getParams(String param, Map<String, List<String>> parameters) {
+        List<String> values = parameters.get(param);
+        if (values == null) {
+            return Collections.emptyList();
+        }
+        return values;
+    }
 
     public static String todayWithSeconds() {
         return fromDate(FORMAT_SECOND, new Date());

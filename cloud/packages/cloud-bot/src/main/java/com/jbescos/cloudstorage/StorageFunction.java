@@ -1,6 +1,7 @@
 package com.jbescos.cloudstorage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,10 +39,22 @@ public class StorageFunction implements HttpFunction {
     private static final Logger LOGGER = Logger.getLogger(StorageFunction.class.getName());
     private static final byte[] CSV_HEADER_TOTAL = Utils.CSV_ROW_HEADER.getBytes(Utils.UTF8);
     private static final String SKIP_PARAM = "skip";
+    private static final String EXCHANGES_PARAM = "exchanges";
 
     @Override
     public void service(HttpRequest request, HttpResponse response) throws Exception {
         boolean skip = Boolean.parseBoolean(Utils.getParam(SKIP_PARAM, "false", request.getQueryParameters()));
+        List<String> exchangesStr = Utils.getParams(EXCHANGES_PARAM, request.getQueryParameters());
+        List<Exchange> exchanges;
+        if (!exchangesStr.isEmpty()) {
+            exchanges = new ArrayList<>();
+            for (String exchange : exchangesStr) {
+                exchanges.add(Exchange.valueOf(exchange));
+            }
+        } else {
+            exchanges = Arrays.asList(Exchange.values());
+        }
+        LOGGER.info("Exchanges: " + exchanges);
         StorageInfo storageInfo = StorageInfo.build();
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
@@ -80,7 +93,7 @@ public class StorageFunction implements HttpFunction {
         try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
             if (!skip) {
                 Set<String> updatedExchanges = new HashSet<>();
-                for (Exchange exchange : Exchange.values()) {
+                for (Exchange exchange : exchanges) {
                     if (exchange.enabled()) {
                         if (updatedExchanges.add(exchange.getFolder())) {
                             try {

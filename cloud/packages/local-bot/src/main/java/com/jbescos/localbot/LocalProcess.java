@@ -39,7 +39,7 @@ public class LocalProcess {
         this.storage = storage;
     }
 
-    public void run() throws IOException {
+    public void run(List<Exchange> exchanges) throws IOException {
         Date now = new Date();
         Map<String, List<CloudProperties>> usersByExchange = new HashMap<>();
         CloudProperties mainProperties = storage.loadMainProperties(PROPERTIES_PATH);
@@ -59,7 +59,7 @@ public class LocalProcess {
 
         FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
         Set<String> updatedExchanges = new HashSet<>();
-        for (Exchange exchange : Exchange.values()) {
+        for (Exchange exchange : exchanges) {
             try {
                 if (exchange.enabled() && updatedExchanges.add(exchange.getFolder())) {
                     String lastPrice = "data" + exchange.getFolder() + Utils.LAST_PRICE;

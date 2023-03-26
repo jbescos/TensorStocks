@@ -2,15 +2,19 @@ package com.jbescos.localbot;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
+import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.FileStorage;
 
 public class Main {
@@ -27,12 +31,19 @@ public class Main {
     }
 
     public static void main(String[] args) throws IOException, InterruptedException {
-        LOGGER.info("Starting local-bot");
+        LOGGER.info("Starting local-bot " + Arrays.asList(args));
+        List<Exchange> exchanges;
+        if (args.length != 0) {
+            String[] exchangesArr = args[0].split(",");
+            exchanges = Arrays.asList(exchangesArr).stream().map(ex -> Exchange.valueOf(ex)).collect(Collectors.toList());
+        } else {
+            exchanges = Arrays.asList(Exchange.values());
+        }
         ExecutorService executor = Executors.newCachedThreadPool();
         Client client = ClientBuilder.newClient();
         FileStorage storage = new FileStorage("./crypto-for-training/");
         LocalProcess storageProcess = new LocalProcess(executor, client, storage);
-        storageProcess.run();
+        storageProcess.run(exchanges);
         executor.shutdown();
         LOGGER.info("Awaiting tasks to complete");
         executor.awaitTermination(20, TimeUnit.MINUTES);
