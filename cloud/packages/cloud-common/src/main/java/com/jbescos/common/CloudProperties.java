@@ -341,23 +341,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
                 return publicApi.priceOkex();
             }
         },
-        MIZAR_FTX("/ftx/", false, false) {
-            @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
-                    throws KeyException, IOException, NoSuchAlgorithmException {
-                return SecuredMizarAPI.create(cloudProperties, client);
-            }
-
-            @Override
-            public Map<String, Price> price(PublicAPI publicApi) {
-                return publicApi.priceFtx();
-            }
-
-            @Override
-            public boolean enabled() {
-                return false;
-            }
-        },
         MIZAR_BINANCE("/binance/", false, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
@@ -368,23 +351,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             @Override
             public Map<String, Price> price(PublicAPI publicApi) {
                 return publicApi.priceBinance();
-            }
-        },
-        FTX("/ftx/", true, false) {
-            @Override
-            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
-                    throws KeyException, IOException, NoSuchAlgorithmException {
-                throw new UnsupportedOperationException("FTX integration is not supported");
-            }
-
-            @Override
-            public Map<String, Price> price(PublicAPI publicApi) {
-                return publicApi.priceFtx();
-            }
-
-            @Override
-            public boolean enabled() {
-                return false;
             }
         },
         OKEX("/okex/", true, false) {

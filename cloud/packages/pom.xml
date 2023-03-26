@@ -18,8 +18,6 @@
 	<modules>
 		<module>cloud-exchange-api</module>
 		<module>cloud-common</module>
-		<module>cloud-storage</module>
-		<module>cloud-chart</module>
 		<module>cloud-bot</module>
 		<module>local-bot</module>
 	</modules>

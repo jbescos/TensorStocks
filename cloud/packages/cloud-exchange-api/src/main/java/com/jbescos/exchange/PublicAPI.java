@@ -236,10 +236,13 @@ public final class PublicAPI {
                     Integer.toString(pageIdx));
             for (Map<String, Object> price : page) {
                 String id = (String) price.get("id");
-                Map<String, Object> coinInfo = coinsById.get(id);
-                if (coinInfo != null) {
-                    coinInfo.put("price", ((Number) price.get("current_price")).doubleValue());
-                    filteredCoins.put(id, coinInfo);
+                Object currentPrice = price.get("current_price");
+                if (currentPrice != null) {
+                    Map<String, Object> coinInfo = coinsById.get(id);
+                    if (coinInfo != null) {
+                        coinInfo.put("price", ((Number) currentPrice).doubleValue());
+                        filteredCoins.put(id, coinInfo);
+                    }
                 }
             }
             pageIdx++;

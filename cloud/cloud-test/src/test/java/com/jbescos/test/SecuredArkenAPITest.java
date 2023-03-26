@@ -10,11 +10,11 @@ import com.jbescos.exchange.Broker.Action;
 
 public class SecuredArkenAPITest {
 
-    private final String USER_NAME = "XXXXXXXXXXXXX";
-    private final String API_TOKEN = "XXXXXXXXXXXXX";
+    private final String USER_NAME = "XXXXXXXXX";
+    private final String API_TOKEN = "XXXXXXXXX";
     private final String CHAIN = "bsc";
-    private final String POOL_ADDRESS = "XXXXXXXXXXXXX";
-    private final String PRIVATE_KEY = "XXXXXXXXXXXXX";
+    private final String POOL_ADDRESS = "XXXXXXXXX";
+    private final String PRIVATE_KEY = "XXXXXXXXX";
     private final SecuredArkenAPI api = new SecuredArkenAPI(ClientBuilder.newClient(), USER_NAME, API_TOKEN, CHAIN, POOL_ADDRESS, PRIVATE_KEY);
     
     @Test
