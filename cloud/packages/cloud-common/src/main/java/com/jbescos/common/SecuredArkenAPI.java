@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +36,7 @@ public class SecuredArkenAPI implements SecuredAPI {
     private static final String URL = "https://public-api.arken.finance";
     private static final String USDT_ID = "tether";
     private static final String SLIPPAGE = "5.00";
+    private static final double COMMISSION = Double.parseDouble(SLIPPAGE) / 100;
     private static final Map<String, Integer> CHAIN_IDS = new HashMap<>();
 //    private static final String URL = "https://devpublic-api.arken.finance";
     private final Client client;
@@ -52,6 +54,7 @@ public class SecuredArkenAPI implements SecuredAPI {
         // 1 = Ethereum Mainnet 56 = BNB Smart Chain 97 = BSC Testnet 42161 = Arbitrum
         // "polygon","ethereum","avalanche","aurora","arbitrum","bsc","rei"
         CHAIN_IDS.put("ethereum", 1);
+        // FIXME
 //        CHAIN_IDS.put("bsc", 56); // BSC real
         CHAIN_IDS.put("bsc", 97); // BSC test
         CHAIN_IDS.put("arbitrum", 42161);
@@ -94,7 +97,7 @@ public class SecuredArkenAPI implements SecuredAPI {
             }
             List<String> subIds = tokens.subList(i, to).stream().collect(Collectors.toList());
             String key = String.join(",", subIds);
-            Map<String, Map<String, Double>> chunk = get(URL, "/insider/v1/" + chain + "/tokens/price", new GenericType<Map<String, Map<String, Double>>>() {}, "addresses", key);
+            Map<String, Map<String, Double>> chunk = get(URL_DEV, "/insider/v1/" + chain + "/tokens/price", new GenericType<Map<String, Map<String, Double>>>() {}, "addresses", key);
             for (Entry<String, Map<String, Double>> entry : chunk.entrySet()) {
                 String token = entry.getKey();
                 Double price = entry.getValue().get("price");
@@ -106,7 +109,7 @@ public class SecuredArkenAPI implements SecuredAPI {
         return data;
     }
     
-    private Map<String, Object> order(String baseToken, String quoteToken, String quoteAmount, Action action) {
+    private Map<String, String> order(String baseToken, String quoteToken, String quoteAmount, Action action) {
         Map<String, Object> request = new HashMap<>();
         request.put("chainID", chainId);
         request.put("poolAddress", poolAddress);
@@ -116,22 +119,37 @@ public class SecuredArkenAPI implements SecuredAPI {
         request.put("side", action.side());
         request.put("slippage", SLIPPAGE);
         String in = post(URL_DEV, "/fund-manager/order/market/pre-create", new GenericType<String>() {}, request);
-        System.out.println(in);
         JsonReader reader = Json.createReader(new ByteArrayInputStream(in.getBytes()));
         JsonObject main = reader.readObject();
-        JsonObject data = main.getJsonObject("data");
-        JsonObject eip712Data = data.getJsonObject("eip712Data");
-        String orderId = data.getJsonString("orderID").getString();
-        request.put("orderID", orderId);
-        try {
-            String signature = Utils.signEIP712(eip712Data.toString(), privateKeyHex);
-            request.put("signature", signature);
-        } catch (IOException | RuntimeException e) {
-            throw new RuntimeException("Cannot create a signature from " + eip712Data.toString(), e);
+        boolean success = main.getBoolean("success");
+        if (success) {
+            JsonObject data = main.getJsonObject("data");
+            JsonObject eip712Data = data.getJsonObject("eip712Data");
+            String orderId = data.getJsonString("orderID").getString();
+            String price = data.getJsonObject("createData").getJsonString("price").getString();
+            request.put("orderID", orderId);
+            request.put("price", price);
+            try {
+                String signature = Utils.signEIP712(eip712Data.toString(), privateKeyHex);
+                request.put("signature", signature);
+            } catch (IOException | RuntimeException e) {
+                throw new RuntimeException("Cannot create a signature from " + eip712Data.toString(), e);
+            }
+            in = post(URL_DEV, "/fund-manager/order/market/create", new GenericType<String>() {}, request);
+            reader = Json.createReader(new ByteArrayInputStream(in.getBytes()));
+            main = reader.readObject();
+            success = main.getBoolean("success");
+            if (success) {
+                Map<String, String> response = new HashMap<>();
+                response.put("orderID", orderId);
+                response.put("price", price);
+                return response;
+            } else {
+                throw new IllegalStateException("Cannot create order with " + request + ". Response: " + in);
+            }
+        } else {
+            throw new IllegalStateException("Cannot pre-create order with " + request + ". Response: " + in);
         }
-        Map<String, Object> created = post(URL_DEV, "/fund-manager/order/market/create", new GenericType<Map<String, Object>>() {}, request);
-        System.out.println(created);
-        return null;
     }
 
     public Map<String, Object> pool() {
@@ -146,28 +164,31 @@ public class SecuredArkenAPI implements SecuredAPI {
     
     @Override
     public Map<String, String> wallet() {
-        // TODO Auto-generated method stub
-        return null;
+        throw new IllegalStateException("Wallet not supported");
     }
 
     @Override
     public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
-//        order(usdtToken, symbolsTokens.get(symbol), quoteOrderQty, action);
-        // FIXME, they only support these 2 tokens
-        order("0x3e9a5e2b6758c7dc1dca2d46abf1ef215a2ec6ef", "0xf0c49279bef38df8479b4f8c08fafa8f99b4794c", quoteOrderQty, action);
-        return null;
+        String parsedSymbol = symbol.replaceFirst(symbol, Utils.USDT);
+        Map<String, String> response = order(usdtToken, symbolsTokens.get(parsedSymbol), quoteOrderQty, action);
+//        Map<String, String> response = order("0x3e9a5e2b6758c7dc1dca2d46abf1ef215a2ec6ef", "0xf0c49279bef38df8479b4f8c08fafa8f99b4794c", quoteOrderQty, action);
+        double price = Double.parseDouble(response.get("price"));
+        CsvTransactionRow tx = Utils.calculatedSymbolCsvTransactionRow(new Date(), symbol, response.get("orderID"), action, quoteOrderQty, price, COMMISSION);
+        return tx;
     }
 
     @Override
     public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
-        order(symbolsTokens.get(symbol), usdtToken, quantity, action);
-        return null;
+        String parsedSymbol = symbol.replaceFirst(Utils.USDT, "");
+        Map<String, String> response = order(symbolsTokens.get(parsedSymbol), usdtToken, quantity, action);
+        double price = Double.parseDouble(response.get("price"));
+        CsvTransactionRow tx = Utils.calculatedSymbolCsvTransactionRow(new Date(), symbol, response.get("orderID"), action, quantity, price, COMMISSION);
+        return tx;
     }
 
     @Override
     public CsvTransactionRow synchronize(CsvTransactionRow precalculated) {
-        // TODO Auto-generated method stub
-        return null;
+        throw new IllegalStateException("Synchronize not supported");
     }
 
     public <T> T get(String url, String path, GenericType<T> type, String... query) {
