@@ -10,9 +10,9 @@ import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
 
-public class CautelousBroker implements Broker {
+public class LowBroker implements Broker {
 
-    private static final Logger LOGGER = Logger.getLogger(CautelousBroker.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(LowBroker.class.getName());
     private final String symbol;
     // The higher the better
     private final double factor;
@@ -27,13 +27,11 @@ public class CautelousBroker implements Broker {
     private final TransactionsSummary summary;
     private final CloudProperties cloudProperties;
     private final boolean percentileMin;
-    private final boolean panicPeriod;
     private final List<CsvRow> values;
 
-    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values,
-            TransactionsSummary summary, boolean panicPeriod) {
+    public LowBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values,
+            TransactionsSummary summary) {
         this.values = values;
-        this.panicPeriod = panicPeriod;
         this.cloudProperties = cloudProperties;
         this.symbol = symbol;
         this.min = Utils.getMinMax(values, true);
@@ -53,9 +51,9 @@ public class CautelousBroker implements Broker {
         this.percentileMin = newest.getPrice() < percentileMin;
     }
 
-    public CautelousBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
+    public LowBroker(CloudProperties cloudProperties, String symbol, List<CsvRow> values) {
         this(cloudProperties, symbol, values, new TransactionsSummary(false, 0, Double.MAX_VALUE, null,
-                Collections.emptyList(), Collections.emptyList()), false);
+                Collections.emptyList(), Collections.emptyList()));
     }
 
     public CsvRow getMin() {
@@ -102,7 +100,7 @@ public class CautelousBroker implements Broker {
     private Action evaluate(double price, double benefitsAvg) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
-        double maxProfitSell = panicPeriod || Utils.isFearMode(newest.getFearGreedIndex())
+        double maxProfitSell = Utils.isFearMode(newest.getFearGreedIndex())
                 ? cloudProperties.BOT_MIN_PROFIT_SELL
                 : cloudProperties.BOT_MAX_PROFIT_SELL;
         if (hasPreviousTransactions && Utils.isMax(values)
@@ -112,8 +110,7 @@ public class CautelousBroker implements Broker {
             action = Action.SELL;
         } else {
             if (price < avg) {
-                double comparedFactor = panicPeriod ? cloudProperties.BOT_PANIC_FACTOR
-                        : Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest, benefitsAvg);
+                double comparedFactor = Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest, benefitsAvg);
                 if (!hasPreviousTransactions || (hasPreviousTransactions
                         && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_PURCHASE_REDUCER))) {
                     if (factor > comparedFactor) {
