@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
@@ -29,6 +31,7 @@ import com.jbescos.exchange.AllTickers.Ticker;
 public final class PublicAPI {
 
     private static final Logger LOGGER = Logger.getLogger(PublicAPI.class.getName());
+    private static final String NEWS_DELIST_PATTERN = "([a-zA-Z0-9]+)(|\\/)(USDT)";
     private static final String FEAR_GREEDY_URL = "https://api.alternative.me/fng/";
     private static final String BINANCE_URL = "https://api.binance.com";
 //    private static final String BINANCE_URL = "https://api.binance.us";
@@ -327,6 +330,7 @@ public final class PublicAPI {
     }
 
     public List<News> delistedKucoin(long fromTimestamp) {
+        Pattern pattern = Pattern.compile(NEWS_DELIST_PATTERN);
         List<News> news = new ArrayList<>();
         int pageSize = 50;
         int page = 1;
@@ -345,7 +349,7 @@ public final class PublicAPI {
                         String summary = (String) item.get("summary");
                         String url = KUCOIN_NEWS_PAGE + item.get("path");
                         News n = new News("KUCOIN", title, new Date(timestamp), summary, url);
-                        addDelistedKucoin(n);
+                        addDelistedKucoinSymbols(n, pattern);
                         news.add(n);
                     }
                 } else {
@@ -361,18 +365,17 @@ public final class PublicAPI {
         return news;
     }
     
-    private void addDelistedKucoin(News n) {
-    	int begin = n.title.indexOf("(");
-    	if (begin > -1) {
-    		int last = n.title.indexOf(")");
-    		if (last > -1) {
-    			String symbol = n.title.substring(begin + 1, last).toUpperCase() + Utils.USDT;
-    			n.delistedSymbols.add(symbol);
-    		}
-    	}
+    private void addDelistedKucoinSymbols(News n, Pattern pattern) {
+        String content = get(n.getUrl(), null, new GenericType<String>(){});
+        Matcher matcher = pattern.matcher(content);
+        while (matcher.find()) {
+            String pair = matcher.group();
+            n.delistedSymbols.add(pair.toUpperCase().replace("/", ""));
+        }
     }
     
     public List<News> delistedBinance(long fromTimestamp) {
+        Pattern pattern = Pattern.compile(NEWS_DELIST_PATTERN);
     	List<News> news = new ArrayList<>();
     	int pageSize = 50;
         int page = 1;
@@ -395,6 +398,7 @@ public final class PublicAPI {
 						} catch (UnsupportedEncodingException e) {}
 						String url = "https://www.binance.com/en/support/announcement/" + encodedTitle + "-" + code;
         				News n = new News("BINANCE", title, new Date(timestamp), "", url);
+        				addDelistedBinanceSymbols(n, pattern);
         				news.add(n);
         			} else {
         				done = true;
@@ -406,6 +410,21 @@ public final class PublicAPI {
         }
     	
     	return news;
+    }
+
+    private void addDelistedBinanceSymbols(News n, Pattern pattern) {
+        String content = get(n.getUrl(), null, new GenericType<String>(){});
+        int from = content.indexOf(">Fellow Binancians");
+        int to = content.indexOf("Binance Team<");
+        if (from < 0 || to < 0) {
+            LOGGER.warning("Cannot parse delisted symbols in " + n.getUrl());
+        } else {
+            Matcher matcher = pattern.matcher(content.substring(from, to));
+            while (matcher.find()) {
+                String pair = matcher.group();
+                n.delistedSymbols.add(pair.toUpperCase().replace("/", ""));
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -470,7 +489,10 @@ public final class PublicAPI {
     }
 
     public <T> T get(String baseUrl, String path, GenericType<T> type, String... query) {
-        WebTarget webTarget = client.target(baseUrl).path(path);
+        WebTarget webTarget = client.target(baseUrl);
+        if (path != null) {
+            webTarget = webTarget.path(path);
+        }
         StringBuilder queryStr = new StringBuilder();
         if (query.length != 0) {
             for (int i = 0; i < query.length; i = i + 2) {
@@ -598,6 +620,10 @@ public final class PublicAPI {
 
         public String getExchange() {
             return exchange;
+        }
+
+        public String getUrl() {
+            return url;
         }
 
     }
