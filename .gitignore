@@ -15,4 +15,4 @@ bin/*
 *.settings/
 
 # Execute resyncTestData.sh
-cloud/cloud-test/src/test/resources/data
+cloud/cloud-test/data

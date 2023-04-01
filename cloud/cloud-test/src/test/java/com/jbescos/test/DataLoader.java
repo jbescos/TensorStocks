@@ -2,13 +2,12 @@ package com.jbescos.test;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +22,7 @@ import com.jbescos.exchange.Utils;
 public class DataLoader {
 
     private static final Logger LOGGER = Logger.getLogger(DataLoader.class.getName());
+    private static final String DATA_PATH = "data";
     private static final Map<String, List<String>> EXCHANGES_DATA = new HashMap<>();
     public final CloudProperties cloudProperties;
     private final Map<String, List<CsvRow>> grouped = new HashMap<>();
@@ -34,7 +34,7 @@ public class DataLoader {
     private CsvRow minDateRow;
 
     static {
-        File[] exchanges = listFiles("/data");
+        File[] exchanges = listFiles(DATA_PATH);
         for (File exchange : exchanges) {
             File[] csvs = exchange.listFiles();
             List<String> days = new ArrayList<>();
@@ -64,13 +64,15 @@ public class DataLoader {
     }
 
     private static File[] listFiles(String resourcePath) {
-        URL dataResource = DataLoader.class.getResource(resourcePath);
-        if (dataResource != null) {
-            String path = dataResource.getPath();
-            File[] exchanges = new File(path).listFiles();
-            return exchanges;
-        } else {
+        File dataResource = new File(resourcePath);
+        String path = dataResource.getAbsolutePath();
+        LOGGER.info("Loading data in " + path);
+        File[] exchanges = new File(path).listFiles();
+        if (exchanges == null || exchanges.length == 0) {
+            LOGGER.warning("No exchanges found in " + path);
             return new File[0];
+        } else {
+            return exchanges;
         }
     }
 
@@ -87,11 +89,10 @@ public class DataLoader {
                 } else if (date.equals(to)) {
                     break;
                 }
-                String csv = "/data" + cloudProperties.USER_EXCHANGE.getFolder() + resource;
+                String csv = DATA_PATH + cloudProperties.USER_EXCHANGE.getFolder() + resource;
                 if (start) {
                     try {
-                        try (BufferedReader reader = new BufferedReader(
-                                new InputStreamReader(DataLoader.class.getResourceAsStream(csv)))) {
+                        try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(csv)))) {
                             List<CsvRow> dailyRows = CsvUtil.readCsvRows(true, ",", reader, Collections.emptyList());
                             dailyRows = dailyRows.stream()
                                     .filter(r -> cloudProperties.BOT_WHITE_LIST_SYMBOLS.isEmpty()
