@@ -1,6 +1,5 @@
 package com.jbescos.common;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +21,6 @@ import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.FileManager;
-import com.jbescos.exchange.IRow;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
@@ -36,12 +34,14 @@ public class BotExecution {
     private final CloudProperties cloudProperties;
     // Calculated
     private final String baseUsdt;
+    private final Set<String> delisted;
     private Map<String, Double> benefits;
 
     private BotExecution(CloudProperties cloudProperties, ConnectAPI connectAPI, FileManager storage) {
         this.cloudProperties = cloudProperties;
         this.connectAPI = connectAPI;
         this.baseUsdt = storage.getRaw(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE);
+        this.delisted = NewsUtils.delisted(storage, cloudProperties.USER_EXCHANGE);
         this.wallet = connectAPI.wallet();
     }
 
@@ -92,7 +92,7 @@ public class BotExecution {
 
     private void buy(String symbol, Broker stat) {
         if (stat.getNewest().getPrice() > 0) { // Sometimes exchanges disable one symbol, and they set the price to 0
-            if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol)) {
+            if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && !delisted.contains(symbol)) {
                 String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
                 wallet.putIfAbsent(Utils.USDT, 0.0);
                 double buy = 0;
@@ -134,7 +134,7 @@ public class BotExecution {
                 }
             } else {
                 LOGGER.info(() -> cloudProperties.USER_ID + ": " + symbol
-                        + " discarded to buy because it is in bot.never.buy");
+                        + " discarded to buy because it is in bot.never.buy or is delisted");
             }
         }
     }

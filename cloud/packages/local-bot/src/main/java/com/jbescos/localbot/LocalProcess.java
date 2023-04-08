@@ -24,6 +24,7 @@ import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.PublicAPI.News;
 
 public class LocalProcess {
 
@@ -55,8 +56,8 @@ public class LocalProcess {
         
         String fileName = Utils.fromDate(Utils.FORMAT, now) + ".csv";
         PublicAPI publicAPI = new PublicAPI(client);
-        NewsUtils.news(now.getTime(), publicAPI, mainProperties, client);
-
+        Map<Exchange, List<News>> newsPerExchange = NewsUtils.news(now.getTime(), publicAPI, mainProperties, client, exchanges);
+        NewsUtils.saveNews(storage, newsPerExchange);
         FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
         Set<String> updatedExchanges = new HashSet<>();
         for (Exchange exchange : exchanges) {

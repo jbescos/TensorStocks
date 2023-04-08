@@ -101,7 +101,13 @@ public class TestFileInMemoryStorage implements FileManager {
 
     @Override
     public String getRaw(String file) {
-        return baseUsdt;
+        if (file.endsWith(Utils.CONTEXT_DATA_FILE)) {
+            return baseUsdt;
+        } else if (file.endsWith(Utils.NEWS_SUBFIX)) {
+            return null;
+        } else {
+            throw new IllegalArgumentException("No definition for " + file + " in memory");
+        }
     }
 
     @Override

@@ -590,6 +590,7 @@ public final class PublicAPI {
     }
 
     public static class News {
+        public static final String HEAD = "DATE,SYMBOL,URL,EVENT" + Utils.NEW_LINE;
         private final String exchange;
         private final String title;
         private final Date date;
@@ -616,6 +617,22 @@ public final class PublicAPI {
             	content.append("\nDelisted symbols:").append(delistedSymbols);
             }
             return content.toString();
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public Date getDate() {
+            return date;
+        }
+
+        public String getSummary() {
+            return summary;
+        }
+
+        public Set<String> getDelistedSymbols() {
+            return delistedSymbols;
         }
 
         public String getExchange() {

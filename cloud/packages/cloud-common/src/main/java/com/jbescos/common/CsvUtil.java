@@ -9,14 +9,18 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvAccountRow;
 import com.jbescos.exchange.CsvContent;
 import com.jbescos.exchange.CsvProfitRow;
@@ -25,7 +29,6 @@ import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
 import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.Utils;
-import com.jbescos.exchange.Broker.Action;
 
 public class CsvUtil {
 
@@ -276,6 +279,21 @@ public class CsvUtil {
             return rows;
         } else {
             return null;
+        }
+    }
+
+    public static Set<String> delisted(String csvAsString) {
+        if (csvAsString != null) {
+            Set<String> delisted = new HashSet<>();
+            String lines[] = csvAsString.replaceAll("\r", "").split("\n");
+            for (int i = 1; i < lines.length; i++) {
+                String[] columns = lines[i].split(",");
+                String symbol = columns[1];
+                delisted.add(symbol);
+            }
+            return delisted;
+        } else {
+            return Collections.emptySet();
         }
     }
 }

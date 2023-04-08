@@ -30,4 +30,5 @@ public interface FileManager {
     List<CsvTransactionRow> loadCsvTransactionRows(String txFile);
 
     Map<String, String> loadWallet(String walletFile);
+
 }

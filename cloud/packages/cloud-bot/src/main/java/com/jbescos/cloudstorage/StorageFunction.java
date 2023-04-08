@@ -31,6 +31,7 @@ import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
+import com.jbescos.exchange.PublicAPI.News;
 import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudstorage.StorageFunction
@@ -88,7 +89,8 @@ public class StorageFunction implements HttpFunction {
         Date now = new Date();
         LOGGER.info(() -> "Server time is: " + Utils.fromDate(Utils.FORMAT_SECOND, now));
         CloudProperties cloudProperties = new CloudProperties(storageInfo);
-        NewsUtils.news(now.getTime(), publicAPI, cloudProperties, client);
+        Map<Exchange, List<News>> newsPerExchange = NewsUtils.news(now.getTime(), publicAPI, cloudProperties, client, exchanges);
+        NewsUtils.saveNews(storage, newsPerExchange);
         FearGreedIndex fearGreedIndex = publicAPI.getFearGreedIndex("1").get(0);
         try (PublisherMgr publisher = PublisherMgr.create(cloudProperties)) {
             if (!skip) {
