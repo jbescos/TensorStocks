@@ -58,7 +58,7 @@ public class NewsUtils {
                 String date = Utils.fromDate(Utils.FORMAT_SECOND, value.getDate());
                 String url = value.getUrl();
                 for (String symbol : value.getDelistedSymbols()) {
-                    builder.append(date).append(",").append(symbol).append(",").append(url).append(",").append(event).append(Utils.NEW_LINE);
+                    builder.append(date).append(",").append(event).append(",").append(symbol).append(",").append(url).append(Utils.NEW_LINE);
                 }
             }
             String fileName = "data" + entry.getKey().getFolder() + Utils.NEWS_SUBFIX;

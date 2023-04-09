@@ -288,7 +288,7 @@ public class CsvUtil {
             String lines[] = csvAsString.replaceAll("\r", "").split("\n");
             for (int i = 1; i < lines.length; i++) {
                 String[] columns = lines[i].split(",");
-                String symbol = columns[1];
+                String symbol = columns[2];
                 delisted.add(symbol);
             }
             return delisted;
