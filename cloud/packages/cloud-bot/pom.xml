@@ -20,7 +20,7 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>com.jbescos.cloud.packages</groupId>
+			<groupId>com.jbescos.cloud</groupId>
 			<artifactId>cloud-common</artifactId>
 			<version>${project.version}</version>
 		</dependency>
