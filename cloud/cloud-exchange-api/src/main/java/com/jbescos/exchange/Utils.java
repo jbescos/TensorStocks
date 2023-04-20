@@ -501,7 +501,7 @@ public class Utils {
         return fearGreedIndex < 30;
     }
 
-    public static double factorFearGreedAdjusted(double factorBase, CsvRow row, double benefitsAvg) {
+    public static double factorFearGreedAdjusted(double factorBase, CsvRow row, double summaryAvg) {
         double adjustedFactor = factorBase;
         int fearGreedIndex = row.getFearGreedIndex();
         if (!bigVariationFearGreedIndex(row.getFearGreedIndexAvg(), fearGreedIndex)) {
@@ -518,9 +518,9 @@ public class Utils {
                 adjustedFactor = factorBase + 0.05;
             }
         }
-//    	if (benefitsAvg < 0) {
-//			adjustedFactor = adjustedFactor + (benefitsAvg * -1 * 0.1);
-//		}
+//    	if (summaryAvg < 0) {
+//            adjustedFactor = adjustedFactor + (summaryAvg * -1 * 0.1);
+//	}
         return adjustedFactor;
     }
 

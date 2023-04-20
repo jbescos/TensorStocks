@@ -97,7 +97,7 @@ public class LowBroker implements Broker {
         return percentileMin;
     }
 
-    private Action evaluate(double price, double benefitsAvg) {
+    private Action evaluate(double price, double summaryAvg) {
         Action action = Action.NOTHING;
         double benefit = 1 - (minProfitableSellPrice / newest.getPrice());
         double maxProfitSell = Utils.isFearMode(newest.getFearGreedIndex())
@@ -110,7 +110,7 @@ public class LowBroker implements Broker {
             action = Action.SELL;
         } else {
             if (price < avg) {
-                double comparedFactor = Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest, benefitsAvg);
+                double comparedFactor = Utils.factorFearGreedAdjusted(cloudProperties.BOT_MIN_MAX_RELATION_BUY, newest, summaryAvg);
                 if (!hasPreviousTransactions || (hasPreviousTransactions
                         && Utils.isLowerPurchase(price, summary.getLowestPurchase(), Utils.LOWER_PURCHASE_REDUCER))) {
                     if (factor > comparedFactor) {
@@ -170,8 +170,8 @@ public class LowBroker implements Broker {
     }
 
     @Override
-    public void evaluate(double benefitsAvg) {
-        this.action = evaluate(newest.getPrice(), benefitsAvg);
+    public void evaluate(double summaryAvg) {
+        this.action = evaluate(newest.getPrice(), summaryAvg);
     }
 
     @Override

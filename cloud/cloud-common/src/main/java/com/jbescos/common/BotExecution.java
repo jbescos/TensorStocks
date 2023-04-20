@@ -53,10 +53,10 @@ public class BotExecution {
         int purchases = 0;
         Set<String> openSymbolPositions = openPositionSymbols(brokers);
         this.benefits = Utils.calculateBenefits(brokers);
-        double avg = benefits.get(Utils.BENEFITS_AVG);
         Map<String, Broker> symbolBrokers = new HashMap<>();
         for (Broker stat : brokers) {
-            stat.evaluate(avg);
+            Double summaryAvg = benefits.get(stat.getSymbol());
+            stat.evaluate(summaryAvg == null ? 0 : summaryAvg);
             if (stat.getAction() == Action.BUY) {
                 if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
                     if (openSymbolPositions.contains(stat.getSymbol())
@@ -80,7 +80,7 @@ public class BotExecution {
             }
             symbolBrokers.put(stat.getSymbol(), stat);
         }
-        connectAPI.postActions(symbolBrokers, avg);
+        connectAPI.postActions(symbolBrokers, benefits);
     }
 
     private Set<String> openPositionSymbols(List<Broker> stats) {
@@ -194,7 +194,7 @@ public class BotExecution {
 
         double minTransaction();
 
-        void postActions(Map<String, Broker> symbolBrokers, double avg);
+        void postActions(Map<String, Broker> symbolBrokers, Map<String, Double> summaryBenefits);
     }
 
     private static class ConnectAPIImpl implements ConnectAPI {
@@ -264,14 +264,15 @@ public class BotExecution {
         }
 
         @Override
-        public void postActions(Map<String, Broker> stats, double avg) {
+        public void postActions(Map<String, Broker> stats, Map<String, Double> summaryBenefits) {
             if (!transactions.isEmpty()) {
                 LOGGER.info(() -> cloudProperties.USER_ID + ": Persisting " + transactions.size() + " transactions");
                 Date now = transactions.get(0).getDate();
                 String month = Utils.thisMonth(now);
                 StringBuilder data = new StringBuilder();
                 transactions.stream().forEach(r -> {
-                    r.setScore(avg);
+                    Double benefit = summaryBenefits.get(r.getSymbol());
+                    r.setScore(benefit == null ? 0 : benefit);
                     data.append(r.toCsvLine());
                 });
                 String transactionsCsv = cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX + month + ".csv";
@@ -403,7 +404,7 @@ public class BotExecution {
         }
 
         @Override
-        public void postActions(Map<String, Broker> stats, double avg) {
+        public void postActions(Map<String, Broker> stats, Map<String, Double> summaryBenefits) {
             Map<String, Double> symbolSnapshot = usdtSnappshot(stats.values());
             CsvRow newest = stats.values().iterator().next().getNewest();
             for (Entry<String, Double> entry : symbolSnapshot.entrySet()) {
@@ -415,7 +416,8 @@ public class BotExecution {
                 try {
                     StringBuilder data = new StringBuilder();
                     newTransactions.stream().forEach(r -> {
-                        r.setScore(avg);
+                        Double benefit = summaryBenefits.get(r.getSymbol());
+                        r.setScore(benefit == null ? 0 : benefit);
                         data.append(r.toCsvLine());
                     });
                     storage.updateFile("transactions.csv", data.toString().getBytes(Utils.UTF8),

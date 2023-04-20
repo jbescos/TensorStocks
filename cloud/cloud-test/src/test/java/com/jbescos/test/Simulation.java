@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -21,9 +20,9 @@ import java.util.stream.Collectors;
 import com.jbescos.common.BotExecution;
 import com.jbescos.common.ChartGenerator;
 import com.jbescos.common.CloudProperties;
-import com.jbescos.common.DateChart;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.IChart;
+import com.jbescos.common.XYChart;
 import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
@@ -154,7 +153,7 @@ public class Simulation {
                 Path path = Paths.get(testFolder);
                 Files.createDirectories(path);
                 try (FileOutputStream output = new FileOutputStream(chartFile)) {
-                    IChart<IRow> chart = new DateChart();
+                    IChart<IRow> chart = new XYChart();
                     ChartGenerator.writeChart(walletHistorical, output, chart);
                     ChartGenerator.save(output, chart);
                 }
@@ -162,7 +161,7 @@ public class Simulation {
                 List<IRow> fears = loader.get(loader.first().getSymbol()).stream().map(row -> new FearGreedRow(row))
                         .collect(Collectors.toList());
                 try (FileOutputStream output = new FileOutputStream(chartFile)) {
-                    IChart<IRow> chart = new DateChart();
+                    IChart<IRow> chart = new XYChart();
                     ChartGenerator.writeChart(fears, output, chart);
                     ChartGenerator.save(output, chart);
                 }
@@ -178,7 +177,7 @@ public class Simulation {
                     File chartF = new File(testFolder + "/z_" + entry.getKey() + ".png");
                     entry.getValue().stream().forEach(tx -> tx.setUsdt(tx.getUsdtUnit()));
                     try (FileOutputStream output = new FileOutputStream(chartF)) {
-                        IChart<IRow> chart = new DateChart();
+                        IChart<IRow> chart = new XYChart();
                         ChartGenerator.writeChart(entry.getValue(), output, chart);
                         ChartGenerator.writeChart(data, output, chart);
                         ChartGenerator.save(output, chart);
