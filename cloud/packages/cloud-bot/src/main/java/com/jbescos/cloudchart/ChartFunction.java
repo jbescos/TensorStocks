@@ -15,12 +15,16 @@ import com.jbescos.common.ChartGenerator.IChartCsv;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.IChart;
 import com.jbescos.common.StorageInfo;
+import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudchart.ChartFunction
 public class ChartFunction implements HttpFunction {
 
-    private static final String HTML_PAGE = "<html>" + "<body>" + "<h1><USER_ID> Report</h1>"
+    private static final String HTML_PAGE = 
+            "<html>" 
+            + "<body>"
+            + "<h1><USER_ID> Report</h1>"
             + " <img src=\"https://alternative.me/crypto/fear-and-greed-index.png\" alt=\"image\"/>"
             + "<h2>Summary of benefits</h2>"
             + " <img src=\"<CHART_URL>?userId=<USER_ID>&type=summary&days=7&uncache=<TIMESTAMP>\" alt=\"image\"/>"
@@ -28,7 +32,9 @@ public class ChartFunction implements HttpFunction {
             + " <img src=\"<CHART_URL>?userId=<USER_ID>&days=7&uncache=<TIMESTAMP>\" alt=\"image\"/>"
             + "<h2>Wallet 365 days</h2>"
             + " <img src=\"<CHART_URL>?userId=<USER_ID>&days=365&uncache=<TIMESTAMP>\" alt=\"image\"/>"
-            + "<h2>Open positions</h2><OPEN_POSITIONS>" + "</body>" + "</html>";
+            + "<h2>Open positions</h2><table border=\"1\"><tr><th>Date</th><th>Symbol</th><th>USD/unit</th><th>USD</th></tr><TABLE_OPEN_POSITIONS></table><OPEN_POSITIONS>"
+            + "</body>"
+            + "</html>";
     private static final String USER_ID_PARAM = "userId";
     static final String TYPE_LINE = "line";
     static final String TYPE_BAR = "bar";
@@ -50,16 +56,27 @@ public class ChartFunction implements HttpFunction {
             if (TYPE_HTML.equals(type)) {
                 response.setContentType("text/html");
                 BucketStorage bucketStorage = new BucketStorage(storageInfo);
-                Set<String> symbols = bucketStorage.loadOpenTransactions(userId).stream().map(tx -> tx.getSymbol())
+                List<CsvTransactionRow> openTx = bucketStorage.loadOpenTransactions(userId);
+                Set<String> symbols = openTx.stream().map(tx -> tx.getSymbol())
                         .collect(Collectors.toSet());
-                StringBuilder openTxLinks = new StringBuilder();
+                StringBuilder openTxTable = new StringBuilder();
+                openTx.stream().forEach(tx -> {
+                    openTxTable.append("<tr>");
+                    openTxTable.append("<td>").append(Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate())).append("</td>");
+                    openTxTable.append("<td>").append(tx.getSymbol()).append("</td>");
+                    openTxTable.append("<td>").append(Utils.format(tx.getUsdtUnit())).append("</td>");
+                    openTxTable.append("<td>").append(tx.getUsdt()).append("</td>");
+                    openTxTable.append("</tr>");
+                });
                 final String h3 = "<h3><SYMBOL></h3>";
                 final String img = "<p><img src=\"<CHART_URL>?userId=<USER_ID>&symbol=<SYMBOL>&days=7&uncache=<TIMESTAMP>\" alt=\"image\"/></p>";
+                StringBuilder openTxLinks = new StringBuilder();
                 symbols.stream().forEach(symbol -> {
                     openTxLinks.append(h3.replaceFirst("<SYMBOL>", symbol));
                     openTxLinks.append(img.replaceFirst("<SYMBOL>", symbol));
                 });
-                String htmlPage = HTML_PAGE.replaceAll("<OPEN_POSITIONS>", openTxLinks.toString())
+                String htmlPage = HTML_PAGE.replaceAll("<TABLE_OPEN_POSITIONS>", openTxTable.toString())
+                        .replaceAll("<OPEN_POSITIONS>", openTxLinks.toString())
                         .replaceAll("<USER_ID>", userId).replaceAll("<CHART_URL>", cloudProperties.CHART_URL)
                         .replaceAll("<TIMESTAMP>", Long.toString(System.currentTimeMillis()));
                 response.getWriter().append(htmlPage);
