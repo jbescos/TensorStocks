@@ -3,6 +3,7 @@ package com.jbescos.cloudchart;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,6 +17,7 @@ import com.jbescos.common.CloudProperties;
 import com.jbescos.common.IChart;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.CsvTxSummaryRow;
 import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudchart.ChartFunction
@@ -32,7 +34,7 @@ public class ChartFunction implements HttpFunction {
             + " <img src=\"<CHART_URL>?userId=<USER_ID>&days=7&uncache=<TIMESTAMP>\" alt=\"image\"/>"
             + "<h2>Wallet 365 days</h2>"
             + " <img src=\"<CHART_URL>?userId=<USER_ID>&days=365&uncache=<TIMESTAMP>\" alt=\"image\"/>"
-            + "<h2>Open positions</h2><table border=\"1\"><tr><th>Date</th><th>Symbol</th><th>USD/unit</th><th>USD</th></tr><TABLE_OPEN_POSITIONS></table><OPEN_POSITIONS>"
+            + "<h2>Open positions</h2><OPEN_POSITIONS>"
             + "</body>"
             + "</html>";
     private static final String USER_ID_PARAM = "userId";
@@ -56,26 +58,28 @@ public class ChartFunction implements HttpFunction {
             if (TYPE_HTML.equals(type)) {
                 response.setContentType("text/html");
                 BucketStorage bucketStorage = new BucketStorage(storageInfo);
-                List<CsvTransactionRow> openTx = bucketStorage.loadOpenTransactions(userId);
-                Set<String> symbols = openTx.stream().map(tx -> tx.getSymbol())
-                        .collect(Collectors.toSet());
-                StringBuilder openTxTable = new StringBuilder();
-                openTx.stream().forEach(tx -> {
-                    openTxTable.append("<tr>");
-                    openTxTable.append("<td>").append(Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate())).append("</td>");
-                    openTxTable.append("<td>").append(tx.getSymbol()).append("</td>");
-                    openTxTable.append("<td>").append(Utils.format(tx.getUsdtUnit())).append("</td>");
-                    openTxTable.append("<td>").append(tx.getUsdt()).append("</td>");
-                    openTxTable.append("</tr>");
-                });
-                final String h3 = "<h3><SYMBOL></h3>";
-                final String img = "<p><img src=\"<CHART_URL>?userId=<USER_ID>&symbol=<SYMBOL>&days=7&uncache=<TIMESTAMP>\" alt=\"image\"/></p>";
+                Map<String, List<CsvTransactionRow>> txPerSymbol = bucketStorage.loadOpenTransactions(userId).stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
                 StringBuilder openTxLinks = new StringBuilder();
-                symbols.stream().forEach(symbol -> {
-                    openTxLinks.append(h3.replaceFirst("<SYMBOL>", symbol));
-                    openTxLinks.append(img.replaceFirst("<SYMBOL>", symbol));
-                });
-                String htmlPage = HTML_PAGE.replaceAll("<TABLE_OPEN_POSITIONS>", openTxTable.toString())
+                for (Entry<String, List<CsvTransactionRow>> txs : txPerSymbol.entrySet()) {
+                    String h3 = "<h3><SYMBOL></h3>";
+                    String img = "<p><img src=\"<CHART_URL>?userId=<USER_ID>&symbol=<SYMBOL>&days=7&uncache=<TIMESTAMP>\" alt=\"<CHART_URL>?userId=<USER_ID>&symbol=<SYMBOL>&days=7&uncache=<TIMESTAMP>\"/></p>";
+                    StringBuilder openTxTable = new StringBuilder().append("<table border=\"1\"><tr><th>Index</th><th>Date</th><th>USD/unit</th><th>USD</th></tr>");
+                    int idx = 1;
+                    for (CsvTransactionRow tx : txs.getValue()) {
+                        openTxTable.append("<tr>");
+                        openTxTable.append("<td>").append(idx).append("</td>");
+                        openTxTable.append("<td>").append(Utils.fromDate(Utils.FORMAT_SECOND, tx.getDate())).append("</td>");
+                        openTxTable.append("<td>").append(Utils.format(tx.getUsdtUnit())).append("</td>");
+                        openTxTable.append("<td>").append(tx.getUsdt()).append("</td>");
+                        openTxTable.append("</tr>");
+                        idx++;
+                    }
+                    openTxTable.append("</table>");
+                    openTxLinks.append(h3.replaceFirst("<SYMBOL>", txs.getKey()));
+                    openTxLinks.append(openTxTable);
+                    openTxLinks.append(img.replaceFirst("<SYMBOL>", txs.getKey()));
+                }
+                String htmlPage = HTML_PAGE
                         .replaceAll("<OPEN_POSITIONS>", openTxLinks.toString())
                         .replaceAll("<USER_ID>", userId).replaceAll("<CHART_URL>", cloudProperties.CHART_URL)
                         .replaceAll("<TIMESTAMP>", Long.toString(System.currentTimeMillis()));

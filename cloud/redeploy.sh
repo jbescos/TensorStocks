@@ -14,7 +14,7 @@ deleteFunctions() {
   echo y | gcloud functions delete chartFileListener --project=${PROJECT}
 }
 uploadZips() {
-  gcloud storage cp packages/cloud-bot/target/cloud-bot-1.0.zip ${SOURCES}
+  gsutil cp packages/cloud-bot/target/cloud-bot-1.0.zip ${SOURCES}
 }
 createFunctions() {
   gcloud functions deploy function-crypto-storage --trigger-http --runtime=java11 --allow-unauthenticated --memory=512MB --source=${SOURCES}cloud-bot-1.0.zip --stage-bucket=${BUCKET} --timeout=280s --entry-point=com.jbescos.cloudstorage.StorageFunction --project=${PROJECT}
