@@ -31,7 +31,8 @@ import com.jbescos.exchange.AllTickers.Ticker;
 public final class PublicAPI {
 
     private static final Logger LOGGER = Logger.getLogger(PublicAPI.class.getName());
-    private static final String NEWS_DELIST_PATTERN = "([a-zA-Z0-9]+)(|\\/)(USDT)";
+    // Matches BTCUSDT, BTC/USDT and BTC\/USDT
+    private static final String NEWS_DELIST_PATTERN = "([a-zA-Z0-9]+)(|\\/|\\\\\\/)(USDT)";
     private static final String FEAR_GREEDY_URL = "https://api.alternative.me/fng/";
     private static final String BINANCE_URL = "https://api.binance.com";
 //    private static final String BINANCE_URL = "https://api.binance.us";
@@ -347,9 +348,11 @@ public final class PublicAPI {
                     String title = ((String) item.get("title")).toLowerCase();
                     if (title.contains("delist")) {
                         String summary = (String) item.get("summary");
-                        String url = KUCOIN_NEWS_PAGE + item.get("path");
+                        String path = (String) item.get("path");
+                        String url = KUCOIN_NEWS_PAGE + path;
+                        String jsonUrl = "https://assets.staticimg.com/cms/articles" + path + ".json";
                         News n = new News("KUCOIN", title, new Date(timestamp), summary, url);
-                        addDelistedKucoinSymbols(n, pattern);
+                        addDelistedKucoinSymbols(n, pattern, jsonUrl);
                         news.add(n);
                     }
                 } else {
@@ -365,12 +368,16 @@ public final class PublicAPI {
         return news;
     }
     
-    private void addDelistedKucoinSymbols(News n, Pattern pattern) {
-        String content = get(n.getUrl(), null, new GenericType<String>(){});
+    private void addDelistedKucoinSymbols(News n, Pattern pattern, String url) {
+        String content = get(url, null, new GenericType<String>(){});
+        setDelisted(content, n, pattern);
+    }
+    
+    private void setDelisted(String content, News n, Pattern pattern) {
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             String pair = matcher.group();
-            n.delistedSymbols.add(pair.toUpperCase().replace("/", ""));
+            n.delistedSymbols.add(pair.toUpperCase().replace("/", "").replace("\\", ""));
         }
     }
     
@@ -419,11 +426,8 @@ public final class PublicAPI {
         if (from < 0 || to < 0) {
             LOGGER.warning("Cannot parse delisted symbols in " + n.getUrl());
         } else {
-            Matcher matcher = pattern.matcher(content.substring(from, to));
-            while (matcher.find()) {
-                String pair = matcher.group();
-                n.delistedSymbols.add(pair.toUpperCase().replace("/", ""));
-            }
+            content = content.substring(from, to);
+            setDelisted(content, n, pattern);
         }
     }
 
