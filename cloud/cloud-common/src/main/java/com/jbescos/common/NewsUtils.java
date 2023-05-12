@@ -27,10 +27,9 @@ public class NewsUtils {
         Map<Exchange, List<News>> exchangeNews = new HashMap<>();
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
             long minutes30Back = millis - (30 * 60 * 1000);
-            Date rounded = Utils.dateRoundedTo10Min(new Date(minutes30Back));
             for (Exchange exchange : exchanges) {
                 try {
-                    List<News> news = exchange.news(publicAPI, rounded.getTime());
+                    List<News> news = exchange.news(publicAPI, minutes30Back);
                     if (!news.isEmpty()) {
                         LOGGER.info("Notifying " + news.size() + " news for " + exchange.name());
                         exchangeNews.put(exchange, news);

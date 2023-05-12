@@ -594,7 +594,7 @@ public final class PublicAPI {
     }
 
     public static class News {
-        public static final String HEAD = "DATE,SYMBOL,URL,EVENT" + Utils.NEW_LINE;
+        public static final String HEAD = "DATE,EVENT,SYMBOL,URL" + Utils.NEW_LINE;
         private final String exchange;
         private final String title;
         private final Date date;
