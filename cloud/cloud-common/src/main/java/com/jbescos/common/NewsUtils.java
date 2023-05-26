@@ -62,7 +62,7 @@ public class NewsUtils {
             }
             String fileName = "data" + entry.getKey().getFolder() + Utils.NEWS_SUBFIX;
             try {
-                storage.overwriteFile(fileName, builder.toString().getBytes(), News.HEAD.getBytes());
+                storage.updateFile(fileName, builder.toString().getBytes(), News.HEAD.getBytes());
             } catch (IOException e) {
                 LOGGER.log(Level.SEVERE, "Cannot save " + fileName, e);
             }
