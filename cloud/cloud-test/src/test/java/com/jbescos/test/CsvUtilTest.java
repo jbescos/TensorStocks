@@ -1,12 +1,14 @@
 package com.jbescos.test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.nio.file.Files;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -82,5 +85,16 @@ public class CsvUtilTest {
                 + "2023-03-05 13:00:19,TOTAL_USDT,888,888\r\n");
         assertEquals("888", wallet.get(Utils.USDT));
         assertEquals("888", wallet.get(Utils.TOTAL_USDT));
+    }
+
+    @Test
+    public void delisted() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/news/news.csv")) {
+            String csv = new String(in.readAllBytes());
+            Set<String> delisted = CsvUtil.delisted(csv);
+            assertEquals(6, delisted.size());
+            assertTrue(delisted.contains("MEMUSDT"));
+            assertTrue(delisted.contains("PKFUSDT"));
+        }
     }
 }

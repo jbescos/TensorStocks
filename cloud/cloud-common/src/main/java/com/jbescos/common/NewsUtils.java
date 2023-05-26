@@ -72,6 +72,8 @@ public class NewsUtils {
     public static Set<String> delisted(FileManager storage, Exchange exchange) {
         String fileName = "data" + exchange.getFolder() + Utils.NEWS_SUBFIX;
         String content = storage.getRaw(fileName);
-        return CsvUtil.delisted(content);
+        Set<String> delisted = CsvUtil.delisted(content);
+        LOGGER.info(() -> "Delisted symbols: " + delisted + " from " + fileName + ". Content is: " + content);
+        return delisted;
     }
 }
