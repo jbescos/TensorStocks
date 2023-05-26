@@ -2,7 +2,6 @@ package com.jbescos.test;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -31,7 +30,7 @@ public class NewsUtilsTest {
         String temp = System.getProperty("java.io.tmpdir");
         FileStorage storage = new FileStorage(temp);
         NewsUtils.saveNews(storage, newsExchanges);
-        Set<String> delisted = NewsUtils.delisted(storage, Exchange.KUCOIN);
+        List<String> delisted = NewsUtils.delisted(storage, Exchange.KUCOIN);
         System.out.println(temp + " -> " + delisted);
     }
 }

@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.net.URLEncoder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -19,7 +21,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.junit.Test;
 
@@ -91,7 +92,7 @@ public class CsvUtilTest {
     public void delisted() throws IOException {
         try (InputStream in = getClass().getResourceAsStream("/news/news.csv")) {
             String csv = new String(in.readAllBytes());
-            Set<String> delisted = CsvUtil.delisted(csv);
+            List<String> delisted = CsvUtil.delisted(new BufferedReader(new StringReader(csv)));
             assertEquals(6, delisted.size());
             assertTrue(delisted.contains("MEMUSDT"));
             assertTrue(delisted.contains("PKFUSDT"));

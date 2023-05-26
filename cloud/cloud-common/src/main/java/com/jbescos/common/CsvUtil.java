@@ -11,13 +11,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.function.Function;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.jbescos.exchange.Broker.Action;
@@ -282,18 +281,16 @@ public class CsvUtil {
         }
     }
 
-    public static Set<String> delisted(String csvAsString) {
-        if (csvAsString != null) {
-            Set<String> delisted = new HashSet<>();
-            String lines[] = csvAsString.replaceAll("\r", "").split("\n");
-            for (int i = 1; i < lines.length; i++) {
-                String[] columns = lines[i].split(",");
+    public static List<String> delisted(BufferedReader reader) {
+        try {
+            return readCsv(true, line -> {
+                String[] columns = line.split(",");
                 String symbol = columns[2];
-                delisted.add(symbol);
-            }
-            return delisted;
-        } else {
-            return Collections.emptySet();
+                return symbol;
+            }, reader);
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Cannot read delisted CSV", e);
         }
+        return Collections.emptyList();
     }
 }

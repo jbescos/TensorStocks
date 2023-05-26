@@ -2,12 +2,10 @@ package com.jbescos.common;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,11 +67,10 @@ public class NewsUtils {
         }
     }
 
-    public static Set<String> delisted(FileManager storage, Exchange exchange) {
+    public static List<String> delisted(FileManager storage, Exchange exchange) {
         String fileName = "data" + exchange.getFolder() + Utils.NEWS_SUBFIX;
-        String content = storage.getRaw(fileName);
-        Set<String> delisted = CsvUtil.delisted(content);
-        LOGGER.info(() -> "Delisted symbols: " + delisted + " from " + fileName + ". Content is: " + content);
+        List<String> delisted = storage.loadRows(fileName, reader -> CsvUtil.delisted(reader));
+        LOGGER.info(() -> "Delisted symbols: " + delisted + " from " + fileName);
         return delisted;
     }
 }

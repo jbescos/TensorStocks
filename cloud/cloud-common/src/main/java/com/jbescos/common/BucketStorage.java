@@ -13,7 +13,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Scanner;
+import java.util.function.Function;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -33,7 +33,6 @@ import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
-import com.jbescos.exchange.Broker.Action;
 
 public class BucketStorage implements FileManager {
 
@@ -233,6 +232,17 @@ public class BucketStorage implements FileManager {
             // Eat it, no CSV was found is not an error
         }
         return wallet;
+    }
+
+    @Override
+    public <T> List<T> loadRows(String file, Function<BufferedReader, List<T>> function) {
+        try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), file);
+                BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
+            return function.apply(reader);
+        } catch (Exception e) {
+            // Eat it, no CSV was found is not an error
+        }
+        return Collections.emptyList();
     }
 
 }

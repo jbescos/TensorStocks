@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.jbescos.exchange.CsvProfitRow;
@@ -247,5 +248,19 @@ public class FileStorage implements FileManager {
     public Map<String, String> loadWallet(String walletFile) {
         String data = getRaw(walletFile);
         return CsvUtil.wallet(data);
+    }
+
+    @Override
+    public <T> List<T> loadRows(String file, Function<BufferedReader, List<T>> function) {
+        List<T> rows = Collections.emptyList();
+        byte[] content = get(file);
+        if (content != null) {
+            try (BufferedReader reader = new BufferedReader(new StringReader(new String(content, Utils.UTF8)))) {
+                rows = function.apply(reader);
+            } catch (Exception e) {
+                // Eat it, no CSV was found is not an error
+            }
+        }
+        return rows;
     }
 }

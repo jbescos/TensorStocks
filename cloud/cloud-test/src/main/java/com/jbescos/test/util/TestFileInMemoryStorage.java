@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import com.jbescos.common.CsvUtil;
 import com.jbescos.exchange.CsvProfitRow;
@@ -133,6 +134,11 @@ public class TestFileInMemoryStorage implements FileManager {
 
     @Override
     public Map<String, String> loadWallet(String walletFile) {
+        throw new UnsupportedOperationException("Not Implemented");
+    }
+
+    @Override
+    public <T> List<T> loadRows(String file, Function<BufferedReader, List<T>> function) {
         throw new UnsupportedOperationException("Not Implemented");
     }
 }

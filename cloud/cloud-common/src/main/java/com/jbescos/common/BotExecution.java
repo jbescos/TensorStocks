@@ -34,7 +34,7 @@ public class BotExecution {
     private final CloudProperties cloudProperties;
     // Calculated
     private final String baseUsdt;
-    private final Set<String> delisted;
+    private final List<String> delisted;
     private Map<String, Double> benefits;
 
     private BotExecution(CloudProperties cloudProperties, ConnectAPI connectAPI, FileManager storage) {

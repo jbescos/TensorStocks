@@ -1,10 +1,12 @@
 package com.jbescos.exchange;
 
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 public interface FileManager {
 
@@ -30,5 +32,7 @@ public interface FileManager {
     List<CsvTransactionRow> loadCsvTransactionRows(String txFile);
 
     Map<String, String> loadWallet(String walletFile);
+
+    <T> List<T> loadRows(String file, Function<BufferedReader, List<T>> function);
 
 }
