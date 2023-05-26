@@ -41,6 +41,7 @@ public class BotExecution {
         this.cloudProperties = cloudProperties;
         this.connectAPI = connectAPI;
         this.baseUsdt = storage.getRaw(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE);
+        LOGGER.info(() -> cloudProperties.USER_ID + ": Base USDT is " + baseUsdt);
         this.delisted = NewsUtils.delisted(storage, cloudProperties.USER_EXCHANGE);
         this.wallet = connectAPI.wallet();
     }

@@ -208,11 +208,10 @@ public class BucketStorage implements FileManager {
 
     @Override
     public String getRaw(String file) {
-        try (ReadChannel readChannel = storageInfo.getStorage().reader(storageInfo.getBucket(), file);
-                BufferedReader reader = new BufferedReader(Channels.newReader(readChannel, Utils.UTF8));) {
-            return reader.lines().collect(Collectors.joining());
-        } catch (Exception e) {
-            // Eat it, no CSV was found is not an error
+        Blob blob = storageInfo.getStorage().get(BlobInfo.newBuilder(storageInfo.getBucket(), file).build().getBlobId());
+        if (blob != null) {
+            String value = new String(blob.getContent(), Utils.UTF8);
+            return value;
         }
         return null;
     }
