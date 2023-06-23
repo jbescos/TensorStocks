@@ -155,6 +155,8 @@ public class SecuredMizarAPI implements SecuredAPI {
         } else {
             transaction = sell(symbol, action);
         }
+        // FIXME Mizar is giving wrong values, we better calculate it by ourselves
+        transaction = null;
         return transaction;
     }
 
@@ -167,6 +169,8 @@ public class SecuredMizarAPI implements SecuredAPI {
         } else {
             transaction = sell(symbol, action);
         }
+        // FIXME Mizar is giving wrong values, we better calculate it by ourselves
+        transaction = null;
         return transaction;
     }
 
