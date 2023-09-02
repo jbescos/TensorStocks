@@ -76,13 +76,13 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public final int MAX_PURCHASES_PER_ITERATION;
     public final double BOT_LIMITS_FACTOR_MULTIPLIER;
     public final double BOT_LIMITS_FACTOR_PROFIT_SELL;
+    public final double BOT_DCA_RATIO_BUY;
     public final String TELEGRAM_BOT_TOKEN;
     public final String TELEGRAM_CHAT_REPORT_ID;
     public final String TELEGRAM_CHAT_ID;
     public final String CHART_URL;
     public final Map<String, Double> FIXED_BUY;
     public final Map<String, Double> FIXED_SELL;
-    public final List<String> KLINES_LIST;
     private final Properties mainProperties;
     private final Properties idProperties;
 
@@ -163,8 +163,6 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         BOT_WHITE_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         value = getProperty("bot.never.buy");
         BOT_NEVER_BUY_LIST_SYMBOLS = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
-        value = getProperty("klines.list");
-        KLINES_LIST = "".equals(value) ? Collections.emptyList() : Arrays.asList(value.split(","));
         BROKER_COMMISSION = getProperty("broker.commission");
         BOT_BUY_REDUCER = Double.parseDouble(getProperty("bot.buy.reducer"));
         BOT_PERCENTILE_BUY_FACTOR = Double.parseDouble(getProperty("bot.percentile.buy.factor"));
@@ -184,6 +182,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         BOT_PROFIT_DAYS_SUBSTRACTOR = Double.parseDouble(getProperty("bot.profit.days.substractor"));
         BOT_LIMITS_FACTOR_MULTIPLIER = Double.parseDouble(getProperty("bot.limits.factor.multiplier"));
         BOT_LIMITS_FACTOR_PROFIT_SELL = Double.parseDouble(getProperty("bot.limits.factor.profit.sell"));
+        BOT_DCA_RATIO_BUY = Double.parseDouble(getProperty("bot.dca.ratio.buy"));
         Map<String, Double> minSell = createMinSell(idProperties);
         if (minSell.isEmpty()) {
             minSell = createMinSell(mainProperties);

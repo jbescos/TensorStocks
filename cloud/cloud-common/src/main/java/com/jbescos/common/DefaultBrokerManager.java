@@ -52,6 +52,8 @@ public class DefaultBrokerManager implements BrokerManager {
         Double fixedBuy = cloudProperties.FIXED_BUY.get(symbol);
         if (cloudProperties.LIMITS_BROKER_ENABLE && fixedBuy != null) {
             return new LimitsBroker(cloudProperties, symbol, rows, fixedBuy, summary);
+        } else if (cloudProperties.BOT_DCA_RATIO_BUY > 0) {
+            return new DCABroker(cloudProperties, symbol, rows, summary);
         } else {
             return new LowBroker(cloudProperties, symbol, rows, summary);
         }

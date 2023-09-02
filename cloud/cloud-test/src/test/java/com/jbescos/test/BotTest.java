@@ -32,11 +32,12 @@ public class BotTest {
         List<CompletableFuture<?>> completables = new ArrayList<>();
         final int MONTHS_INTERVAL = 12;
         String[] users = new String[] { 
-                "kucoin", "2021-10-25",
-                "binance", "2021-05-10",
-                "kucoin-all", "2021-10-25",
-                "binance-all", "2021-05-10",
-                "okex", "2022-01-01"};
+                "kucoin", "2023-01-01",
+                "binance", "2023-01-01",
+                "kucoin-all", "2023-01-01",
+                "binance-all", "2023-01-01",
+                "okex", "2023-01-01",
+                "dca", "2021-05-10"};
         for (int i = 0; i < users.length; i = i + 2) {
             String userId = users[i];
             CloudProperties cloudProperties = new CloudProperties(userId, null);
