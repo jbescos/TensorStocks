@@ -38,20 +38,32 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
     @Override
     public void accept(GCSEvent event, Context context) {
         LOGGER.info("Processing file: " + event.name);
+        // test-Kucoin/profit/profit_2023-03.csv
+        // test-Kucoin/wallet/wallet_2023-03.csv
+        String[] folders = event.name.split("/");
+        String folder = folders[folders.length - 2];
+        String userId = folders[folders.length - 3];
         try {
-            // test-Kucoin/profit/profit_2023-03.csv
-            // test-Kucoin/wallet/wallet_2023-03.csv
-            new ActionExecutor().run(event.name);
+            // Exclude the folder of data because is not an user
+            if (!"data".equals(userId)) {
+                StorageInfo storageInfo = StorageInfo.build();
+                FileManager storage = new BucketStorage(storageInfo);
+                CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
+                Client client = ClientBuilder.newClient();
+                new FileActionExecutor(cloudProperties, storage, client).run(folder, event.name);
+                client.close();
+            }
+            
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Cannot process " + event.name, e);
         }
     }
 
-    private static interface Action {
+    private static interface FileAction {
         void run() throws IOException;
     }
     
-    private static class ProfitAction implements Action {
+    private static class ProfitAction implements FileAction {
         private final CloudProperties cloudProperties;
         private final Client client;
         private final FileManager storage;
@@ -90,7 +102,7 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
         }
     }
 
-    private static class WalletAction implements Action {
+    private static class WalletAction implements FileAction {
         private final CloudProperties cloudProperties;
         private final Client client;
         public WalletAction(CloudProperties cloudProperties, Client client) {
@@ -115,40 +127,29 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
         
     }
 
-    private static class ActionExecutor {
-        
-        public void run(String name) throws IOException {
-            String[] folders = name.split("/");
-            if (folders.length == 3) {
-                String userId = folders[0];
-                String folder = folders[1];
-                String file = folders[2];
-                Action action = null;
-                Client client = null;
-                try {
-                    if ("profit".equals(folder)) {
-                        client = ClientBuilder.newClient();
-                        StorageInfo storageInfo = StorageInfo.build();
-                        FileManager storage = new BucketStorage(storageInfo);
-                        CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
-                        action = new ProfitAction(cloudProperties, client, storage, name);
-                    } else if ("wallet".equals(folder)) {
-                        if (isReportTime(new Date())) {
-                            client = ClientBuilder.newClient();
-                            StorageInfo storageInfo = StorageInfo.build();
-                            CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
-                            action = new WalletAction(cloudProperties, client);
-                        }
-                    }
-                    if (action != null) {
-                        action.run();
-                    }
-                } finally {
-                    if (client != null) {
-                        client.close();
-                    }
+    private static class FileActionExecutor {
+
+        private final CloudProperties cloudProperties;
+        private final FileManager storage;
+        private final Client client;
+
+        public FileActionExecutor(CloudProperties cloudProperties, FileManager storage, Client client) {
+            this.cloudProperties = cloudProperties;
+            this.storage = storage;
+            this.client = client;
+        }
+
+        public void run(String folder, String fileName) throws IOException {
+            FileAction action = null;
+            if ("profit".equals(folder)) {
+                action = new ProfitAction(cloudProperties, client, storage, fileName);
+            } else if ("wallet".equals(folder)) {
+                if (isReportTime(new Date())) {
+                    action = new WalletAction(cloudProperties, client);
                 }
-                
+            }
+            if (action != null) {
+                action.run();
             }
         }
 

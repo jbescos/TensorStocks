@@ -50,7 +50,7 @@ public class BotExecution {
         return wallet;
     }
     
-    public void execute(List<Broker> brokers) throws IOException {
+    public Map<String, Broker> execute(List<Broker> brokers) throws IOException {
         int purchases = 0;
         Set<String> openSymbolPositions = openPositionSymbols(brokers);
         this.benefits = Utils.calculateBenefits(brokers);
@@ -82,6 +82,7 @@ public class BotExecution {
             symbolBrokers.put(stat.getSymbol(), stat);
         }
         connectAPI.postActions(symbolBrokers, benefits);
+        return symbolBrokers;
     }
 
     private Set<String> openPositionSymbols(List<Broker> stats) {
