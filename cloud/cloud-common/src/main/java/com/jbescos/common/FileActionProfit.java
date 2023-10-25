@@ -33,7 +33,7 @@ public class FileActionProfit implements FileAction {
     @Override
     public void run() throws IOException {
         List<CsvProfitRow> profit = storage.loadCsvProfitRows(fileName);
-        ChartWrapper chartWrapper = new ChartWrapper(cloudProperties);
+        ChartWrapper chartWrapper = new ChartWrapper(cloudProperties, storage);
         Date now = new Date();
         int days = 7;
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {

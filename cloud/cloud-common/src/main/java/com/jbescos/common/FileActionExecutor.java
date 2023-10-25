@@ -26,7 +26,7 @@ public class FileActionExecutor {
             action = new FileActionProfit(cloudProperties, client, storage, fileName);
         } else if ("wallet".equals(folder)) {
             if (isReportTime(new Date())) {
-                action = new FileActionWallet(cloudProperties, client);
+                action = new FileActionWallet(cloudProperties, client, storage);
             }
         }
         if (action != null) {

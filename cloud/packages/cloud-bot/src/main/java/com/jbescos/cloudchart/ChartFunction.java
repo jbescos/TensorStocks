@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.google.cloud.functions.HttpFunction;
@@ -12,13 +11,12 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.ChartGenerator;
-import com.jbescos.common.ChartWrapper;
 import com.jbescos.common.ChartGenerator.IChartCsv;
+import com.jbescos.common.ChartWrapper;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.IChart;
 import com.jbescos.common.StorageInfo;
 import com.jbescos.exchange.CsvTransactionRow;
-import com.jbescos.exchange.CsvTxSummaryRow;
 import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudchart.ChartFunction
@@ -40,7 +38,6 @@ public class ChartFunction implements HttpFunction {
             + "</html>";
     private static final String USER_ID_PARAM = "userId";
     static final String TYPE_LINE = Utils.CHART_TYPE_LINE;
-    static final String TYPE_BAR = Utils.CHART_TYPE_BAR;
     static final String TYPE_SUMMARY = Utils.CHART_TYPE_SUMMARY;
     static final String TYPE_HTML = "html";
 
@@ -53,12 +50,12 @@ public class ChartFunction implements HttpFunction {
             response.setContentType("text/plain");
         } else {
             StorageInfo storageInfo = StorageInfo.build();
+            BucketStorage bucketStorage = new BucketStorage(storageInfo);
             CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
-            ChartWrapper wrapper = new ChartWrapper(cloudProperties);
+            ChartWrapper wrapper = new ChartWrapper(cloudProperties, bucketStorage);
             String type = Utils.getParam("type", TYPE_LINE, request.getQueryParameters());
             if (TYPE_HTML.equals(type)) {
                 response.setContentType("text/html");
-                BucketStorage bucketStorage = new BucketStorage(storageInfo);
                 Map<String, List<CsvTransactionRow>> txPerSymbol = bucketStorage.loadOpenTransactions(userId).stream().collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
                 StringBuilder openTxLinks = new StringBuilder();
                 for (Entry<String, List<CsvTransactionRow>> txs : txPerSymbol.entrySet()) {

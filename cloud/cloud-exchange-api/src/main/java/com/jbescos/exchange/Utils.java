@@ -75,7 +75,6 @@ public class Utils {
     public static final String ORDER_ID_SPLIT = "-";
     public static final int REPORT_HOUR = 6;
     public static final String CHART_TYPE_LINE = "line";
-    public static final String CHART_TYPE_BAR = "bar";
     public static final String CHART_TYPE_SUMMARY = "summary";
 
     public static Properties fromClasspath(String properties) throws IOException {
