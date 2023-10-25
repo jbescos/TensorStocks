@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
-import com.jbescos.exchange.CsvWalletRow;
 import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.Utils;
@@ -33,9 +32,15 @@ import com.jbescos.exchange.Utils;
 public class FileStorage implements FileManager {
 
     private final String filePath;
+    private final FileListener fileListener;
 
     public FileStorage(String filePath) {
+        this(filePath, file -> {});
+    }
+
+    public FileStorage(String filePath, FileListener fileListener) {
         this.filePath = filePath;
+        this.fileListener = fileListener;
     }
 
     @Override
@@ -49,7 +54,9 @@ public class FileStorage implements FileManager {
             }
         }
         Files.write(path, content, StandardOpenOption.APPEND);
-        return file.getAbsolutePath();
+        String filePath = file.getAbsolutePath();
+        fileListener.onModify(file);
+        return filePath;
     }
 
     @Override
@@ -68,7 +75,9 @@ public class FileStorage implements FileManager {
             file.delete();
         }
         Files.write(path, outputStream.toByteArray(), StandardOpenOption.CREATE);
-        return file.getAbsolutePath();
+        String filePath = file.getAbsolutePath();
+        fileListener.onModify(file);
+        return filePath;
     }
 
     @Override
@@ -263,4 +272,11 @@ public class FileStorage implements FileManager {
         }
         return rows;
     }
+
+    public static interface FileListener {
+        
+        public void onModify(File file);
+        
+    }
+
 }

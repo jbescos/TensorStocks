@@ -19,6 +19,7 @@ import com.jbescos.common.CloudProperties;
 import com.jbescos.common.FileStorage;
 import com.jbescos.common.NewsUtils;
 import com.jbescos.common.CloudProperties.Exchange;
+import com.jbescos.common.FileActionExecutor;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Price;
@@ -40,7 +41,7 @@ public class LocalProcess {
         this.storage = storage;
     }
 
-    public void run(List<Exchange> exchanges) throws IOException {
+    public List<CloudProperties> run(List<Exchange> exchanges) throws IOException {
         Date now = new Date();
         Map<String, List<CloudProperties>> usersByExchange = new HashMap<>();
         CloudProperties mainProperties = storage.loadMainProperties(PROPERTIES_PATH);
@@ -80,6 +81,8 @@ public class LocalProcess {
                                 BotProcess process = new BotProcess(user, client, storage);
                                 try {
                                     process.execute();
+                                    FileActionExecutor fileAction = new FileActionExecutor(user, storage, client);
+                                    
                                 } catch (Exception e) {
                                     LOGGER.log(Level.SEVERE, "Error executing bot for " + user.USER_ID, e);
                                 }
@@ -93,5 +96,6 @@ public class LocalProcess {
                 LOGGER.log(Level.SEVERE, "Cannot process " + exchange.name(), e);
             }
         }
+        return properties;
     }
 }

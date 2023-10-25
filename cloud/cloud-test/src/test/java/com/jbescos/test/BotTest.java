@@ -30,7 +30,7 @@ public class BotTest {
         DateFormat format = new SimpleDateFormat(Utils.FORMAT);
         List<Result> results = Collections.synchronizedList(new ArrayList<>());
         List<CompletableFuture<?>> completables = new ArrayList<>();
-        final int MONTHS_INTERVAL = 12;
+        final int MONTHS_INTERVAL = 6;
         String[] users = new String[] { 
                 "kucoin", "2023-01-01",
                 "binance", "2023-01-01",

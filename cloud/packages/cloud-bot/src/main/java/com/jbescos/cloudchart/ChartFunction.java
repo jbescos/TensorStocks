@@ -12,6 +12,7 @@ import com.google.cloud.functions.HttpRequest;
 import com.google.cloud.functions.HttpResponse;
 import com.jbescos.common.BucketStorage;
 import com.jbescos.common.ChartGenerator;
+import com.jbescos.common.ChartWrapper;
 import com.jbescos.common.ChartGenerator.IChartCsv;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.IChart;
@@ -38,9 +39,9 @@ public class ChartFunction implements HttpFunction {
             + "</body>"
             + "</html>";
     private static final String USER_ID_PARAM = "userId";
-    static final String TYPE_LINE = "line";
-    static final String TYPE_BAR = "bar";
-    static final String TYPE_SUMMARY = "summary";
+    static final String TYPE_LINE = Utils.CHART_TYPE_LINE;
+    static final String TYPE_BAR = Utils.CHART_TYPE_BAR;
+    static final String TYPE_SUMMARY = Utils.CHART_TYPE_SUMMARY;
     static final String TYPE_HTML = "html";
 
     @Override
