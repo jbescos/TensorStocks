@@ -33,12 +33,14 @@ public class ChartFileListener implements BackgroundFunction<GCSEvent> {
         try {
             // Exclude the folder of data because is not an user
             if (!"data".equals(userId)) {
-                StorageInfo storageInfo = StorageInfo.build();
-                FileManager storage = new BucketStorage(storageInfo);
-                CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
-                Client client = ClientBuilder.newClient();
-                new FileActionExecutor(cloudProperties, storage, client).run(folder, event.name);
-                client.close();
+                if ("profit".equals(folder) || "wallet".equals(folder)) {
+                    StorageInfo storageInfo = StorageInfo.build();
+                    FileManager storage = new BucketStorage(storageInfo);
+                    CloudProperties cloudProperties = new CloudProperties(userId, storageInfo);
+                    Client client = ClientBuilder.newClient();
+                    new FileActionExecutor(cloudProperties, storage, client).run(folder, event.name);
+                    client.close();
+                }
             }
             
         } catch (IOException e) {
