@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 
@@ -17,6 +18,7 @@ import com.jbescos.exchange.Utils;
 
 public class FileActionProfit implements FileAction {
 
+    private static final Logger LOGGER = Logger.getLogger(FileActionProfit.class.getName());
     private static final long MINUTES_5 = 1000 * 60 * 5;
     private final CloudProperties cloudProperties;
     private final Client client;
@@ -51,6 +53,7 @@ public class FileActionProfit implements FileAction {
                     ChartGenerator.writeLoadAndWriteChart(out, days, chart, chartProperties);
                     telegram.sendImage(out.toByteArray());
                 } else {
+                    LOGGER.info("Skip notification of " + fileName);
                     break;
                 }
             }

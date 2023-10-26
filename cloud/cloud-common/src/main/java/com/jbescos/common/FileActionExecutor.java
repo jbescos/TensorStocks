@@ -32,7 +32,7 @@ public class FileActionExecutor {
             }
         }
         if (action != null) {
-            LOGGER.info("Running " + action.getClass().getSimpleName());
+            LOGGER.info("Running " + action.getClass().getSimpleName() + " in " + fileName);
             action.run();
         }
     }
