@@ -62,10 +62,11 @@ public class Main {
     }
 
     private static void printCharts(FileStorage storage, LocalFileListener listener, Client client, List<CloudProperties> properties) {
-        for (String file : listener.modifiedFiles) {
+        listener.modifiedFiles.parallelStream().forEach(file -> {
             String[] folders = file.split("/");
             String folder = folders[folders.length - 2];
             String userId = folders[folders.length - 3];
+            LOGGER.info("Processing " + file + ", folder = " + folder + ", userId = " + userId);
             // Exclude the folder of data because is not an user
             if (!"data".equals(userId)) {
                 for (CloudProperties property : properties) {
@@ -79,7 +80,7 @@ public class Main {
                     }
                 }
             }
-        }
+        });
     }
     
     private static class LocalFileListener implements FileListener {

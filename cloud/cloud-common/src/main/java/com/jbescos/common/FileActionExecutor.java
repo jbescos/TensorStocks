@@ -2,6 +2,7 @@ package com.jbescos.common;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.logging.Logger;
 
 import javax.ws.rs.client.Client;
 
@@ -10,6 +11,7 @@ import com.jbescos.exchange.Utils;
 
 public class FileActionExecutor {
 
+    private static final Logger LOGGER = Logger.getLogger(FileActionExecutor.class.getName());
     private final CloudProperties cloudProperties;
     private final FileManager storage;
     private final Client client;
@@ -30,6 +32,7 @@ public class FileActionExecutor {
             }
         }
         if (action != null) {
+            LOGGER.info("Running " + action.getClass().getSimpleName());
             action.run();
         }
     }
