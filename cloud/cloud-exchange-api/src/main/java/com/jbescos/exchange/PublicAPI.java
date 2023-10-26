@@ -339,7 +339,7 @@ public final class PublicAPI {
         while (!done) {
             Map<String, Object> response = get(KUCOIN_NEWS_API, "/_api/cms/articles",
                     new GenericType<Map<String, Object>>() {
-                    }, "category", "announcements", "lang", "en_US", "page", Integer.toString(page), "pageSize",
+                    }, "lang", "en_US", "page", Integer.toString(page), "pageSize",
                     Integer.toString(pageSize));
             List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
             for (Map<String, Object> item : items) {
@@ -509,6 +509,7 @@ public final class PublicAPI {
                 queryStr.append(key).append("=").append(value);
             }
         }
+//        LOGGER.warning(webTarget.toString() + " " +queryStr.toString());
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         try (Response response = builder.get()) {
             response.bufferEntity();
