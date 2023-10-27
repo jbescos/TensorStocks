@@ -38,6 +38,7 @@ public class FileActionProfit implements FileAction {
         ChartWrapper chartWrapper = new ChartWrapper(cloudProperties, storage);
         Date now = new Date();
         int days = 7;
+        LOGGER.info("Loaded " + profit.size() + " from " + fileName);
         try (TelegramBot telegram = new TelegramBot(cloudProperties, client)) {
             for (int i = profit.size() - 1; i >=0; i--) {
                 CsvProfitRow recentProfit = profit.get(i);
@@ -52,6 +53,7 @@ public class FileActionProfit implements FileAction {
                     ByteArrayOutputStream out = new ByteArrayOutputStream();
                     ChartGenerator.writeLoadAndWriteChart(out, days, chart, chartProperties);
                     telegram.sendImage(out.toByteArray());
+                    LOGGER.info("Sending profit image of " + fileName);
                 } else {
                     LOGGER.info("Skip notification of " + fileName);
                     break;
