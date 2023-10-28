@@ -88,10 +88,9 @@ public class Main {
         private final Set<String> modifiedFiles = Collections.synchronizedSet(new HashSet<>());
         
         @Override
-        public void onModify(File file) {
-            String absolutePath = file.getAbsolutePath();
-            LOGGER.info("Modified " + absolutePath);
-            modifiedFiles.add(absolutePath);
+        public void onModify(String file) {
+            LOGGER.info("Modified " + file);
+            modifiedFiles.add(file);
         }
         
     }

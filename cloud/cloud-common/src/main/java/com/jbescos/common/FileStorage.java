@@ -54,8 +54,7 @@ public class FileStorage implements FileManager {
             }
         }
         Files.write(path, content, StandardOpenOption.APPEND);
-        String filePath = file.getAbsolutePath();
-        fileListener.onModify(file);
+        fileListener.onModify(fileName);
         return filePath;
     }
 
@@ -76,7 +75,7 @@ public class FileStorage implements FileManager {
         }
         Files.write(path, outputStream.toByteArray(), StandardOpenOption.CREATE);
         String filePath = file.getAbsolutePath();
-        fileListener.onModify(file);
+        fileListener.onModify(fileName);
         return filePath;
     }
 
@@ -275,7 +274,7 @@ public class FileStorage implements FileManager {
 
     public static interface FileListener {
         
-        public void onModify(File file);
+        public void onModify(String file);
         
     }
 
