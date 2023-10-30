@@ -89,7 +89,6 @@ public class Main {
         
         @Override
         public void onModify(String file) {
-            LOGGER.info("Modified " + file);
             modifiedFiles.add(file);
         }
         
