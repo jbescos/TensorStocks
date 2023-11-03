@@ -156,7 +156,7 @@ public class PublicAPITest {
     public void binanceNews() {
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
-        System.out.println(publicAPI.delistedBinance(1661178302000L));
+        System.out.println(publicAPI.delistedBinance(1693560011000L));
         client.close();
     }
     
