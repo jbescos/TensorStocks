@@ -30,6 +30,10 @@ public class FileActionExecutor {
             if (isReportTime(new Date())) {
                 action = new FileActionWallet(cloudProperties, client, storage);
             }
+        } else if ("tx_summary".equals(folder)) {
+            if (isReportTime(new Date())) {
+                action = new FileActionTxSummary(cloudProperties, client, storage);
+            }
         }
         if (action != null) {
             LOGGER.info("Running " + action.getClass().getSimpleName() + " in " + fileName);
