@@ -514,7 +514,7 @@ public final class PublicAPI {
                 queryStr.append(key).append("=").append(value);
             }
         }
-        LOGGER.warning(webTarget.toString() + " " +queryStr.toString());
+//        LOGGER.warning(webTarget.toString() + " " +queryStr.toString());
         Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
         try (Response response = builder.get()) {
             response.bufferEntity();
