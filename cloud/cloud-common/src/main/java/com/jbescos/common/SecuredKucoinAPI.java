@@ -27,6 +27,7 @@ import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.Deposit;
 import com.jbescos.exchange.KucoinResponse;
 import com.jbescos.exchange.PropertiesKucoin;
+import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.Utils;
 
@@ -59,6 +60,8 @@ public class SecuredKucoinAPI implements SecuredAPI {
         this.version = version;
         this.buyCommission = buyCommission;
         this.sellCommission = sellCommission;
+        // Helps to make next request faster
+        new PublicAPI(client).timeKucoin();
     }
 
     public <T> T get(String path, GenericType<T> type, String... query) {

@@ -67,6 +67,11 @@ public final class PublicAPI {
         }).getServerTime();
     }
 
+    public long timeKucoin() {
+        return (long) get(KUCOIN_URL, "/api/v1/timestamp", new GenericType<Map<String, Object>>() {
+        }).get("data");
+    }
+
     public Map<String, Object> exchangeInfoFilter(String symbol, String filterName) {
         String[] query = null;
         if (symbol != null) {

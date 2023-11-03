@@ -13,9 +13,6 @@ import java.util.Set;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import org.junit.Ignore;
-import org.junit.Test;
-
 import com.jbescos.common.CandleChart;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.CloudProperties.Exchange;
@@ -26,6 +23,8 @@ import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.exchange.Utils;
+import org.junit.Ignore;
+import org.junit.Test;
 
 public class PublicAPITest {
 
@@ -158,6 +157,15 @@ public class PublicAPITest {
         Client client = ClientBuilder.newClient();
         PublicAPI publicAPI = new PublicAPI(client);
         System.out.println(publicAPI.delistedBinance(1661178302000L));
+        client.close();
+    }
+    
+    @Test
+    @Ignore
+    public void timeKucoin() {
+        Client client = ClientBuilder.newClient();
+        PublicAPI publicAPI = new PublicAPI(client);
+        System.out.println(publicAPI.timeKucoin());
         client.close();
     }
 }
