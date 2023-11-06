@@ -9,6 +9,7 @@ import com.jbescos.exchange.Broker;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.TransactionsSummary;
 import com.jbescos.exchange.Utils;
+import com.jbescos.exchange.Broker.Action;
 
 public class LowBroker implements Broker {
 
@@ -179,4 +180,8 @@ public class LowBroker implements Broker {
         return values;
     }
 
+    @Override
+    public void setAction(Action action) {
+        this.action = action;
+    }
 }

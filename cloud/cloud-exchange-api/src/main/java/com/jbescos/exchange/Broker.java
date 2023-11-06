@@ -18,6 +18,8 @@ public interface Broker {
 
     List<CsvRow> getValues();
 
+    void setAction(Action action);
+
     public static enum Action {
         BUY {
             @Override

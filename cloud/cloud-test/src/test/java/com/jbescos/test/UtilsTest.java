@@ -605,7 +605,7 @@ public class UtilsTest {
 
     private static final class TestBroker implements Broker {
 
-        private final Action action;
+        private Action action;
         private final double factor;
         private final boolean hasPreviousTransactions;
 
@@ -647,6 +647,11 @@ public class UtilsTest {
         @Override
         public List<CsvRow> getValues() {
             return null;
+        }
+
+        @Override
+        public void setAction(Action action) {
+            this.action = action;
         }
 
     }

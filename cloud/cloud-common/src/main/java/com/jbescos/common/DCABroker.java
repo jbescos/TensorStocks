@@ -94,4 +94,9 @@ public class DCABroker implements Broker {
         return values;
     }
 
+    @Override
+    public void setAction(Action action) {
+        this.action = action;
+    }
+
 }

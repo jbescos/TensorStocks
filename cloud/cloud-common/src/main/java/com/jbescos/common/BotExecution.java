@@ -56,27 +56,33 @@ public class BotExecution {
         this.benefits = Utils.calculateBenefits(brokers);
         Map<String, Broker> symbolBrokers = new HashMap<>();
         for (Broker stat : brokers) {
-            Double summaryAvg = benefits.get(stat.getSymbol());
-            stat.evaluate(summaryAvg == null ? 0 : summaryAvg);
-            if (stat.getAction() == Action.BUY) {
-                if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
-                    if (openSymbolPositions.contains(stat.getSymbol())
-                            || openSymbolPositions.size() < cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
-                        TransactionsSummary summary = stat.getPreviousTransactions();
-                        if (summary.getPreviousBuys() == null
-                                || summary.getPreviousBuys().size() < cloudProperties.MAX_OPEN_POSITIONS) {
-                            buy(stat.getSymbol(), stat);
-                            openSymbolPositions.add(stat.getSymbol());
+            if (openSymbolPositions.contains(stat.getSymbol()) && delisted.contains(stat.getSymbol())) {
+                LOGGER.warning(() -> "User has delisted " + stat.getSymbol() + " in the wallet. Forcing the sell");
+                stat.setAction(Action.SELL);
+                sell(stat.getSymbol(), stat);
+            } else {
+                Double summaryAvg = benefits.get(stat.getSymbol());
+                stat.evaluate(summaryAvg == null ? 0 : summaryAvg);
+                if (stat.getAction() == Action.BUY) {
+                    if (purchases < cloudProperties.MAX_PURCHASES_PER_ITERATION) {
+                        if (openSymbolPositions.contains(stat.getSymbol())
+                                || openSymbolPositions.size() < cloudProperties.MAX_OPEN_POSITIONS_SYMBOLS) {
+                            TransactionsSummary summary = stat.getPreviousTransactions();
+                            if (summary.getPreviousBuys() == null
+                                    || summary.getPreviousBuys().size() < cloudProperties.MAX_OPEN_POSITIONS) {
+                                buy(stat.getSymbol(), stat);
+                                openSymbolPositions.add(stat.getSymbol());
+                            }
                         }
                     }
-                }
-                purchases++;
-            } else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
-                double minSell = cloudProperties.minSell(stat.getSymbol());
-                // In case minimum sell is set, verify current price is higher
-                if (stat.getNewest().getPrice() >= minSell) {
-                    sell(stat.getSymbol(), stat);
-                    openSymbolPositions.remove(stat.getSymbol());
+                    purchases++;
+                } else if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
+                    double minSell = cloudProperties.minSell(stat.getSymbol());
+                    // In case minimum sell is set, verify current price is higher
+                    if (stat.getNewest().getPrice() >= minSell) {
+                        sell(stat.getSymbol(), stat);
+                        openSymbolPositions.remove(stat.getSymbol());
+                    }
                 }
             }
             symbolBrokers.put(stat.getSymbol(), stat);
