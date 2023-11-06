@@ -57,7 +57,7 @@ public class BotExecution {
         Map<String, Broker> symbolBrokers = new HashMap<>();
         for (Broker stat : brokers) {
             if (openSymbolPositions.contains(stat.getSymbol()) && delisted.contains(stat.getSymbol())) {
-                LOGGER.warning(() -> "User has delisted " + stat.getSymbol() + " in the wallet. Forcing the sell");
+                LOGGER.warning(() -> cloudProperties.USER_ID + " has delisted " + stat.getSymbol() + " in the wallet. Forcing the sell");
                 stat.setAction(Action.SELL);
                 sell(stat.getSymbol(), stat);
             } else {
