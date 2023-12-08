@@ -109,7 +109,7 @@ public class PublicAPITest {
         PublicAPI publicAPI = new PublicAPI(client);
         Map<String, Price> binancePrices = publicAPI.priceBinance();
         Map<String, Price> kucoinSellPrices = publicAPI.priceKucoin();
-        Map<String, Price> kucoinBuyPrices = publicAPI.priceKucoin(ticker -> Double.parseDouble(ticker.getSell()));
+        Map<String, Price> kucoinBuyPrices = publicAPI.priceKucoin(ticker -> Double.parseDouble((String) ticker.get("sell")));
         for (String symbol : new CloudProperties("binance", null).BOT_WHITE_LIST_SYMBOLS) {
             Double binanceSellPrice = binancePrices.get(symbol).getPrice();
             Double kucoinSellPrice = kucoinSellPrices.get(symbol).getPrice();

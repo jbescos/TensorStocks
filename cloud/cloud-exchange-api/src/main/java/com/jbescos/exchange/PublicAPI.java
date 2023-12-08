@@ -26,8 +26,6 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import com.jbescos.exchange.AllTickers.Ticker;
-
 public final class PublicAPI {
 
     private static final Logger LOGGER = Logger.getLogger(PublicAPI.class.getName());
@@ -135,18 +133,18 @@ public final class PublicAPI {
     }
 
     public Map<String, Price> priceKucoin() {
-        return priceKucoin(ticker -> Double.parseDouble(ticker.getBuy()));
+        return priceKucoin(ticker -> Double.parseDouble((String) ticker.get("buy")));
     }
 
-    public Map<String, Price> priceKucoin(Function<Ticker, Double> price) {
+    public Map<String, Price> priceKucoin(Function<Map<String, Object>, Double> price) {
         AllTickers allTickers = get(KUCOIN_URL, "/api/v1/market/allTickers", new GenericType<AllTickers>() {
         });
         Map<String, Price> pricesBySymbol = new HashMap<>();
-        allTickers.getData().getTicker().stream().filter(ticker -> ticker.getSymbol().endsWith(Utils.USDT))
-                .filter(ticker -> ticker.getBuy() != null).forEach(ticker -> {
+        allTickers.getData().getTicker().stream().filter(ticker -> ((String) ticker.get("symbol")).endsWith(Utils.USDT))
+                .filter(ticker -> ticker.get("buy") != null).forEach(ticker -> {
                     Double priceVal = price.apply(ticker);
                     if (priceVal != null) {
-                        String symbol = ticker.getSymbol().replaceFirst("-", "");
+                        String symbol = ((String) ticker.get("symbol")).replaceFirst("-", "");
                         pricesBySymbol.put(symbol, new Price(symbol, priceVal, ""));
                     }
                 });
