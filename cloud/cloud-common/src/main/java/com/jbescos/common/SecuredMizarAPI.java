@@ -27,6 +27,7 @@ import com.jbescos.exchange.PropertiesMizar;
 import com.jbescos.exchange.SecuredAPI;
 import com.jbescos.exchange.Utils;
 
+@Deprecated
 public class SecuredMizarAPI implements SecuredAPI {
 
     private static final Logger LOGGER = Logger.getLogger(SecuredMizarAPI.class.getName());
@@ -376,6 +377,6 @@ public class SecuredMizarAPI implements SecuredAPI {
 
     @Override
     public CsvTransactionRow synchronize(CsvTransactionRow precalculated) {
-        throw new IllegalStateException("Binance does not support synchornize transactions");
+        throw new IllegalStateException("Mizar does not support synchornize transactions");
     }
 }
