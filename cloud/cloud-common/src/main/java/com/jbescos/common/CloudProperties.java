@@ -344,6 +344,30 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
                 return publicApi.priceBinance();
             }
         },
+        MIZAR_DCA_KUCOIN("/kucoin/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredMizarDCA.create(cloudProperties, client);
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceBinance();
+            }
+        },
+        MIZAR_DCA_BINANCE("/binance/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                return SecuredMizarDCA.create(cloudProperties, client);
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceBinance();
+            }
+        },
         OKEX("/okex/", true, false) {
             @Override
             public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
