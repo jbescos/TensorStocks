@@ -18,6 +18,7 @@ public class SecuredMizarDCATest {
     @Ignore
     public void openPosition() {
         mizarApi.openPosition("UNFI", "USDT", 0.1);
+        mizarApi.addFunds("UNFI", "USDT", 0.1);
     }
 
     @Test

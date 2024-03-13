@@ -37,13 +37,13 @@ public class SecuredTestAPI implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
+    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice, boolean hasPreviousTransactions) {
         // It will be recalculated just after this
         return null;
     }
 
     @Override
-    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
+    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice, boolean hasPreviousTransactions) {
         // It will be recalculated just after this
         return null;
     }

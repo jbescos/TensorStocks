@@ -148,7 +148,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
+    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice, boolean hasPreviousTransactions) {
         CsvTransactionRow transaction = null;
         if (action == Action.BUY) {
             double quoteOrderQtyD = Double.parseDouble(quoteOrderQty);
@@ -162,7 +162,7 @@ public class SecuredMizarAPI implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
+    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice, boolean hasPreviousTransactions) {
         CsvTransactionRow transaction = null;
         if (action == Action.BUY) {
             double quantityD = Double.parseDouble(quantity);

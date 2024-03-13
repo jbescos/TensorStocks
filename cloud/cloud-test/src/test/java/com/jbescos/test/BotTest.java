@@ -30,14 +30,11 @@ public class BotTest {
         DateFormat format = new SimpleDateFormat(Utils.FORMAT);
         List<Result> results = Collections.synchronizedList(new ArrayList<>());
         List<CompletableFuture<?>> completables = new ArrayList<>();
-        final int MONTHS_INTERVAL = 12;
+        final int MONTHS_INTERVAL = 36;
         String[] users = new String[] { 
                 "kucoin", "2023-01-01",
-                "binance", "2023-01-01",
-//                "kucoin-all", "2023-01-01",
-                "binance-all", "2023-01-01",
-                "okex", "2023-01-01",
-                "dca", "2021-05-10"};
+                "binance", "2023-01-01"
+                };
         for (int i = 0; i < users.length; i = i + 2) {
             String userId = users[i];
             CloudProperties cloudProperties = new CloudProperties(userId, null);

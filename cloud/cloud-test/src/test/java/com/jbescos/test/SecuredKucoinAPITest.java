@@ -108,7 +108,7 @@ public class SecuredKucoinAPITest {
     @Ignore
     public void realOrder() throws InvalidKeyException, NoSuchAlgorithmException, IOException {
         SecuredKucoinAPI api = SecuredKucoinAPI.create(CLOUD_PROPERTIES, client);
-        CsvTransactionRow row = api.orderSymbol("MKRUSDT", Action.SELL, "1.07673363", 978.15866617);
+        CsvTransactionRow row = api.orderSymbol("MKRUSDT", Action.SELL, "1.07673363", 978.15866617, false);
         System.out.println(row);
     }
 }

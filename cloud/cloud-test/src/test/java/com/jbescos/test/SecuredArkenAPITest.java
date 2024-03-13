@@ -40,13 +40,13 @@ public class SecuredArkenAPITest {
     @Test
     @Ignore
     public void buy() {
-        System.out.println(api.orderUSDT("binance-bitcoin" + Utils.USDT, Action.BUY, "1", 0));
+        System.out.println(api.orderUSDT("binance-bitcoin" + Utils.USDT, Action.BUY, "1", 0, false));
     }
 
     @Test
     @Ignore
     public void sell() {
-        System.out.println(api.orderSymbol("binance-bitcoin" + Utils.USDT, Action.SELL, "1", 0));
+        System.out.println(api.orderSymbol("binance-bitcoin" + Utils.USDT, Action.SELL, "1", 0, false));
     }
 
 }

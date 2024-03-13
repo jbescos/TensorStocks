@@ -99,12 +99,13 @@ public class BotExecution {
     }
 
     private void buy(String symbol, Broker stat) {
+        boolean hasPreviousTransactions = stat.getPreviousTransactions().isHasTransactions();
         if (stat.getNewest().getPrice() > 0) { // Sometimes exchanges disable one symbol, and they set the price to 0
             if (!cloudProperties.BOT_NEVER_BUY_LIST_SYMBOLS.contains(symbol) && !delisted.contains(symbol)) {
                 String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
                 wallet.putIfAbsent(Utils.USDT, 0.0);
                 double buy = 0;
-                if (stat.getPreviousTransactions().isHasTransactions()) {
+                if (hasPreviousTransactions) {
                     // Buy same amount than before
                     buy = Double.parseDouble(stat.getPreviousTransactions().getPreviousBuys().get(0).getUsdt());
                 } else {
@@ -134,7 +135,7 @@ public class BotExecution {
                         + ". Stats = " + stat);
                 if (updateWallet(Utils.USDT, buy * -1)) {
                     CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(buySymbol),
-                            Utils.format(buy));
+                            Utils.format(buy), hasPreviousTransactions);
                     if (transaction != null) {
                         wallet.putIfAbsent(walletSymbol, 0.0);
                         updateWallet(walletSymbol, Double.parseDouble(transaction.getQuantity()));
@@ -155,7 +156,7 @@ public class BotExecution {
         if (usdtOfSymbol >= connectAPI.minTransaction()) {
             LOGGER.info(() -> cloudProperties.USER_ID + ": Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
             CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(sell),
-                    Utils.format(usdtOfSymbol));
+                    Utils.format(usdtOfSymbol), true);
             if (transaction != null) {
                 updateWallet(Utils.USDT, transaction.getPrice());
             }
@@ -198,7 +199,7 @@ public class BotExecution {
 
         Map<String, Double> wallet();
 
-        CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd);
+        CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd, boolean hasPreviousTransactions);
 
         double minTransaction();
 
@@ -233,7 +234,7 @@ public class BotExecution {
         }
 
         @Override
-        public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd) {
+        public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd, boolean hasPreviousTransactions) {
             CsvTransactionRow transaction = null;
             try {
                 double currentUsdtPrice = stat.getNewest().getPrice();
@@ -242,14 +243,14 @@ public class BotExecution {
                     // FIXME Sell only what was bought before to avoid selling external user
                     // purchases
                     transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol),
-                            currentUsdtPrice);
+                            currentUsdtPrice, hasPreviousTransactions);
                     if (transaction == null) {
                         transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol,
                                 UUID.randomUUID().toString().replaceAll("-", ""), stat.getAction(), quantity,
                                 currentUsdtPrice, cloudProperties.BOT_SELL_COMMISSION);
                     }
                 } else {
-                    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd, currentUsdtPrice);
+                    transaction = api.orderUSDT(symbol, stat.getAction(), quantityUsd, currentUsdtPrice, hasPreviousTransactions);
                     if (transaction == null) {
                         transaction = Utils.calculatedUsdtCsvTransactionRow(stat.getNewest().getDate(), symbol,
                                 UUID.randomUUID().toString().replaceAll("-", ""), stat.getAction(), quantityUsd,
@@ -370,7 +371,7 @@ public class BotExecution {
         }
 
         @Override
-        public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd) {
+        public CsvTransactionRow order(String symbol, Broker stat, String quantity, String quantityUsd, boolean hasPreviousTransactions) {
             CsvTransactionRow transaction = null;
             if (stat.getAction() == Action.BUY) {
                 transaction = Utils.calculatedUsdtCsvTransactionRow(stat.getNewest().getDate(), symbol,

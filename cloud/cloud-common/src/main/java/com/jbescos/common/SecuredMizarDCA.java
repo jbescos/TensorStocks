@@ -46,11 +46,11 @@ public class SecuredMizarDCA implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
+    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice, boolean hasPreviousTransactions) {
         CsvTransactionRow transaction = null;
         if (action == Action.BUY) {
             double quoteOrderQtyD = Double.parseDouble(quoteOrderQty);
-            transaction = buy(symbol, quoteOrderQtyD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
+            transaction = buy(symbol, quoteOrderQtyD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice, hasPreviousTransactions);
         } else {
             transaction = sell(symbol, action);
         }
@@ -60,11 +60,11 @@ public class SecuredMizarDCA implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
+    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice, boolean hasPreviousTransactions) {
         CsvTransactionRow transaction = null;
         if (action == Action.BUY) {
             double quantityD = Double.parseDouble(quantity);
-            transaction = buy(symbol, quantityD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice);
+            transaction = buy(symbol, quantityD / Double.parseDouble(DEFAULT_WALLET_CONTENT), currentUsdtPrice, hasPreviousTransactions);
         } else {
             transaction = sell(symbol, action);
         }
@@ -73,7 +73,7 @@ public class SecuredMizarDCA implements SecuredAPI {
         return transaction;
     }
 
-    private CsvTransactionRow buy(String symbol, double factor, Double currentUsdtPrice) {
+    private CsvTransactionRow buy(String symbol, double factor, Double currentUsdtPrice, boolean hasPreviousTransactions) {
         if (cloudProperties.mizarLimitTransactionAmount() < 0) {
             throw new IllegalStateException(
                     "SecuredMizarAPI> For Mizar limit.transaction.amount has to be higher than 0 and must match the specified amount in the strategy");
@@ -82,7 +82,11 @@ public class SecuredMizarDCA implements SecuredAPI {
             factor = 1;
         }
         String asset = symbol.replaceFirst(Utils.USDT, "");
-        openPosition(asset, Utils.USDT, factor);
+        if (hasPreviousTransactions) {
+            addFunds(asset, Utils.USDT, factor);
+        } else {
+            openPosition(asset, Utils.USDT, factor);
+        }
         return null;
     }
 
@@ -99,6 +103,22 @@ public class SecuredMizarDCA implements SecuredAPI {
     @Override
     public CsvTransactionRow synchronize(CsvTransactionRow precalculated) {
         throw new IllegalStateException("Mizar does not support synchornize transactions");
+    }
+
+    public Map<String, Object> addFunds(String base_asset, String quote_asset, double size) {
+        Map<String, Object> obj = new LinkedHashMap<>();
+        obj.put("bot_id", cloudProperties.mizarStrategyId());
+        obj.put("base_asset", base_asset);
+        obj.put("quote_asset", quote_asset);
+        obj.put("side", "long");
+        obj.put("size", size);
+        obj.put("delay", 0);
+        LOGGER.info(() -> "SecuredMizarAPI> Add funds: " + obj);
+        Map<String, Object> response = post("/dca-bots/add-funds", obj, new GenericType<Map<String, Object>>() {});
+        if (response != null) {
+            LOGGER.info(() -> "SecuredMizarDCA> Response add funds: " + response);
+        }
+        return response;
     }
 
     public Map<String, Object> openPosition(String base_asset, String quote_asset, double size) {

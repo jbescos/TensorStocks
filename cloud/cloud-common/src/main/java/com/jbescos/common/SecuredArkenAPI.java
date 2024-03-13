@@ -168,7 +168,7 @@ public class SecuredArkenAPI implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice) {
+    public CsvTransactionRow orderUSDT(String symbol, Action action, String quoteOrderQty, double currentUsdtPrice, boolean hasPreviousTransactions) {
         String parsedSymbol = symbol.replaceFirst(symbol, Utils.USDT);
         Map<String, String> response = order(usdtToken, symbolsTokens.get(parsedSymbol), quoteOrderQty, action);
 //        Map<String, String> response = order("0x3e9a5e2b6758c7dc1dca2d46abf1ef215a2ec6ef", "0xf0c49279bef38df8479b4f8c08fafa8f99b4794c", quoteOrderQty, action);
@@ -178,7 +178,7 @@ public class SecuredArkenAPI implements SecuredAPI {
     }
 
     @Override
-    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice) {
+    public CsvTransactionRow orderSymbol(String symbol, Action action, String quantity, double currentUsdtPrice, boolean hasPreviousTransactions) {
         String parsedSymbol = symbol.replaceFirst(Utils.USDT, "");
         Map<String, String> response = order(symbolsTokens.get(parsedSymbol), usdtToken, quantity, action);
         double price = Double.parseDouble(response.get("price"));
