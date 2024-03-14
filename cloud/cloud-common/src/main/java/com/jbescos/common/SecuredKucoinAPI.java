@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -166,6 +167,33 @@ public class SecuredKucoinAPI implements SecuredAPI {
         return tx;
     }
 
+    public List<Map<String, Object>> getOrders(Date from, Date to) {
+        Map<String, Object> response = get("/api/v1/orders", new GenericType<KucoinResponse<Map<String, Object>>>() {},
+                "startAt", Long.toString(from.getTime()), "endAt", Long.toString(to.getTime())).getData();
+        List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
+        StringBuilder csv = new StringBuilder();
+        for (Map<String, Object> row : items) {
+            if (csv.length() == 0) {
+                addCsvRow(csv, row.keySet());
+            }
+            addCsvRow(csv, row.values());
+        }
+        LOGGER.info(csv.toString());
+        return items;
+    }
+
+    private void addCsvRow(StringBuilder csv, Collection<?> row) {
+        boolean first = true;
+        for (Object cell : row) {
+            if (!first) {
+                csv.append(",");
+            }
+            first = false;
+            csv.append(cell);
+        }
+        csv.append("\n");
+    }
+    
     private String order(String symbol, Action action, BuySell key, String value) {
         String kucoinSymbol = symbol.replaceFirst(Utils.USDT, "-" + Utils.USDT);
         String side = action.side().toLowerCase();
