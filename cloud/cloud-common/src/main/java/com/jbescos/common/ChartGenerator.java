@@ -14,6 +14,7 @@ import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvAccountRow;
 import com.jbescos.exchange.CsvTransactionRow;
 import com.jbescos.exchange.CsvTxSummaryRow;
@@ -224,6 +225,7 @@ public class ChartGenerator {
             List<String> months = Utils.monthsBack(now, (daysBack / 31) + 2,
                     cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
             LOGGER.info(() -> "Loading transactions of " + months);
+            List<CsvTransactionRow> totalTransactions = new ArrayList<>();
             for (String month : months) {
                 String raw = storage.getRaw(month);
                 if (raw != null) {
@@ -236,11 +238,64 @@ public class ChartGenerator {
                                 .collect(Collectors.toList());
                     }
                     transactions.stream().forEach(tx -> tx.setUsdt(tx.getUsdtUnit()));
+                    totalTransactions.addAll(transactions);
                     total.addAll(transactions);
                 }
             }
+            total.addAll(profitBarriers(totalTransactions));
             return total;
         }
 
+        private List<IRow> profitBarriers(List<CsvTransactionRow> totalTransactions) {
+            List<IRow> barriers = new ArrayList<>();
+            double totalPriceBuy = 0;
+            int nPurchases = 0;
+            Date date = null;
+            for (CsvTransactionRow tx : totalTransactions) {
+                if (tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC) {
+                    if (nPurchases != 0) {
+                        double avgPurchase = totalPriceBuy / nPurchases;
+                        barriers.add(barrierPoint(date, avgPurchase));
+                        barriers.add(barrierPoint(tx.getDate(), avgPurchase));
+                        totalPriceBuy = 0;
+                        nPurchases = 0;
+                    }
+                } else if (tx.getSide() == Action.BUY) {
+                    if (nPurchases == 0) {
+                        date = tx.getDate();
+                    }
+                    totalPriceBuy = totalPriceBuy + tx.getPrice();
+                    nPurchases++;
+                }
+            }
+            return barriers;
+        }
+
+        private IRow barrierPoint(Date date, double avgPurchase) {
+            String profitBarrierName = "PROFIT_BARRIER";
+            return new IRow() {
+                @Override
+                public double getPrice() {
+                    return avgPurchase;
+                }
+                @Override
+                public String getLabel() {
+                    return profitBarrierName;
+                }
+                @Override
+                public Date getDate() {
+                    return date;
+                }
+                @Override
+                public Double getAvg2() {
+                    return null;
+                }
+                @Override
+                public Double getAvg() {
+                    return null;
+                }
+            };
+        }
     }
+    
 }
