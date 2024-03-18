@@ -247,7 +247,7 @@ public class ChartGenerator {
             return total;
         }
 
-        private List<IRow> profitBarriers(List<CsvTransactionRow> totalTransactions, Date lastDate) {
+        public static List<IRow> profitBarriers(List<CsvTransactionRow> totalTransactions, Date lastDate) {
             List<IRow> barriers = new ArrayList<>();
             double totalPriceBuy = 0;
             int nPurchases = 0;
@@ -279,7 +279,7 @@ public class ChartGenerator {
             return barriers;
         }
 
-        private IRow barrierPoint(Date date, double avgPurchase) {
+        private static IRow barrierPoint(Date date, double avgPurchase) {
             String profitBarrierName = "PROFIT_BARRIER";
             return new IRow() {
                 @Override

@@ -77,7 +77,7 @@ public class XYChart implements IChart<IRow> {
 //	    logAxis.setAutoRange(true);
 //	    xyplot.setRangeAxis(logAxis);
         XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
-        renderer.setSeriesStroke(0, new BasicStroke(0.2f));
+        renderer.setSeriesStroke(0, new BasicStroke(0.02f));
         DateAxis axis = new DateAxis();
         axis.setDateFormatOverride(new SimpleDateFormat("yyyy-MM-dd HH:mm"));
         ((XYPlot) xylineChart.getPlot()).setDomainAxis(axis);

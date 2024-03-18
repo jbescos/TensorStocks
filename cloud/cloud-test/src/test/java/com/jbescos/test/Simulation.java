@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 
 import com.jbescos.common.BotExecution;
 import com.jbescos.common.ChartGenerator;
+import com.jbescos.common.ChartGenerator.SymbolChartCsv;
 import com.jbescos.common.CloudProperties;
 import com.jbescos.common.DefaultBrokerManager;
 import com.jbescos.common.IChart;
@@ -179,6 +180,7 @@ public class Simulation {
                     try (FileOutputStream output = new FileOutputStream(chartF)) {
                         IChart<IRow> chart = new XYChart();
                         ChartGenerator.writeChart(entry.getValue(), output, chart);
+                        ChartGenerator.writeChart(SymbolChartCsv.profitBarriers(entry.getValue(), data.get(data.size() - 1).getDate()), output, chart);
                         ChartGenerator.writeChart(data, output, chart);
                         ChartGenerator.save(output, chart);
                     } catch (IOException e) {
