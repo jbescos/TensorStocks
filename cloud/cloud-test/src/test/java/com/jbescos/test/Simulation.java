@@ -155,6 +155,8 @@ public class Simulation {
                 Files.createDirectories(path);
                 try (FileOutputStream output = new FileOutputStream(chartFile)) {
                     IChart<IRow> chart = new XYChart();
+                    chart.property(IChart.WIDTH, 5000);
+                    chart.property(IChart.HEIGTH, 2000);
                     ChartGenerator.writeChart(walletHistorical, output, chart);
                     ChartGenerator.save(output, chart);
                 }
@@ -179,6 +181,8 @@ public class Simulation {
                     entry.getValue().stream().forEach(tx -> tx.setUsdt(tx.getUsdtUnit()));
                     try (FileOutputStream output = new FileOutputStream(chartF)) {
                         IChart<IRow> chart = new XYChart();
+                        chart.property(IChart.WIDTH, 5000);
+                        chart.property(IChart.HEIGTH, 2000);
                         ChartGenerator.writeChart(entry.getValue(), output, chart);
                         ChartGenerator.writeChart(SymbolChartCsv.profitBarriers(entry.getValue(), data.get(data.size() - 1).getDate()), output, chart);
                         ChartGenerator.writeChart(data, output, chart);
