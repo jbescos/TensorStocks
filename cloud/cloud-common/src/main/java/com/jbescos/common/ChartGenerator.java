@@ -221,6 +221,7 @@ public class ChartGenerator {
                     }
                 }
             }
+            Date lastDate = total.isEmpty() ? null : total.get(total.size() - 1).getDate();
             Date from = Utils.getDateOfDaysBack(now, daysBack);
             List<String> months = Utils.monthsBack(now, (daysBack / 31) + 2,
                     cloudProperties.USER_ID + "/" + Utils.TRANSACTIONS_PREFIX, ".csv");
@@ -242,15 +243,16 @@ public class ChartGenerator {
                     total.addAll(transactions);
                 }
             }
-            total.addAll(profitBarriers(totalTransactions));
+            total.addAll(profitBarriers(totalTransactions, lastDate));
             return total;
         }
 
-        private List<IRow> profitBarriers(List<CsvTransactionRow> totalTransactions) {
+        private List<IRow> profitBarriers(List<CsvTransactionRow> totalTransactions, Date lastDate) {
             List<IRow> barriers = new ArrayList<>();
             double totalPriceBuy = 0;
             int nPurchases = 0;
             Date date = null;
+            Action lastAction = null;
             for (CsvTransactionRow tx : totalTransactions) {
                 if (tx.getSide() == Action.SELL || tx.getSide() == Action.SELL_PANIC) {
                     if (nPurchases != 0) {
@@ -267,6 +269,12 @@ public class ChartGenerator {
                     totalPriceBuy = totalPriceBuy + tx.getPrice();
                     nPurchases++;
                 }
+                lastAction = tx.getSide();
+            }
+            if (lastAction == Action.BUY) {
+                double avgPurchase = totalPriceBuy / nPurchases;
+                barriers.add(barrierPoint(date, avgPurchase));
+                barriers.add(barrierPoint(lastDate, avgPurchase));
             }
             return barriers;
         }
