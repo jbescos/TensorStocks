@@ -131,12 +131,16 @@ public class BotProcess {
             List<CsvTransactionRow> transactions = bucketStorage.loadOpenTransactions(cloudProperties.USER_ID);
             message.append("\n⏲️ Pending open positions: ").append(transactions.size());
             List<CsvProfitRow> dailyProfits = Utils.profitsDaysBack(now, 1, profitRows);
-            message.append("\n📜 Closed positions:");
-            message.append("\nHour, Symbol, Count, Profit(%)");
+            int totalClosed = 0;
+            StringBuilder closedPositions = new StringBuilder();
             for (CsvProfitRow profit : dailyProfits) {
                 int count = profit.getBuyIds().split(Utils.ORDER_ID_SPLIT).length;
-                message.append("\n ").append(Utils.fromDate(Utils.FORMAT_HOUR, profit.getSellDate())).append(", ").append(profit.getSymbol()).append(", ").append(count).append(", ").append(profit.getProfitPercentage());
+                totalClosed = totalClosed + count;
+                closedPositions.append("\n ").append(Utils.fromDate(Utils.FORMAT_HOUR, profit.getSellDate())).append(", ").append(profit.getSymbol()).append(", ").append(count).append(", ").append(profit.getProfitPercentage());
             }
+            message.append("\n📜 Closed positions: ").append(totalClosed);
+            message.append("\nHour, Symbol, Count, Profit(%)");
+            message.append(closedPositions.toString());
             if (cloudProperties.USER_EXCHANGE.isSupportWallet()) {
                 message.append("\n💰 Wallet:");
                 for (Map<String, String> entry : rowsWallet) {
