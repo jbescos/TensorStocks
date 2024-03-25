@@ -32,8 +32,7 @@ public class BotTest {
         List<CompletableFuture<?>> completables = new ArrayList<>();
         final int MONTHS_INTERVAL = 36;
         String[] users = new String[] { 
-                "kucoin", "2023-01-01",
-                "binance", "2023-01-01"
+                "kucoin", "2023-06-01"
                 };
         for (int i = 0; i < users.length; i = i + 2) {
             String userId = users[i];
