@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -29,6 +28,7 @@ import com.jbescos.exchange.Broker.Action;
 import com.jbescos.exchange.CsvProfitRow;
 import com.jbescos.exchange.CsvRow;
 import com.jbescos.exchange.CsvTransactionRow;
+import com.jbescos.exchange.FileManager;
 import com.jbescos.exchange.IRow;
 import com.jbescos.exchange.Utils;
 import com.jbescos.test.util.TestFileInMemoryStorage;
@@ -80,15 +80,9 @@ public class Simulation {
         }
     }
 
-    private String getBaseUsdt(Map<String, Double> wallet) {
-        List<Map<String, String>> walletRows = new ArrayList<>();
-        for (Entry<String, Double> entry : wallet.entrySet()) {
-            Map<String, String> row = new HashMap<>();
-            row.put("SYMBOL", entry.getKey());
-            row.put(Utils.USDT, Utils.format(entry.getValue()));
-            walletRows.add(row);
-        }
-        String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), walletRows);
+    private String getBaseUsdt(Map<String, Double> wallet, FileManager storage) throws IOException {
+        String usdt = Double.toString(wallet.get(Utils.USDT));
+        String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), usdt, storage.loadOpenTransactions(cloudProperties.USER_ID));
         return baseUsdt;
     }
 
@@ -107,7 +101,7 @@ public class Simulation {
 //	    		TestFileStorage fileManager = new TestFileStorage(testFolder + (symbol == null ? "/total_" : "/" + symbol + "_"), transactions, segment);
                 TestFileInMemoryStorage fileManager = new TestFileInMemoryStorage(transactions, openTransactions,
                         segment, profit);
-                String newBaseUsdt = getBaseUsdt(wallet);
+                String newBaseUsdt = getBaseUsdt(wallet, fileManager);
                 if (newBaseUsdt != null) {
                     baseUsdt = newBaseUsdt;
                 }

@@ -739,16 +739,11 @@ public class Utils {
     }
 
     // Get the USDT of the wallet when there is nothing else
-    public static String baseUsdt(Collection<String> excludeLimits, List<Map<String, String>> original) {
-        List<Map<String, String>> wallet = new ArrayList<>(original);
-        wallet.removeIf(
-                entry -> excludeLimits.contains(entry.get("SYMBOL") + USDT) || TOTAL_USDT.equals(entry.get("SYMBOL")));
-        if (wallet.size() == 1) {
-            Map<String, String> usdt = wallet.get(0);
-            if (Utils.USDT.equals(usdt.get("SYMBOL"))) {
-                return usdt.get(Utils.USDT);
-            } else {
-                LOGGER.warning("Unexpected symbol found. Symbol should be USDT: " + usdt);
+    public static String baseUsdt(Collection<String> excludeLimits, String usdt, List<CsvTransactionRow> openPositions) {
+        if (usdt != null) {
+            List<CsvTransactionRow> excludedLimits = openPositions.stream().filter(r -> excludeLimits.contains(r.getSymbol())).collect(Collectors.toList());
+            if (excludedLimits.isEmpty()) {
+                return usdt;
             }
         }
         return null;

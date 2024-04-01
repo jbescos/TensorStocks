@@ -61,7 +61,7 @@ public class BotProcess {
                         cloudProperties.USER_ID + "/" + Utils.WALLET_PREFIX + Utils.thisMonth(now) + ".csv",
                         walletContent, CSV_HEADER_ACCOUNT_TOTAL);
                 bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_WALLET_FILE, walletContent, CSV_HEADER_ACCOUNT_TOTAL);
-                String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), rowsWallet);
+                String baseUsdt = Utils.baseUsdt(cloudProperties.FIXED_BUY.keySet(), wallet.get(Utils.USDT), bucketStorage.loadOpenTransactions(cloudProperties.USER_ID));
                 if (baseUsdt != null) {
                     bucketStorage.overwriteFile(cloudProperties.USER_ID + "/" + Utils.CONTEXT_DATA_FILE,
                             baseUsdt.getBytes(), null);

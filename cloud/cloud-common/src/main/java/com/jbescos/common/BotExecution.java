@@ -1,6 +1,7 @@
 package com.jbescos.common;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -150,19 +151,18 @@ public class BotExecution {
 
     private void sell(String symbol, Broker stat) {
         String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-        wallet.putIfAbsent(walletSymbol, 0.0);
-        double sell = wallet.remove(walletSymbol);
-        double usdtOfSymbol = Utils.usdValue(sell, stat.getNewest().getPrice());
+        // Sell only what was bought before
+        String quantity = stat.getPreviousTransactions().getPreviousBuys().stream().map(r -> new BigDecimal(r.getQuantity())).reduce(BigDecimal.ZERO, BigDecimal::add).toString();
+        double usdtOfSymbol = Utils.usdValue(Double.parseDouble(quantity), stat.getNewest().getPrice());
         if (usdtOfSymbol >= connectAPI.minTransaction()) {
+            double quantityInwallet = wallet.get(walletSymbol);
+            wallet.put(walletSymbol, quantityInwallet - Double.parseDouble(quantity));
             LOGGER.info(() -> cloudProperties.USER_ID + ": Selling " + Utils.format(usdtOfSymbol) + " " + Utils.USDT);
-            CsvTransactionRow transaction = connectAPI.order(symbol, stat, Utils.format(sell),
-                    Utils.format(usdtOfSymbol), true);
+            CsvTransactionRow transaction = connectAPI.order(symbol, stat, quantity, Utils.format(usdtOfSymbol), true);
             if (transaction != null) {
                 updateWallet(Utils.USDT, transaction.getPrice());
             }
         } else {
-            // Restore wallet
-            wallet.put(walletSymbol, sell);
             LOGGER.info(() -> cloudProperties.USER_ID + ": Cannot sell " + Utils.format(usdtOfSymbol) + " " + Utils.USDT
                     + " of " + symbol + " because it is lower than " + Utils.format(connectAPI.minTransaction()));
         }
@@ -239,10 +239,7 @@ public class BotExecution {
             try {
                 double currentUsdtPrice = stat.getNewest().getPrice();
                 if (stat.getAction() == Action.SELL || stat.getAction() == Action.SELL_PANIC) {
-                    String walletSymbol = symbol.replaceFirst(Utils.USDT, "");
-                    // FIXME Sell only what was bought before to avoid selling external user
-                    // purchases
-                    transaction = api.orderSymbol(symbol, stat.getAction(), originalWallet.get(walletSymbol),
+                    transaction = api.orderSymbol(symbol, stat.getAction(), quantity,
                             currentUsdtPrice, hasPreviousTransactions);
                     if (transaction == null) {
                         transaction = Utils.calculatedSymbolCsvTransactionRow(stat.getNewest().getDate(), symbol,

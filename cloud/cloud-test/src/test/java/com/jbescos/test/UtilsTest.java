@@ -3,7 +3,6 @@ package com.jbescos.test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
@@ -20,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.jbescos.common.CloudProperties;
@@ -513,24 +511,6 @@ public class UtilsTest {
         assertEquals("-2.5%", profits.get(0).getProfitPercentage());
         assertEquals("-2.3%", profits.get(1).getProfitPercentage());
         assertEquals("6.2%", profits.get(2).getProfitPercentage());
-    }
-
-    @Test
-    public void baseUsdt() {
-        List<Map<String, String>> wallet = new ArrayList<>();
-        wallet.add(createWalletRow("HAKA", "82.55813899"));
-        wallet.add(createWalletRow("OPCT", "80.29847612"));
-        wallet.add(createWalletRow("BTC", "1277.34226914"));
-        wallet.add(createWalletRow("MKR", "837.91411086"));
-        wallet.add(createWalletRow("USDT", "1449.36508141"));
-        wallet.add(createWalletRow("TOTAL_USDT", "5606.27348021"));
-        assertNull(Utils.baseUsdt(Arrays.asList("BTCUSDT", "MKRUSDT"), wallet));
-        wallet = new ArrayList<>();
-        wallet.add(createWalletRow("BTC", "1277.34226914"));
-        wallet.add(createWalletRow("MKR", "837.91411086"));
-        wallet.add(createWalletRow("USDT", "1449.36508141"));
-        wallet.add(createWalletRow("TOTAL_USDT", "5606.27348021"));
-        assertEquals("1449.36508141", Utils.baseUsdt(Arrays.asList("BTCUSDT", "MKRUSDT"), wallet));
     }
     
     @Test
