@@ -149,6 +149,9 @@ public class BotProcess {
                     message.append("\n ").append(symbol).append(": ").append(Utils.format(Double.parseDouble(usdt), 2)).append("$");
                 }
             }
+            if (cloudProperties.BOT_HOME_PAGE != null && !cloudProperties.BOT_HOME_PAGE.isEmpty()) {
+                message.append("\n🤑 Try me here:\n").append(cloudProperties.BOT_HOME_PAGE);
+            }
             telegram.sendMessage(message.toString());
         }
     }

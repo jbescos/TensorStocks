@@ -40,6 +40,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public final String BUCKET;
     public final String USER_ID;
     public final String EMAIL;
+    public final String BOT_HOME_PAGE;
     public final String BROKER_COMMISSION;
     public final boolean USER_ACTIVE;
     public final String GOOGLE_TOPIC_ID;
@@ -188,6 +189,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         BOT_LIMITS_FACTOR_MULTIPLIER = Double.parseDouble(getProperty("bot.limits.factor.multiplier"));
         BOT_LIMITS_FACTOR_PROFIT_SELL = Double.parseDouble(getProperty("bot.limits.factor.profit.sell"));
         BOT_DCA_RATIO_BUY = Double.parseDouble(getProperty("bot.dca.ratio.buy"));
+        BOT_HOME_PAGE = getProperty("bot.home.page");
         Map<String, Double> minSell = createMinSell(idProperties);
         if (minSell.isEmpty()) {
             minSell = createMinSell(mainProperties);
