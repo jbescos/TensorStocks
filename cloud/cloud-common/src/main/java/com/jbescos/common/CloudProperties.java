@@ -51,6 +51,9 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
     public final String KUCOIN_PRIVATE_KEY;
     public final String KUCOIN_API_PASSPHRASE;
     public final String KUCOIN_API_VERSION;
+    public final String COMMAS_PUBLIC_KEY;
+    public final String COMMAS_PRIVATE_KEY;
+    public final String COMMAS_ACCOUNT_ID;
     public final String MIZAR_API_KEY;
     public final int MIZAR_STRATEGY_ID;
     public final double LIMIT_TRANSACTION_AMOUNT;
@@ -154,7 +157,9 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
         KUCOIN_PRIVATE_KEY = getProperty("kucoin.private.key");
         KUCOIN_API_PASSPHRASE = getProperty("kucoin.passphrase.key");
         KUCOIN_API_VERSION = getProperty("kucoin.version");
-
+        COMMAS_PUBLIC_KEY = getProperty("3commas.public.key");
+        COMMAS_PRIVATE_KEY = getProperty("3commas.private.key");
+        COMMAS_ACCOUNT_ID = getProperty("3commas.account.id");
         MIZAR_API_KEY = getProperty("mizar.api.key");
         MIZAR_STRATEGY_ID = Integer.parseInt(getProperty("mizar.strategy.id"));
         LIMIT_TRANSACTION_RATIO_AMOUNT = Double.parseDouble(getProperty("limit.transaction.ratio.amount"));
@@ -353,7 +358,7 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
 
             @Override
             public Map<String, Price> price(PublicAPI publicApi) {
-                return publicApi.priceBinance();
+                return publicApi.priceKucoin();
             }
         },
         MIZAR_DCA_BINANCE("/binance/", false, false) {
@@ -366,6 +371,18 @@ public class CloudProperties implements PropertiesBinance, PropertiesKucoin, Pro
             @Override
             public Map<String, Price> price(PublicAPI publicApi) {
                 return publicApi.priceBinance();
+            }
+        },
+        COMMAS_KUCOIN("/kucoin/", false, false) {
+            @Override
+            public SecuredAPI create(CloudProperties cloudProperties, Client client, FileManager storage)
+                    throws KeyException, IOException, NoSuchAlgorithmException {
+                return Secured3CommasAPI.create(cloudProperties, client);
+            }
+
+            @Override
+            public Map<String, Price> price(PublicAPI publicApi) {
+                return publicApi.priceKucoin();
             }
         },
         OKEX("/okex/", true, false) {
