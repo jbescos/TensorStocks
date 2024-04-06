@@ -161,6 +161,7 @@ public class Secured3CommasAPI implements SecuredAPI {
     private static final String DEFAULT_WALLET_CONTENT = "1000000000";
     private final Map<String, String> wallet = new HashMap<>();
     private static final String URL = "https://api.3commas.io";
+    private static final String URL_MY_IP = "https://api4.my-ip.io/v2/ip.txt";
     private static final String HEADER_API_KEY = "Apikey";
     private static final String HEADER_SECRET = "Signature";
     private final String publicKey;
@@ -251,8 +252,14 @@ public class Secured3CommasAPI implements SecuredAPI {
                             + body + ": " + response.readEntity(String.class));
                 }
             } else {
+                String ipData = null;
+                try {
+                    ipData = client.target(URL_MY_IP).request().get().readEntity(String.class);
+                } catch (Exception e) {
+                    ipData = e.getMessage();
+                }
                 throw new RuntimeException("Secured3CommasAPI> HTTP response code " + response.getStatus() + " from "
-                        + webTarget.toString() + " " + body + ": " + response.readEntity(String.class));
+                        + webTarget.toString() + " " + body + ": " + response.readEntity(String.class) + ". IP: " + ipData);
             }
         }
     }
