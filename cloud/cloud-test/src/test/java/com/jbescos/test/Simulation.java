@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -168,24 +169,11 @@ public class Simulation {
                 Map<String, List<CsvTransactionRow>> txsBySymbol = transactions.stream()
                         .collect(Collectors.groupingBy(CsvTransactionRow::getSymbol));
                 Map<String, BuyRate> symbolRates = new ConcurrentHashMap<>();
+                symbolChart("BTCUSDT", Collections.emptyList(), symbolRates);
+                symbolChart("ETHUSDT", Collections.emptyList(), symbolRates);
                 txsBySymbol.entrySet().parallelStream().forEach(entry -> {
-                    symbolRates.put(entry.getKey(), new BuyRate(entry.getKey(), entry.getValue()));
-                    List<CsvRow> data = loader.get(entry.getKey());
-                    File chartF = new File(testFolder + "/z_" + entry.getKey() + ".png");
-                    entry.getValue().stream().forEach(tx -> tx.setUsdt(tx.getUsdtUnit()));
-                    try (FileOutputStream output = new FileOutputStream(chartF)) {
-                        IChart<IRow> chart = new XYChart();
-                        chart.property(IChart.WIDTH, 5000);
-                        chart.property(IChart.HEIGTH, 2000);
-                        ChartGenerator.writeChart(entry.getValue(), output, chart);
-                        ChartGenerator.writeChart(SymbolChartCsv.profitBarriers(entry.getValue(), data.get(data.size() - 1).getDate()), output, chart);
-                        ChartGenerator.writeChart(data, output, chart);
-                        ChartGenerator.save(output, chart);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    symbolChart(entry.getKey(), entry.getValue(), symbolRates);
                 });
-                
                 Result result = new Result(INITIAL_USDT, totalPrice, benefit, from, to, loader.getCloudProperties().USER_ID,
                         loader.getCloudProperties().USER_EXCHANGE.name(), buys.size(), buyValue, symbolRates);
                 new TestFileStorage(testFolder, null, null).updateFile("/symbol_rate.csv", result.toSymbolRateCsv().getBytes(), Result.CSV_HEAD_SYMBOL_RATE.getBytes());
@@ -196,6 +184,24 @@ public class Simulation {
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error in " + testFolder, e);
             throw new RuntimeException("Error in " + testFolder, e);
+        }
+    }
+
+    private void symbolChart(String symbol, List<CsvTransactionRow> tx, Map<String, BuyRate> symbolRates) {
+        symbolRates.put(symbol, new BuyRate(symbol, tx));
+        List<CsvRow> data = loader.get(symbol);
+        File chartF = new File(testFolder + "/z_" + symbol + ".png");
+        tx.stream().forEach(t -> t.setUsdt(t.getUsdtUnit()));
+        try (FileOutputStream output = new FileOutputStream(chartF)) {
+            IChart<IRow> chart = new XYChart();
+            chart.property(IChart.WIDTH, 5000);
+            chart.property(IChart.HEIGTH, 2000);
+            ChartGenerator.writeChart(tx, output, chart);
+            ChartGenerator.writeChart(SymbolChartCsv.profitBarriers(tx, data.get(data.size() - 1).getDate()), output, chart);
+            ChartGenerator.writeChart(data, output, chart);
+            ChartGenerator.save(output, chart);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
