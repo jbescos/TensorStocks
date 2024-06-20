@@ -37,6 +37,7 @@ public class NewsUtils {
                     }
                 } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Cannot obtain news from " + exchange.name(), e);
+                    telegram.exception("Cannot obtain news from " + exchange.name(), e);
                 }
             }
         }
