@@ -513,7 +513,7 @@ public final class PublicAPI {
             }
         }
 //        LOGGER.warning(webTarget.toString() + " " +queryStr.toString());
-        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON);
+        Invocation.Builder builder = webTarget.request(MediaType.APPLICATION_JSON).header("Accept-Encoding", "identity");
         try (Response response = builder.get()) {
             response.bufferEntity();
             if (response.getStatus() == 200) {
