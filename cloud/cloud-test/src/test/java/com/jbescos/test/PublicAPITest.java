@@ -23,6 +23,7 @@ import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.PublicAPI.Interval;
 import com.jbescos.exchange.Utils;
+import org.glassfish.jersey.message.GZipEncoder;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -154,9 +155,9 @@ public class PublicAPITest {
     @Test
     @Ignore
     public void binanceNews() {
-        Client client = ClientBuilder.newClient();
+        Client client = ClientBuilder.newBuilder().register(GZipEncoder.class).build();
         PublicAPI publicAPI = new PublicAPI(client);
-        System.out.println(publicAPI.delistedBinance(1693560011000L));
+        System.out.println(publicAPI.delistedBinance(1720341605000L));
         client.close();
     }
     

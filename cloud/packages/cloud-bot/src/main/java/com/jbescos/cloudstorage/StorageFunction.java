@@ -32,6 +32,7 @@ import com.jbescos.exchange.FearGreedIndex;
 import com.jbescos.exchange.Price;
 import com.jbescos.exchange.PublicAPI;
 import com.jbescos.exchange.PublicAPI.News;
+import org.glassfish.jersey.message.GZipEncoder;
 import com.jbescos.exchange.Utils;
 
 // Entry: com.jbescos.cloudstorage.StorageFunction
@@ -57,7 +58,7 @@ public class StorageFunction implements HttpFunction {
         }
         LOGGER.info("Exchanges: " + exchanges);
         StorageInfo storageInfo = StorageInfo.build();
-        Client client = ClientBuilder.newClient();
+        Client client = ClientBuilder.newBuilder().register(GZipEncoder.class).build();
         PublicAPI publicAPI = new PublicAPI(client);
         BucketStorage storage = new BucketStorage(storageInfo);
 

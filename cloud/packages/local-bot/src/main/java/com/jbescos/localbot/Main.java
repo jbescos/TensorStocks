@@ -1,6 +1,5 @@
 package com.jbescos.localbot;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -19,11 +18,12 @@ import java.util.stream.Collectors;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 
-import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.CloudProperties;
+import com.jbescos.common.CloudProperties.Exchange;
 import com.jbescos.common.FileActionExecutor;
 import com.jbescos.common.FileStorage;
 import com.jbescos.common.FileStorage.FileListener;
+import org.glassfish.jersey.message.GZipEncoder;
 
 public class Main {
 
@@ -48,7 +48,7 @@ public class Main {
             exchanges = Arrays.asList(Exchange.values());
         }
         ExecutorService executor = Executors.newCachedThreadPool();
-        Client client = ClientBuilder.newClient();
+        Client client = ClientBuilder.newBuilder().register(GZipEncoder.class).build();
         LocalFileListener listener = new LocalFileListener();
         FileStorage storage = new FileStorage("./crypto-for-training/", listener);
         LocalProcess storageProcess = new LocalProcess(executor, client, storage);
